@@ -288,3 +288,41 @@ $H_z[i,j,k]$-=$
       - \frac{E_z[i,j,k] - E_z[i,j-1,k]}{dy}
     \right )
 $
+
+## В векторной форме
+
+$
+\vec E[i,j,k]=\begin{bmatrix}
+E_x
+\\
+E_y
+\\
+E_z
+\end{bmatrix}[i,j,k]
+$ += $\frac{dt}{\varepsilon\varepsilon_0}
+\begin{bmatrix}
+    \frac{H_z[i,j,k] - H_z[i,j-1,k]}{dy} - \frac{H_z[i,j,k] - H_z[i,j,k-1]}{dz}
+\\
+    \frac{H_z[i,j,k] - H_z[i,j,k-1]}{dz} - \frac{H_z[i,j,k] - H_z[i-1,j,k]}{dx}
+\\
+    \frac{H_z[i,j,k] - H_z[i-1,j,k]}{dx} - \frac{H_z[i,j,k] - H_z[i,j-1,k]}{dy}
+\end{bmatrix}
+$
+
+$
+\vec H[i,j,k]=\begin{bmatrix}
+H_x
+\\
+H_y
+\\
+H_z
+\end{bmatrix}[i,j,k]
+$ -= $\frac{dt}{\mu\mu_0}
+\begin{bmatrix}
+    \frac{E_z[i,j,k] - E_z[i,j-1,k]}{dy} - \frac{E_z[i,j,k] - E_z[i,j,k-1]}{dz}
+\\
+    \frac{E_z[i,j,k] - E_z[i,j,k-1]}{dz} - \frac{E_z[i,j,k] - E_z[i-1,j,k]}{dx}
+\\
+    \frac{E_z[i,j,k] - E_z[i-1,j,k]}{dx} - \frac{E_z[i,j,k] - E_z[i,j-1,k]}{dy}
+\end{bmatrix}
+$
