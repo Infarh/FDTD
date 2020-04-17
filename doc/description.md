@@ -29,8 +29,10 @@ i & j & k\\
 \end{matrix}\right| \right .
 $
 $=\begin{bmatrix}
-\frac{\partial \mathbf H_z}{\partial y} - \frac{\partial \mathbf H_y}{\partial z}\\ 
-\frac{\partial \mathbf H_x}{\partial z} - \frac{\partial \mathbf H_z}{\partial x}\\ 
+\frac{\partial \mathbf H_z}{\partial y} - \frac{\partial \mathbf H_y}{\partial z}
+\\ 
+\frac{\partial \mathbf H_x}{\partial z} - \frac{\partial \mathbf H_z}{\partial x}
+\\ 
 \frac{\partial \mathbf H_y}{\partial x} - \frac{\partial \mathbf H_x}{\partial y}
 \end{bmatrix}
 $
@@ -44,8 +46,28 @@ i & j & k\\
 \end{matrix}\right| \right .
 $
 $=\begin{bmatrix}
-\frac{\partial \mathbf E_z}{\partial y} - \frac{\partial \mathbf E_y}{\partial z}\\ 
-\frac{\partial \mathbf E_x}{\partial z} - \frac{\partial \mathbf E_z}{\partial x}\\ 
+\frac{\partial \mathbf E_z}{\partial y} - \frac{\partial \mathbf E_y}{\partial z}
+\\ 
+\frac{\partial \mathbf E_x}{\partial z} - \frac{\partial \mathbf E_z}{\partial x}
+\\ 
 \frac{\partial \mathbf E_y}{\partial x} - \frac{\partial \mathbf E_x}{\partial y}
 \end{bmatrix}
 $
+
+## Переход к конечным разностям
+
+### Дифференциал по времени
+Определяется как разность между значением в текущий момент времени и значением, которое было на предыдущем шаге. Разность нормируется к величине дискрета времени $dt$:
+
+$\frac{\partial \mathbf D}{\partial t}=\varepsilon\varepsilon_0\frac{E^t-E^{t-dt}}{dt}$
+
+$\frac{\partial \mathbf B}{\partial t}=\mu\mu_0\frac{H^t-H^{t-dt}}{dt}$
+
+### Дифференциал по пространственной координате
+Пространство разбито на ячейки в трёхмерной системе координат (индексов). Дифференциал по пространственной координате заменяется разностью между двумя соседними ячейками с изменением соответствющего координате индекса:
+* Координата x - индекс i
+* Координата y - индекс j
+* Координата z - индекс k
+
+Конечная разность определяется как разность между двумя соседними ячейками по выбранному индексу, делёная на величину пространсвтенного шага (размер ячейки в в заданном направлении):
+$\frac{\partial \mathbf H_z}{\partial y}[i,j,k]=\frac{H_z[i,j,k]-H_z[i,j-1,k]}{dy}$
