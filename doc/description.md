@@ -4,53 +4,53 @@
 
 ### Теорема Стокса
 
-$rot\vec\mathbf H=\frac{\partial \vec\mathbf D}{\partial t}$
+$rot\vec H=\frac{\partial \vec D}{\partial t}$
 
-$rot\vec\mathbf E=-\frac{\partial \vec\mathbf B}{\partial t}$
+$rot\vec E=-\frac{\partial \vec B}{\partial t}$
 
 ### Уравнения связи
 
 Электрическая индукция
 
-$\vec\mathbf D=\varepsilon\varepsilon_0 \vec\mathbf E$
+$\vec D=\varepsilon\varepsilon_0 \vec E$
 
 Магнитная индукция
 
-$\vec\mathbf B=\mu\mu_0 \vec\mathbf H$
+$\vec B=\mu\mu_0 \vec H$
 
 ## Рзложение ротора
 
 $
-rot\vec\mathbf H=
+rot\vec H=
 \left | \left.\begin{matrix}
-i & j & k\\ 
-\frac{\partial}{\partial x} & \frac{\partial}{\partial y} & \frac{\partial}{\partial z}\\ 
-\mathbf H_x & \mathbf H_y & \mathbf H_z
+i & j & k
+\\ 
+\frac{\partial}{\partial x} & \frac{\partial}{\partial y} & \frac{\partial}{\partial z}
+\\ 
+H_x & H_y & H_z
 \end{matrix}\right| \right .
-$
-$=\begin{bmatrix}
-\frac{\partial \mathbf H_z}{\partial y} - \frac{\partial \mathbf H_y}{\partial z}
+$$=\begin{bmatrix}
+\frac{\partial H_z}{\partial y} - \frac{\partial H_y}{\partial z}
 \\ 
-\frac{\partial \mathbf H_x}{\partial z} - \frac{\partial \mathbf H_z}{\partial x}
+\frac{\partial H_x}{\partial z} - \frac{\partial H_z}{\partial x}
 \\ 
-\frac{\partial \mathbf H_y}{\partial x} - \frac{\partial \mathbf H_x}{\partial y}
+\frac{\partial H_y}{\partial x} - \frac{\partial H_x}{\partial y}
 \end{bmatrix}
 $
 
 $
-rot\vec\mathbf E=
+rot\vec E=
 \left | \left.\begin{matrix}
 i & j & k\\ 
 \frac{\partial}{\partial x} & \frac{\partial}{\partial y} & \frac{\partial}{\partial z}\\ 
-\mathbf E_x & \mathbf E_y & \mathbf E_z
+E_x & E_y & E_z
 \end{matrix}\right| \right .
-$
-$=\begin{bmatrix}
-\frac{\partial \mathbf E_z}{\partial y} - \frac{\partial \mathbf E_y}{\partial z}
+$$=\begin{bmatrix}
+\frac{\partial E_z}{\partial y} - \frac{\partial E_y}{\partial z}
 \\ 
-\frac{\partial \mathbf E_x}{\partial z} - \frac{\partial \mathbf E_z}{\partial x}
+\frac{\partial E_x}{\partial z} - \frac{\partial E_z}{\partial x}
 \\ 
-\frac{\partial \mathbf E_y}{\partial x} - \frac{\partial \mathbf E_x}{\partial y}
+\frac{\partial E_y}{\partial x} - \frac{\partial E_x}{\partial y}
 \end{bmatrix}
 $
 
@@ -59,9 +59,9 @@ $
 ### Дифференциал по времени
 Определяется как разность между значением в текущий момент времени и значением, которое было на предыдущем шаге. Разность нормируется к величине дискрета времени $\Delta t$:
 
-$\frac{\partial \mathbf D}{\partial t}=\varepsilon\varepsilon_0\frac{E^t-E^{t-\Delta t}}{\Delta t}$
+$\frac{\partial D}{\partial t}=\varepsilon\varepsilon_0\frac{E^t-E^{t-\Delta t}}{\Delta t}$
 
-$\frac{\partial \mathbf B}{\partial t}=\mu\mu_0\frac{H^t-H^{t-\Delta t}}{\Delta t}$
+$\frac{\partial B}{\partial t}=\mu\mu_0\frac{H^t-H^{t-\Delta t}}{\Delta t}$
 
 ### Дифференциал по пространственной координате
 Пространство разбито на ячейки в трёхмерной системе координат (индексов). Дифференциал по пространственной координате заменяется разностью между двумя соседними ячейками с изменением соответствющего координате индекса:
@@ -70,7 +70,10 @@ $\frac{\partial \mathbf B}{\partial t}=\mu\mu_0\frac{H^t-H^{t-\Delta t}}{\Delta 
 * Координата z - индекс k
 
 Конечная разность определяется как разность между двумя соседними ячейками по выбранному индексу, делёная на величину пространсвтенного шага (размер ячейки в в заданном направлении):
-$\frac{\partial \mathbf H_z}{\partial y}[i,j,k]=\frac{H_z[i,j,k]-H_z[i,j-1,k]}{\Delta y}$
+
+$\frac{\partial H_z}{\partial y}[i,j,k]=\frac{H_z[i,j,k]-H_z[i,j-1,k]}{\Delta y}$
+
+$\frac{\partial E_z}{\partial y}[i,j,k]=\frac{E_z[i,j+1,k]-E_z[i,j,k]}{\Delta y}$
 
 ## Компоненты векторов полей
 
@@ -78,34 +81,34 @@ $\frac{\partial \mathbf H_z}{\partial y}[i,j,k]=\frac{H_z[i,j,k]-H_z[i,j-1,k]}{\
 
 Перепишем выражение так, чтобы слева было приращение по времени. Ротор магнитного поля приводит к изменению во времени электрической индукции (электрического поля)
 
-$\frac{\partial \vec\mathbf D}{\partial t}=rot\vec\mathbf H$
+$\frac{\partial \vec D}{\partial t}=rot\vec H$
 
 Разложим вектора на компоненты и развернём индукцию
 
 $
-\frac{\partial \mathbf E_x}{\partial t} =
+\frac{\partial E_x}{\partial t} =
     \frac{1}{\varepsilon\varepsilon_0}
     \left (
-        \frac{\partial \mathbf H_z}{\partial y} 
-      - \frac{\partial \mathbf H_y}{\partial z}
+        \frac{\partial H_z}{\partial y} 
+      - \frac{\partial H_y}{\partial z}
     \right )
 $
 
 $
-\frac{\partial \mathbf E_y}{\partial t} =
+\frac{\partial E_y}{\partial t} =
     \frac{1}{\varepsilon\varepsilon_0}
     \left (
-        \frac{\partial \mathbf H_x}{\partial z} 
-      - \frac{\partial \mathbf H_z}{\partial x}
+        \frac{\partial H_x}{\partial z} 
+      - \frac{\partial H_z}{\partial x}
     \right )
 $
 
 $
-\frac{\partial \mathbf E_z}{\partial t} =
+\frac{\partial E_z}{\partial t} =
     \frac{1}{\varepsilon\varepsilon_0}
     \left (
-        \frac{\partial \mathbf H_y}{\partial x} 
-      - \frac{\partial \mathbf H_x}{\partial y}
+        \frac{\partial H_y}{\partial x} 
+      - \frac{\partial H_x}{\partial y}
     \right )
 $
 
@@ -192,34 +195,34 @@ $
 
 ### Магнитное поле
 
-$\frac{\partial \vec\mathbf B}{\partial t}=-rot\vec\mathbf E$
+$\frac{\partial \vec B}{\partial t}=-rot\vec E$
 
 Разложим вектора на компоненты и развернём индукцию
 
 $
-\frac{\partial \mathbf H_x}{\partial t} = -
+\frac{\partial H_x}{\partial t} = -
     \frac{1}{\mu\mu_0}
     \left (
-        \frac{\partial \mathbf E_z}{\partial y} 
-      - \frac{\partial \mathbf E_y}{\partial z}
+        \frac{\partial E_z}{\partial y} 
+      - \frac{\partial E_y}{\partial z}
     \right )
 $
 
 $
-\frac{\partial \mathbf H_y}{\partial t} = -
+\frac{\partial H_y}{\partial t} = -
     \frac{1}{\mu\mu_0}
     \left (
-        \frac{\partial \mathbf E_x}{\partial z} 
-        - \frac{\partial \mathbf E_z}{\partial x}
+        \frac{\partial E_x}{\partial z} 
+        - \frac{\partial E_z}{\partial x}
     \right ) 
 $
 
 $
-\frac{\partial \mathbf H_z}{\partial t} = -
+\frac{\partial H_z}{\partial t} = -
     \frac{1}{\mu\mu_0}
     \left (
-        \frac{\partial \mathbf E_y}{\partial x} 
-        - \frac{\partial \mathbf E_x}{\partial y}
+        \frac{\partial E_y}{\partial x} 
+        - \frac{\partial E_x}{\partial y}
     \right )
 $
 
@@ -229,8 +232,8 @@ $
 \frac{H_x^t-H_x^{t-\Delta t}}{\Delta t}[i,j,k] =
    -\frac{1}{\mu\mu_0}
     \left (
-        \frac{E_z[i,j,k] - E_z[i,j-1,k]}{\Delta y} 
-      - \frac{E_y[i,j,k] - E_y[i,j,k-1]}{\Delta z}
+        \frac{E_z[i,j+1,k] - E_z[i,j,k]}{\Delta y} 
+      - \frac{E_y[i,j,k+1] - E_y[i,j,k]}{\Delta z}
     \right )
 $
 
@@ -238,8 +241,8 @@ $
 \frac{H_y^t-H_y^{t-\Delta t}}{\Delta t}[i,j,k] =
    -\frac{1}{\mu\mu_0}
     \left (
-        \frac{E_x[i,j,k] - E_x[i,j,k-1]}{\Delta z} 
-      - \frac{E_z[i,j,k] - E_z[i-1,j,k]}{\Delta x}
+        \frac{E_x[i,j,k+1] - E_x[i,j,k]}{\Delta z} 
+      - \frac{E_z[i+1,j,k] - E_z[i,j,k]}{\Delta x}
     \right )
 $
 
@@ -247,8 +250,8 @@ $
 \frac{H_z^t-H_z^{t-\Delta t}}{\Delta t}[i,j,k] =
    -\frac{1}{\mu\mu_0}
     \left (
-        \frac{E_y[i,j,k] - E_y[i-1,j,k]}{\Delta x} 
-      - \frac{E_x[i,j,k] - E_x[i,j-1,k]}{\Delta y}
+        \frac{E_y[i+1,j,k] - E_y[i,j,k]}{\Delta x} 
+      - \frac{E_x[i,j+1,k] - E_x[i,j,k]}{\Delta y}
     \right )
 $
 
@@ -257,24 +260,24 @@ $
 $H_x[i,j,k] = H_x[i,j,k] -
     \frac{\Delta t}{\mu\mu_0}
     \left (
-        \frac{E_z[i,j,k] - E_z[i,j-1,k]}{\Delta y} 
-      - \frac{E_y[i,j,k] - E_y[i,j,k-1]}{\Delta z}
+        \frac{E_z[i,j+1,k] - E_z[i,j,k]}{\Delta y} 
+      - \frac{E_y[i,j,k+!] - E_y[i,j,k]}{\Delta z}
     \right )
 $
 
 $H_y[i,j,k] = H_y[i,j,k] -
     \frac{\Delta t}{\mu\mu_0}
     \left (
-        \frac{E_x[i,j,k] - E_x[i,j,k-1]}{\Delta z} 
-      - \frac{E_z[i,j,k] - E_z[i-1,j,k]}{\Delta x}
+        \frac{E_x[i,j,k+1] - E_x[i,j,k]}{\Delta z} 
+      - \frac{E_z[i+1,j,k] - E_z[i,j,k]}{\Delta x}
     \right )
 $
 
 $H_z[i,j,k] = H_z[i,j,k] -
     \frac{\Delta t}{\mu\mu_0}
     \left (
-        \frac{E_y[i,j,k] - E_y[i-1,j,k]}{\Delta x} 
-      - \frac{E_x[i,j,k] - E_x[i,j-1,k]}{\Delta y}
+        \frac{E_y[i+,j,k] - E_y[i,j,k]}{\Delta x} 
+      - \frac{E_x[i,j+1,k] - E_x[i,j,k]}{\Delta y}
     \right )
 $
 
@@ -283,24 +286,24 @@ $
 $H_x[i,j,k]$-=$
     \frac{\Delta t}{\mu\mu_0}
     \left (
-        \frac{E_z[i,j,k] - E_z[i,j-1,k]}{\Delta y} 
-      - \frac{E_y[i,j,k] - E_y[i,j,k-1]}{\Delta z}
+        \frac{E_z[i,j+1,k] - E_z[i,j,k]}{\Delta y} 
+      - \frac{E_y[i,j,k+1] - E_y[i,j,k]}{\Delta z}
     \right )
 $
 
 $H_y[i,j,k]$-=$
     \frac{\Delta t}{\mu\mu_0}
     \left (
-        \frac{E_x[i,j,k] - E_x[i,j,k-1]}{\Delta z} 
-      - \frac{E_z[i,j,k] - E_z[i-1,j,k]}{\Delta x}
+        \frac{E_x[i,j,k+1] - E_x[i,j,k]}{\Delta z} 
+      - \frac{E_z[i+1,j,k] - E_z[i,j,k]}{\Delta x}
     \right )
 $
 
 $H_z[i,j,k]$-=$
     \frac{\Delta t}{\mu\mu_0}
     \left (
-        \frac{E_y[i,j,k] - E_y[i-1,j,k]}{\Delta x} 
-      - \frac{E_x[i,j,k] - E_x[i,j-1,k]}{\Delta y}
+        \frac{E_y[i+,j,k] - E_y[i,j,k]}{\Delta x} 
+      - \frac{E_x[i,j+1,k] - E_x[i,j,k]}{\Delta y}
     \right )
 $
 
@@ -334,11 +337,11 @@ H_z
 \end{bmatrix}[i,j,k]
 $ -= $\frac{\Delta t}{\mu\mu_0}
 \begin{bmatrix}
-    \frac{E_z[i,j,k] - E_z[i,j-1,k]}{\Delta y} - \frac{E_y[i,j,k] - E_y[i,j,k-1]}{\Delta z}
+    \frac{E_z[i,j+1,k] - E_z[i,j,k]}{\Delta y} - \frac{E_y[i,j,k+1] - E_y[i,j,k]}{\Delta z}
 \\
-    \frac{E_x[i,j,k] - E_x[i,j,k-1]}{\Delta z} - \frac{E_z[i,j,k] - E_z[i-1,j,k]}{\Delta x}
+    \frac{E_x[i,j,k+1] - E_x[i,j,k]}{\Delta z} - \frac{E_z[i+1,j,k] - E_z[i,j,k]}{\Delta x}
 \\
-    \frac{E_y[i,j,k] - E_y[i-1,j,k]}{\Delta x} - \frac{E_x[i,j,k] - E_x[i,j-1,k]}{\Delta y}
+    \frac{E_y[i+,j,k] - E_y[i,j,k]}{\Delta x} - \frac{E_x[i,j+1,k] - E_x[i,j,k]}{\Delta y}
 \end{bmatrix}
 $
 
@@ -377,11 +380,11 @@ H_z
 \end{bmatrix}[i,j]
 $ -= $\frac{\Delta t}{\mu\mu_0}
 \begin{bmatrix}
-    \frac{E_z[i,j] - E_z[i,j-1]}{\Delta y}
+    \frac{E_z[i,j+1] - E_z[i,j]}{\Delta y}
 \\
-   -\frac{E_z[i,j] - E_z[i-1,j]}{\Delta x}
+   -\frac{E_z[i+1,j] - E_z[i,j]}{\Delta x}
 \\
-    \frac{E_y[i,j] - E_y[i-1,j]}{\Delta x} - \frac{E_x[i,j] - E_x[i,j-1]}{\Delta y}
+    \frac{E_y[i+1,j] - E_y[i,j]}{\Delta x} - \frac{E_x[i,j+1] - E_x[i,j]}{\Delta y}
 \end{bmatrix}
 $
 
@@ -417,11 +420,11 @@ H_z
 \end{bmatrix}[i,k]
 $ -= $\frac{\Delta t}{\mu\mu_0}
 \begin{bmatrix}
-   -\frac{E_y[i,j,k] - E_y[i,k-1]}{\Delta z}
+   -\frac{E_y[i,j,k+1] - E_y[i,k]}{\Delta z}
 \\
-    \frac{E_x[i,k] - E_x[i,k-1]}{\Delta z} - \frac{E_z[i,k] - E_z[i-1,j,k]}{\Delta x}
+    \frac{E_x[i,k+1] - E_x[i,k]}{\Delta z} - \frac{E_z[i+1,k] - E_z[i,j,k]}{\Delta x}
 \\
-    \frac{E_y[i,k] - E_y[i-1,k]}{\Delta x}
+    \frac{E_y[i+1,k] - E_y[i,k]}{\Delta x}
 \end{bmatrix}
 $
 
@@ -457,11 +460,11 @@ H_z
 \end{bmatrix}[j,k]
 $ -= $\frac{\Delta t}{\mu\mu_0}
 \begin{bmatrix}
-    \frac{E_z[j,k] - E_z[j-1,k]}{\Delta y} - \frac{E_yj,k] - E_y[j,k-1]}{\Delta z}
+    \frac{E_z[j+1,k] - E_z[j,k]}{\Delta y} - \frac{E_y[j,k+1] - E_y[j,k]}{\Delta z}
 \\
-    \frac{E_x[j,k] - E_x[j,k-1]}{\Delta z}
+    \frac{E_x[j,k+1] - E_x[j,k]}{\Delta z}
 \\
-   -\frac{E_x[j,k] - E_x[j-1,k]}{\Delta y}
+   -\frac{E_x[j+1,k] - E_x[j,k]}{\Delta y}
 \end{bmatrix}
 $
 
@@ -501,9 +504,9 @@ $ -= $\frac{1}{\mu\mu_0}\frac{\Delta t}{\Delta x}
 \begin{bmatrix}
     0
 \\
-    E_z[i-1] - E_z[i]
+    E_z[i] - E_z[i+1]
 \\
-    E_y[i] - E_y[i-1]
+    E_y[i+1] - E_y[i]
 \end{bmatrix}
 $
 
@@ -539,11 +542,11 @@ H_z
 \end{bmatrix}[j]
 $ -= $\frac{1}{\mu\mu_0}\frac{\Delta t}{\Delta y}
 \begin{bmatrix}
-    E_z[j] - E_z[j-1]
+    E_z[j+1] - E_z[j]
 \\
     0
 \\
-    E_x[j-1] - E_x[j]
+    E_x[j] - E_x[j+1]
 \end{bmatrix}
 $
 
@@ -579,9 +582,9 @@ H_z
 \end{bmatrix}[k]
 $ -= $\frac{1}{\mu\mu_0}\frac{\Delta t}{\Delta z}
 \begin{bmatrix}
-    E_y[k-1] - E_y[k]
+    E_y[k] - E_y[k+1]
 \\
-    E_x[k] - E_x[k-1]
+    E_x[k+1] - E_x[k]
 \\
     0
 \end{bmatrix}
@@ -621,10 +624,10 @@ $ -= $\frac{1}{\mu\mu_0}\frac{\Delta t}{\Delta x}
 \\
     0
 \\
-    E_y[i] - E_y[i-1]
+    E_y[i+1] - E_y[i]
 \end{bmatrix}
 $
 
 $E_y[i]+=\frac{1}{\varepsilon\varepsilon_0}\frac{\Delta t}{\Delta x}(H_z[i-1] - H_z[i])$
 
-$H_z[i]+=\frac{1}{\mu\mu_0}\frac{\Delta t}{\Delta x}(E_y[i-1] - E_y[i])$
+$H_z[i]+=\frac{1}{\mu\mu_0}\frac{\Delta t}{\Delta x}(E_y[i] - E_y[i+1])$
