@@ -104,7 +104,7 @@ $
     \frac{1}{\varepsilon\varepsilon_0}
     \left (
         \frac{H_z[i,j,k] - H_z[i,j-1,k]}{dy} 
-      - \frac{H_z[i,j,k] - H_z[i,j,k-1]}{dz}
+      - \frac{H_y[i,j,k] - H_y[i,j,k-1]}{dz}
     \right )
 $
 
@@ -112,7 +112,7 @@ $
 \frac{E_y^t-E_y^{t-dt}}{dt}[i,j,k] =
     \frac{1}{\varepsilon\varepsilon_0}
     \left (
-        \frac{H_z[i,j,k] - H_z[i,j,k-1]}{dz} 
+        \frac{H_x[i,j,k] - H_x[i,j,k-1]}{dz} 
       - \frac{H_z[i,j,k] - H_z[i-1,j,k]}{dx}
     \right )
 $
@@ -121,8 +121,8 @@ $
 \frac{E_z^t-E_z^{t-dt}}{dt}[i,j,k] =
     \frac{1}{\varepsilon\varepsilon_0}
     \left (
-        \frac{H_z[i,j,k] - H_z[i-1,j,k]}{dx} 
-      - \frac{H_z[i,j,k] - H_z[i,j-1,k]}{dy}
+        \frac{H_y[i,j,k] - H_y[i-1,j,k]}{dx} 
+      - \frac{H_x[i,j,k] - H_x[i,j-1,k]}{dy}
     \right )
 $
 
@@ -132,14 +132,14 @@ $E_x[i,j,k] = E_x[i,j,k] +
     \frac{dt}{\varepsilon\varepsilon_0}
     \left (
         \frac{H_z[i,j,k] - H_z[i,j-1,k]}{dy} 
-      - \frac{H_z[i,j,k] - H_z[i,j,k-1]}{dz}
+      - \frac{H_y[i,j,k] - H_y[i,j,k-1]}{dz}
     \right )
 $
 
 $E_y[i,j,k] = E_y[i,j,k] +
     \frac{dt}{\varepsilon\varepsilon_0}
     \left (
-        \frac{H_z[i,j,k] - H_z[i,j,k-1]}{dz} 
+        \frac{H_x[i,j,k] - H_x[i,j,k-1]}{dz} 
       - \frac{H_z[i,j,k] - H_z[i-1,j,k]}{dx}
     \right )
 $
@@ -147,8 +147,8 @@ $
 $E_z[i,j,k]=E_z[i,j,k] +
     \frac{dt}{\varepsilon\varepsilon_0}
     \left (
-        \frac{H_z[i,j,k] - H_z[i-1,j,k]}{dx} 
-      - \frac{H_z[i,j,k] - H_z[i,j-1,k]}{dy}
+        \frac{H_y[i,j,k] - H_y[i-1,j,k]}{dx} 
+      - \frac{H_x[i,j,k] - H_x[i,j-1,k]}{dy}
     \right )
 $
 
@@ -158,14 +158,14 @@ $E_x[i,j,k]$+=$
     \frac{dt}{\varepsilon\varepsilon_0}
     \left (
         \frac{H_z[i,j,k] - H_z[i,j-1,k]}{dy} 
-      - \frac{H_z[i,j,k] - H_z[i,j,k-1]}{dz}
+      - \frac{H_y[i,j,k] - H_y[i,j,k-1]}{dz}
     \right )
 $
 
 $E_y[i,j,k]$+=$
     \frac{dt}{\varepsilon\varepsilon_0}
     \left (
-        \frac{H_z[i,j,k] - H_z[i,j,k-1]}{dz} 
+        \frac{H_x[i,j,k] - H_x[i,j,k-1]}{dz} 
       - \frac{H_z[i,j,k] - H_z[i-1,j,k]}{dx}
     \right )
 $
@@ -173,8 +173,8 @@ $
 $E_z[i,j,k]$+=$
     \frac{dt}{\varepsilon\varepsilon_0}
     \left (
-        \frac{H_z[i,j,k] - H_z[i-1,j,k]}{dx} 
-      - \frac{H_z[i,j,k] - H_z[i,j-1,k]}{dy}
+        \frac{H_y[i,j,k] - H_y[i-1,j,k]}{dx} 
+      - \frac{H_x[i,j,k] - H_x[i,j-1,k]}{dy}
     \right )
 $
 
@@ -215,7 +215,7 @@ $
    -\frac{1}{\mu\mu_0}
     \left (
         \frac{E_z[i,j,k] - E_z[i,j-1,k]}{dy} 
-      - \frac{E_z[i,j,k] - E_z[i,j,k-1]}{dz}
+      - \frac{E_y[i,j,k] - E_y[i,j,k-1]}{dz}
     \right )
 $
 
@@ -223,7 +223,7 @@ $
 \frac{H_y^t-H_y^{t-dt}}{dt}[i,j,k] =
    -\frac{1}{\mu\mu_0}
     \left (
-        \frac{E_z[i,j,k] - E_z[i,j,k-1]}{dz} 
+        \frac{E_x[i,j,k] - E_x[i,j,k-1]}{dz} 
       - \frac{E_z[i,j,k] - E_z[i-1,j,k]}{dx}
     \right )
 $
@@ -232,8 +232,8 @@ $
 \frac{H_z^t-H_z^{t-dt}}{dt}[i,j,k] =
    -\frac{1}{\mu\mu_0}
     \left (
-        \frac{E_z[i,j,k] - E_z[i-1,j,k]}{dx} 
-      - \frac{E_z[i,j,k] - E_z[i,j-1,k]}{dy}
+        \frac{E_y[i,j,k] - E_y[i-1,j,k]}{dx} 
+      - \frac{E_x[i,j,k] - E_x[i,j-1,k]}{dy}
     \right )
 $
 
@@ -243,14 +243,14 @@ $H_x[i,j,k] = H_x[i,j,k] -
     \frac{dt}{\mu\mu_0}
     \left (
         \frac{E_z[i,j,k] - E_z[i,j-1,k]}{dy} 
-      - \frac{E_z[i,j,k] - E_z[i,j,k-1]}{dz}
+      - \frac{E_y[i,j,k] - E_y[i,j,k-1]}{dz}
     \right )
 $
 
 $H_y[i,j,k] = H_y[i,j,k] -
     \frac{dt}{\mu\mu_0}
     \left (
-        \frac{E_z[i,j,k] - E_z[i,j,k-1]}{dz} 
+        \frac{E_x[i,j,k] - E_x[i,j,k-1]}{dz} 
       - \frac{E_z[i,j,k] - E_z[i-1,j,k]}{dx}
     \right )
 $
@@ -258,8 +258,8 @@ $
 $H_z[i,j,k] = H_z[i,j,k] -
     \frac{dt}{\mu\mu_0}
     \left (
-        \frac{E_z[i,j,k] - E_z[i-1,j,k]}{dx} 
-      - \frac{E_z[i,j,k] - E_z[i,j-1,k]}{dy}
+        \frac{E_y[i,j,k] - E_y[i-1,j,k]}{dx} 
+      - \frac{E_x[i,j,k] - E_x[i,j-1,k]}{dy}
     \right )
 $
 
@@ -269,14 +269,14 @@ $H_x[i,j,k]$-=$
     \frac{dt}{\mu\mu_0}
     \left (
         \frac{E_z[i,j,k] - E_z[i,j-1,k]}{dy} 
-      - \frac{E_z[i,j,k] - E_z[i,j,k-1]}{dz}
+      - \frac{E_y[i,j,k] - E_y[i,j,k-1]}{dz}
     \right )
 $
 
 $H_y[i,j,k]$-=$
     \frac{dt}{\mu\mu_0}
     \left (
-        \frac{E_z[i,j,k] - E_z[i,j,k-1]}{dz} 
+        \frac{E_x[i,j,k] - E_x[i,j,k-1]}{dz} 
       - \frac{E_z[i,j,k] - E_z[i-1,j,k]}{dx}
     \right )
 $
@@ -284,8 +284,8 @@ $
 $H_z[i,j,k]$-=$
     \frac{dt}{\mu\mu_0}
     \left (
-        \frac{E_z[i,j,k] - E_z[i-1,j,k]}{dx} 
-      - \frac{E_z[i,j,k] - E_z[i,j-1,k]}{dy}
+        \frac{E_y[i,j,k] - E_y[i-1,j,k]}{dx} 
+      - \frac{E_x[i,j,k] - E_x[i,j-1,k]}{dy}
     \right )
 $
 
@@ -301,11 +301,11 @@ E_z
 \end{bmatrix}[i,j,k]
 $ += $\frac{dt}{\varepsilon\varepsilon_0}
 \begin{bmatrix}
-    \frac{H_z[i,j,k] - H_z[i,j-1,k]}{dy} - \frac{H_z[i,j,k] - H_z[i,j,k-1]}{dz}
+    \frac{H_z[i,j,k] - H_z[i,j-1,k]}{dy} - \frac{H_y[i,j,k] - H_y[i,j,k-1]}{dz}
 \\
-    \frac{H_z[i,j,k] - H_z[i,j,k-1]}{dz} - \frac{H_z[i,j,k] - H_z[i-1,j,k]}{dx}
+    \frac{H_x[i,j,k] - H_x[i,j,k-1]}{dz} - \frac{H_z[i,j,k] - H_z[i-1,j,k]}{dx}
 \\
-    \frac{H_z[i,j,k] - H_z[i-1,j,k]}{dx} - \frac{H_z[i,j,k] - H_z[i,j-1,k]}{dy}
+    \frac{H_y[i,j,k] - H_y[i-1,j,k]}{dx} - \frac{H_x[i,j,k] - H_x[i,j-1,k]}{dy}
 \end{bmatrix}
 $
 
@@ -319,10 +319,133 @@ H_z
 \end{bmatrix}[i,j,k]
 $ -= $\frac{dt}{\mu\mu_0}
 \begin{bmatrix}
-    \frac{E_z[i,j,k] - E_z[i,j-1,k]}{dy} - \frac{E_z[i,j,k] - E_z[i,j,k-1]}{dz}
+    \frac{E_z[i,j,k] - E_z[i,j-1,k]}{dy} - \frac{E_y[i,j,k] - E_y[i,j,k-1]}{dz}
 \\
-    \frac{E_z[i,j,k] - E_z[i,j,k-1]}{dz} - \frac{E_z[i,j,k] - E_z[i-1,j,k]}{dx}
+    \frac{E_x[i,j,k] - E_x[i,j,k-1]}{dz} - \frac{E_z[i,j,k] - E_z[i-1,j,k]}{dx}
 \\
-    \frac{E_z[i,j,k] - E_z[i-1,j,k]}{dx} - \frac{E_z[i,j,k] - E_z[i,j-1,k]}{dy}
+    \frac{E_y[i,j,k] - E_y[i-1,j,k]}{dx} - \frac{E_x[i,j,k] - E_x[i,j-1,k]}{dy}
+\end{bmatrix}
+$
+
+### Частные случаи
+
+#### Двумерное пространство
+
+##### Плоскость XOY
+Приращение dz отсутствует (удаляем разность по индексу k):
+
+$
+\vec E[i,j]=\begin{bmatrix}
+E_x
+\\
+E_y
+\\
+E_z
+\end{bmatrix}[i,j]
+$ += $\frac{dt}{\varepsilon\varepsilon_0}
+\begin{bmatrix}
+    \frac{H_z[i,j] - H_z[i,j-1]}{dy}
+\\
+   -\frac{H_z[i,j] - H_z[i-1,j]}{dx}
+\\
+    \frac{H_y[i,j] - H_y[i-1,j]}{dx} - \frac{H_x[i,j] - H_x[i,j-1]}{dy}
+\end{bmatrix}
+$
+
+$
+\vec H[i,j]=\begin{bmatrix}
+H_x
+\\
+H_y
+\\
+H_z
+\end{bmatrix}[i,j]
+$ -= $\frac{dt}{\mu\mu_0}
+\begin{bmatrix}
+    \frac{E_z[i,j] - E_z[i,j-1]}{dy}
+\\
+   -\frac{E_z[i,j] - E_z[i-1,j]}{dx}
+\\
+    \frac{E_y[i,j] - E_y[i-1,j]}{dx} - \frac{E_x[i,j] - E_x[i,j-1]}{dy}
+\end{bmatrix}
+$
+
+##### Плоскость XOZ
+
+Приращение dy отсутствует (удаляем разность по индексу j):
+
+$
+\vec E[i,k]=\begin{bmatrix}
+E_x
+\\
+E_y
+\\
+E_z
+\end{bmatrix}[i,k]
+$ += $\frac{dt}{\varepsilon\varepsilon_0}
+\begin{bmatrix}
+   -\frac{H_y[i,j,k] - H_y[i,j,k-1]}{dz}
+\\
+    \frac{H_x[i,k] - H_x[i,k-1]}{dz} - \frac{H_z[i,k] - H_z[i-1,k]}{dx}
+\\
+    \frac{H_y[i,k] - H_y[i-1,k]}{dx}
+\end{bmatrix}
+$
+
+$
+\vec H[i,k]=\begin{bmatrix}
+H_x
+\\
+H_y
+\\
+H_z
+\end{bmatrix}[i,k]
+$ -= $\frac{dt}{\mu\mu_0}
+\begin{bmatrix}
+   -\frac{E_y[i,j,k] - E_y[i,k-1]}{dz}
+\\
+    \frac{E_x[i,k] - E_x[i,k-1]}{dz} - \frac{E_z[i,k] - E_z[i-1,j,k]}{dx}
+\\
+    \frac{E_y[i,k] - E_y[i-1,k]}{dx}
+\end{bmatrix}
+$
+
+##### Плоскость YOZ
+
+Приращение dx отсутствует (удаляем разность по индексу i):
+
+$
+\vec E[j,k]=\begin{bmatrix}
+E_x
+\\
+E_y
+\\
+E_z
+\end{bmatrix}[j,k]
+$ += $\frac{dt}{\varepsilon\varepsilon_0}
+\begin{bmatrix}
+    \frac{H_z[j,k] - H_z[j-1,k]}{dy} - \frac{H_y[j,k] - H_y[j,k-1]}{dz}
+\\
+    \frac{H_x[j,k] - H_x[j,k-1]}{dz}
+\\
+   -\frac{H_x[j,k] - H_x[j-1,k]}{dy}
+\end{bmatrix}
+$
+
+$
+\vec H[j,k]=\begin{bmatrix}
+H_x
+\\
+H_y
+\\
+H_z
+\end{bmatrix}[j,k]
+$ -= $\frac{dt}{\mu\mu_0}
+\begin{bmatrix}
+    \frac{E_z[j,k] - E_z[j-1,k]}{dy} - \frac{E_yj,k] - E_y[j,k-1]}{dz}
+\\
+    \frac{E_x[j,k] - E_x[j,k-1]}{dz}
+\\
+   -\frac{E_x[j,k] - E_x[j-1,k]}{dy}
 \end{bmatrix}
 $
