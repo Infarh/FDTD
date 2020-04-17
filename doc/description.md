@@ -327,11 +327,11 @@ $ -= $\frac{dt}{\mu\mu_0}
 \end{bmatrix}
 $
 
-### Частные случаи
+## Частные случаи
 
-#### Двумерное пространство
+### Двумерное пространство
 
-##### Плоскость XOY
+#### Плоскость XOY
 Приращение dz отсутствует (удаляем разность по индексу k):
 
 $
@@ -370,7 +370,7 @@ $ -= $\frac{dt}{\mu\mu_0}
 \end{bmatrix}
 $
 
-##### Плоскость XOZ
+#### Плоскость XOZ
 
 Приращение dy отсутствует (удаляем разность по индексу j):
 
@@ -410,7 +410,7 @@ $ -= $\frac{dt}{\mu\mu_0}
 \end{bmatrix}
 $
 
-##### Плоскость YOZ
+#### Плоскость YOZ
 
 Приращение dx отсутствует (удаляем разность по индексу i):
 
@@ -468,7 +468,7 @@ $ += $\frac{1}{\varepsilon\varepsilon_0}\frac{dt}{dx}
 \begin{bmatrix}
     0
 \\
-   H_z[i-1] - H_z[i]
+    H_z[i-1] - H_z[i]
 \\
     H_y[i] - H_y[i-1]
 \end{bmatrix}
@@ -486,7 +486,7 @@ $ -= $\frac{1}{\mu\mu_0}\frac{dt}{dx}
 \begin{bmatrix}
     0
 \\
-   E_z[i-1] - E_z[i]
+    E_z[i-1] - E_z[i]
 \\
     E_y[i] - E_y[i-1]
 \end{bmatrix}
@@ -510,7 +510,7 @@ $ += $\frac{1}{\varepsilon\varepsilon_0}\frac{dt}{dy}
 \\
     0
 \\
-   H_x[j-1] - H_x[j]
+    H_x[j-1] - H_x[j]
 \end{bmatrix}
 $
 
@@ -528,7 +528,7 @@ $ -= $\frac{1}{\mu\mu_0}\frac{dt}{dy}
 \\
     0
 \\
-   E_x[j-1] - E_x[j]
+    E_x[j-1] - E_x[j]
 \end{bmatrix}
 $
 
@@ -571,3 +571,45 @@ $ -= $\frac{1}{\mu\mu_0}\frac{dt}{dz}
     0
 \end{bmatrix}
 $
+
+### T-волна вдоль OX (одномерный случай для компонент Ey, Hz)
+
+$
+\begin{bmatrix}
+E_x
+\\
+E_y
+\\
+E_z
+\end{bmatrix}[i]
+$ += $\frac{1}{\varepsilon\varepsilon_0}\frac{dt}{dx}
+\begin{bmatrix}
+    0
+\\
+    H_z[i-1] - H_z[i]
+\\
+    0
+\end{bmatrix}
+$
+
+$
+\begin{bmatrix}
+H_x
+\\
+H_y
+\\
+H_z
+\end{bmatrix}[i]
+$ -= $\frac{1}{\mu\mu_0}\frac{dt}{dx}
+\begin{bmatrix}
+    0
+\\
+    0
+\\
+    E_y[i] - E_y[i-1]
+\end{bmatrix}
+$
+
+$E_y[i]+=\frac{1}{\varepsilon\varepsilon_0}\frac{dt}{dx}(H_z[i-1] - H_z[i])$
+
+$H_z[i]+=\frac{1}{\mu\mu_0}\frac{dt}{dx}(E_y[i-1] - E_y[i])$
