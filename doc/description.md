@@ -449,3 +449,125 @@ $ -= $\frac{dt}{\mu\mu_0}
    -\frac{E_x[j,k] - E_x[j-1,k]}{dy}
 \end{bmatrix}
 $
+
+### Одномерное пространство
+
+#### Ось OX
+
+Исключаем приращения dy и dz (индексы j и k):
+
+$
+\begin{bmatrix}
+E_x
+\\
+E_y
+\\
+E_z
+\end{bmatrix}[i]
+$ += $\frac{1}{\varepsilon\varepsilon_0}\frac{dt}{dx}
+\begin{bmatrix}
+    0
+\\
+   H_z[i-1] - H_z[i]
+\\
+    H_y[i] - H_y[i-1]
+\end{bmatrix}
+$
+
+$
+\begin{bmatrix}
+H_x
+\\
+H_y
+\\
+H_z
+\end{bmatrix}[i]
+$ -= $\frac{1}{\mu\mu_0}\frac{dt}{dx}
+\begin{bmatrix}
+    0
+\\
+   E_z[i-1] - E_z[i]
+\\
+    E_y[i] - E_y[i-1]
+\end{bmatrix}
+$
+
+#### Ось OY
+
+Исключаем приращения dx и dz (индексы i и k):
+
+$
+\begin{bmatrix}
+E_x
+\\
+E_y
+\\
+E_z
+\end{bmatrix}[j]
+$ += $\frac{1}{\varepsilon\varepsilon_0}\frac{dt}{dy}
+\begin{bmatrix}
+    H_z[j] - H_z[j-1]
+\\
+    0
+\\
+   H_x[j-1] - H_x[j]
+\end{bmatrix}
+$
+
+$
+\begin{bmatrix}
+H_x
+\\
+H_y
+\\
+H_z
+\end{bmatrix}[j]
+$ -= $\frac{1}{\mu\mu_0}\frac{dt}{dy}
+\begin{bmatrix}
+    E_z[j] - E_z[j-1]
+\\
+    0
+\\
+   E_x[j-1] - E_x[j]
+\end{bmatrix}
+$
+
+#### Ось OZ
+
+Исключаем приращения dx и dy (индексы i и j):
+
+$
+\begin{bmatrix}
+E_x
+\\
+E_y
+\\
+E_z
+\end{bmatrix}[k]
+$ += $\frac{1}{\varepsilon\varepsilon_0}\frac{dt}{dz}
+\begin{bmatrix}
+    H_y[k-1] - H_y[k]
+\\
+    H_x[k] - H_x[k-1]
+\\
+    0
+\end{bmatrix}
+$
+
+$
+\begin{bmatrix}
+H_x
+\\
+H_y
+\\
+H_z
+\end{bmatrix}[k]
+$ -= $\frac{1}{\mu\mu_0}\frac{dt}{dz}
+\begin{bmatrix}
+    E_y[k-1] - E_y[k]
+\\
+    E_x[k] - E_x[k-1]
+\\
+    0
+\end{bmatrix}
+$
