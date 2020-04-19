@@ -10,11 +10,11 @@ $rot\vec E=-\frac{\partial \vec B}{\partial t}$
 
 ### Уравнения связи
 
-Электрическая индукция
+Электрическая индукция:
 
 $\vec D=\varepsilon\varepsilon_0 \vec E$
 
-Магнитная индукция
+Магнитная индукция:
 
 $\vec B=\mu\mu_0 \vec H$
 
