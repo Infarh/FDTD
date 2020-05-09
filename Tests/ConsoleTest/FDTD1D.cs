@@ -39,10 +39,20 @@ namespace ConsoleTest
         private static readonly double[] __Eps = Enumerable
            .Range(0, __Size)
            .Select(i => i < 100 ? 1d : 9d)
-           .ToArray(); 
+           .ToArray();
         private static readonly double[] __Mu = Enumerable
            .Range(0, __Size)
            .Select(i => 1d)
+           .ToArray();
+
+        private const double __Loss = 0.01;
+        private static readonly double[] __SigmaE = Enumerable
+           .Range(0, __Size)
+           .Select(i => i < 100 ? 1 : (1 - __Loss) / (1 + __Loss))
+           .ToArray();
+        private static readonly double[] __SigmaH = Enumerable
+           .Range(0, __Size)
+           .Select(i => i < 100 ? 1 : 1 + __Loss)
            .ToArray();
 
         public static void Start()
@@ -79,7 +89,7 @@ namespace ConsoleTest
         private static void ProcessEz()
         {
             for (var i = 1; i < __Size; i++)
-                __Ez[i] += (__Hy[i] - __Hy[i - 1]) * __Impl0 / __Eps[i];
+                __Ez[i] = __SigmaE[i] * __Ez[i] + __SigmaH[i] * (__Hy[i] - __Hy[i - 1]) * __Impl0 / __Eps[i];
         }
 
         private static void SourceHy(double t) { }
