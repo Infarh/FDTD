@@ -9,7 +9,7 @@ namespace ConsoleTest
             FDTD1D.Start();
 
             Console.WriteLine("Copmleted...");
-            Console.ReadLine();
+            //Console.ReadLine();
         }
     }
 }

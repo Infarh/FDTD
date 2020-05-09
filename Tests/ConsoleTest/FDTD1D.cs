@@ -20,10 +20,12 @@ namespace ConsoleTest
 
             public void Write(params double[] Data)
             {
-                var data = Data.Select(v => v.ToString(_Format, CultureInfo.InvariantCulture));
-                var str = string.Join(",", data);
+                const string separator = ";";
+                var formatter = CultureInfo.CurrentCulture;
+                var data = Data.Select(v => v.ToString(_Format, formatter));
+                var str = string.Join(separator, data);
                 _Writer.WriteLine(str);
-                Console.WriteLine(str);
+                //Console.WriteLine(str);
             }
 
             public void Dispose() => _Writer?.Dispose();
@@ -46,7 +48,7 @@ namespace ConsoleTest
 
                 __Ez[50] += F0(t, t0: 30, tau: 100);
 
-                if(t % 10 == 0)
+                if (t % 10 == 0)
                     writer.Write(__Ez);
             }
         }
