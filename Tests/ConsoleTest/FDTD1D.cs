@@ -36,6 +36,14 @@ namespace ConsoleTest
 
         private static readonly double[] __Hy = new double[__Size];
         private static readonly double[] __Ez = new double[__Size];
+        private static readonly double[] __Eps = Enumerable
+           .Range(0, __Size)
+           .Select(i => i < 100 ? 1d : 9d)
+           .ToArray(); 
+        private static readonly double[] __Mu = Enumerable
+           .Range(0, __Size)
+           .Select(i => 1d)
+           .ToArray();
 
         public static void Start()
         {
@@ -43,10 +51,13 @@ namespace ConsoleTest
             const int max_time = 250;
             for (var t = 0; t < max_time; t++)
             {
+                ABCHy();
                 ProcessHy();
-                ProcessEz();
+                SourceHy(t);
 
-                __Ez[50] += F0(t, t0: 30, tau: 100);
+                ABCEz();
+                ProcessEz();
+                SourceEz(t);
 
                 if (t % 10 == 0)
                     writer.Write(__Ez);
@@ -62,13 +73,20 @@ namespace ConsoleTest
         private static void ProcessHy()
         {
             for (var i = 0; i < __Size - 1; i++)
-                __Hy[i] += (__Ez[i + 1] - __Ez[i]) / __Impl0;
+                __Hy[i] += (__Ez[i + 1] - __Ez[i]) / __Impl0 / __Mu[i];
         }
 
         private static void ProcessEz()
         {
             for (var i = 1; i < __Size; i++)
-                __Ez[i] += (__Hy[i] - __Hy[i - 1]) * __Impl0;
+                __Ez[i] += (__Hy[i] - __Hy[i - 1]) * __Impl0 / __Eps[i];
         }
+
+        private static void SourceHy(double t) { }
+        private static void SourceEz(double t) => __Ez[50] += F0(t, t0: 30, tau: 100);
+
+        private static void ABCHy() => __Hy[^1] = __Hy[^2];
+
+        private static void ABCEz() => __Ez[0] = __Ez[1];
     }
 }
