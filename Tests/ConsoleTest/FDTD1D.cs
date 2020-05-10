@@ -36,24 +36,21 @@ namespace ConsoleTest
 
         private static readonly double[] __Hy = new double[__Size];
         private static readonly double[] __Ez = new double[__Size];
-        private static readonly double[] __Eps = Enumerable
-           .Range(0, __Size)
-           .Select(i => i < 100 ? 1d : 9d)
-           .ToArray(); 
-        private static readonly double[] __Mu = Enumerable
-           .Range(0, __Size)
-           .Select(i => 1d)
-           .ToArray();
 
-        private const double __Loss = 0.01;
-        private static readonly double[] __SigmaE = Enumerable
-           .Range(0, __Size)
-           .Select(i => i < 100 ? 1 : (1 - __Loss) / (1 + __Loss))
-           .ToArray();
-        private static readonly double[] __SigmaH = Enumerable
-           .Range(0, __Size)
-           .Select(i => i < 100 ? 1 : 1 + __Loss)
-           .ToArray();
+        private const int __EpsEdgePosition = 100;
+        private const double __MaterialEps = 9;
+        private static readonly double[] __Eps = Enumerable.Range(0, __Size)
+           .ToArray(i => i < __EpsEdgePosition ? 1d : __MaterialEps);
+        private static readonly double[] __Mu = Enumerable.Range(0, __Size)
+           .ToArray(i => 1d);
+
+        private const double __Loss = 0.005;
+        private const int __LossEdgePosition = 100;
+
+        private static readonly double[] __ELossE = Enumerable.Range(0, __Size)
+           .ToArray(i => i < __LossEdgePosition ? 1 : (1 - __Loss) / (1 + __Loss));
+        private static readonly double[] __ELossH = Enumerable.Range(0, __Size)
+           .ToArray(i => i < __LossEdgePosition ? 1 : 1 / (1 + __Loss));
 
         public static void Start()
         {
@@ -89,7 +86,8 @@ namespace ConsoleTest
         private static void ProcessEz()
         {
             for (var i = 1; i < __Size; i++)
-                __Ez[i] += (__Hy[i] - __Hy[i - 1]) * __Impl0 / __Eps[i];
+                __Ez[i] = __ELossE[i] * (__Ez[i])
+                        + __ELossH[i] * (__Hy[i] - __Hy[i - 1]) * __Impl0 / __Eps[i];
         }
 
         private static void SourceHy(double t) { }
