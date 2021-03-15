@@ -15,7 +15,12 @@ namespace ConsoleTest
         {
             var solver = new Solver1D(200, 1)
             {
-                Sources = { new(50) { Ez = t => 2 * Exp(-Sqr(t - 30) / 100) } }
+                Sources = { new(50) { Ez = t => 2 * Exp(-Sqr(t - 30) / 100) } },
+                Boundaries =
+                {
+                    MinEz = new ABC1DMin(),
+                    MaxHy = new ABC1DMax()
+                }
             };
 
             using (var file = File.CreateText("solver1d.txt"))
