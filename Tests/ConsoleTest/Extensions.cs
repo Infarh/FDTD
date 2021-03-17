@@ -6,6 +6,12 @@ namespace ConsoleTest
 {
     internal static class Extensions
     {
+        public static void Foreach<T>(this IEnumerable<T> items, Action<T> action)
+        {
+            foreach (var item in items)
+                action(item);
+        }
+
         public static IEnumerable<T> Decimate<T>(this IEnumerable<T> items, int count)
         {
             var i = 0;
@@ -56,5 +62,9 @@ namespace ConsoleTest
                .GetFile(FileName)
                .EnsureDirExist()
                .Create();
+
+        public static void Clear(this DirectoryInfo dir, string Pattern = "*.*") => dir
+           .EnumerateFileSystemInfos(Pattern)
+           .Foreach(item => item.Delete());
     }
 }

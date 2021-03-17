@@ -1,4 +1,5 @@
 using System;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Solver = FDTD.Solver2D;
@@ -33,6 +34,7 @@ namespace FDTD.Tests
             var Hx = new double[frames_count][,];
             var Hy = new double[frames_count][,];
             var Hz = new double[frames_count][,];
+
 
             for (var i = 0; i < frames_count; i++)
             {

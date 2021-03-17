@@ -1,6 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 
 using FDTD;
+
 using static System.Math;
 
 namespace ConsoleTest
@@ -21,9 +24,8 @@ namespace ConsoleTest
             {
                 Sources =
                 {
-                    new (50, 50) { Ez = t => 2 * Exp(-Sqr(t - 30) / 100) }
+                    new (50, 50) { Ez = t => 1 * Exp(-Sqr(t - 30) / 100) }
                 },
-                
             };
 
             const double total_time = 100;
@@ -31,15 +33,22 @@ namespace ConsoleTest
 
             const string result_dir_path = "Field2D";
             var result_dir = new DirectoryInfo(result_dir_path);
-            if (!result_dir.Exists) result_dir.Create();
+            if (!result_dir.Exists) 
+                result_dir.Create();
+            else
+                result_dir.Clear("*.csv");
 
-            const string ez_field_file_path = "ez_{0}.csv";
+            const string ez_field_file_path = "ez_{0:00}.csv";
 
+            var timer = Stopwatch.StartNew();
             foreach (var frame in solver.Calculation(total_time, dt))
             {
                 var ez_file_path = string.Format(ez_field_file_path, frame.Index);
                 result_dir.CreateText(ez_file_path).DisposeAfter(frame, (file, data) => data.WriteEzTo(file));
             }
+
+            Console.WriteLine(@"Расчёт завершён за {0:hh\:mm\:ss\.fff} мс", 
+                timer.Elapsed);
         }
     }
 }

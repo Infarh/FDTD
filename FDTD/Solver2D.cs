@@ -6,6 +6,8 @@ namespace FDTD
 {
     public class Solver2D
     {
+        public event Action<((double[,] Ex, double[,] Ey, double[,] Ez) E, (double[,] Hx, double[,] Hy, double[,] Hz) H)> Initialize;
+
         private const double imp0 = 120 * Math.PI;
 
         private readonly int _Nx, _Ny;
@@ -30,7 +32,7 @@ namespace FDTD
         private double dHy(int i, int j, double[,] Ez)
         {
             var ez_dx = (Ez[i + 1, j] - Ez[i, j]) / _dx;
-            return - ez_dx / imp0;
+            return -ez_dx / imp0;
         }
 
         private double dHz(int i, int j, double[,] Ex, double[,] Ey)
@@ -49,7 +51,7 @@ namespace FDTD
         private double dEy(int i, int j, double[,] Hz)
         {
             var hz_dx = (Hz[i, j] - Hz[i - 1, j]) / _dx;
-            return - hz_dx * imp0;
+            return -hz_dx * imp0;
         }
 
         private double dEz(int i, int j, double[,] Hx, double[,] Hy)
@@ -104,6 +106,8 @@ namespace FDTD
             var Ez = new double[_Nx, _Ny];
 
             var sources = Sources.ToArray();
+
+            Initialize?.Invoke(((Ex, Ey, Ez), (Hx, Hy, Hz)));
 
             var i = 0;
             for (var t = 0d; t < T; t += dt)
@@ -269,11 +273,11 @@ namespace FDTD
     {
         public override void Process(double[,] Field)
         {
-            for (int j = 0, 
-                     count_i0 = Field.GetLength(0) - 1, 
-                     count_i1 = Field.GetLength(0) - 2, 
-                     count_j = Field.GetLength(1); 
-                 j < count_j; 
+            for (int j = 0,
+                     count_i0 = Field.GetLength(0) - 1,
+                     count_i1 = Field.GetLength(0) - 2,
+                     count_j = Field.GetLength(1);
+                 j < count_j;
                  j++)
                 Field[count_i0, j] = Field[count_i1 - 1, j];
         }
@@ -296,10 +300,10 @@ namespace FDTD
     {
         public override void Process(double[,] Field)
         {
-            for (int i = 0, count_j0 = Field.GetLength(0) - 1, 
-                     count_j1 = Field.GetLength(0) - 2, 
-                     count_i = Field.GetLength(1); 
-                 i < count_i; 
+            for (int i = 0, count_j0 = Field.GetLength(0) - 1,
+                     count_j1 = Field.GetLength(0) - 2,
+                     count_i = Field.GetLength(1);
+                 i < count_i;
                  i++)
                 Field[i, count_j0] = Field[i, count_j1 - 1];
         }
