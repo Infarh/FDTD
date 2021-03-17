@@ -84,6 +84,7 @@ namespace FDTD
 
             var sources = Sources.ToArray();
 
+            var i = 0;
             for (var t = 0d; t < T; t += dt)
             {
                 Boundaries.ApplyH(Hy, Hz);
@@ -94,47 +95,23 @@ namespace FDTD
                 ProcessE(Hy, Hz, Ey, Ez);
                 ApplySourceE(sources, t, Ey, Ez);
 
-                yield return new(t, Hy, Hz, Ey, Ez);
+                yield return new(i++, t, Hy, Hz, Ey, Ez);
             }
         }
     }
 
-    public readonly struct Solver1DFrame
+    public abstract class Source1D
     {
-        public double Time { get; }
-        public double[] Hy { get; }
-        public double[] Hz { get; }
-        public double[] Ey { get; }
-        public double[] Ez { get; }
-
-        public Solver1DFrame(double Time, double[] Hy, double[] Hz, double[] Ey, double[] Ez)
-        {
-            this.Time = Time;
-            this.Hy = Hy;
-            this.Hz = Hz;
-            this.Ey = Ey;
-            this.Ez = Ez;
-        }
-
-        private static void WriteTo(TextWriter writer, double[] Field)
-        {
-            for (int i = 0, count = Field.Length - 1; i < count; i++)
-                writer.Write("{0}; ", Field[i]);
-            writer.WriteLine(Field[^1]);
-        }
-
-        public void WriteEyTo(TextWriter writer) => WriteTo(writer, Ey);
-        public void WriteEzTo(TextWriter writer) => WriteTo(writer, Ez);
-        public void WriteHyTo(TextWriter writer) => WriteTo(writer, Hy);
-        public void WriteHzTo(TextWriter writer) => WriteTo(writer, Hz);
+        public abstract void ProcessE(double[] Ey, double[] Ez, double t);
+        public abstract void ProcessH(double[] Hy, double[] Hz, double t);
     }
 
-    public class Source1D
+    public class FunctionSource1D : Source1D
     {
-        private readonly int _i;
+        protected readonly int _i;
 
-        private readonly Func<double, double> _Ey, _Ez;
-        private readonly Func<double, double> _Hy, _Hz;
+        protected readonly Func<double, double> _Ey, _Ez;
+        protected readonly Func<double, double> _Hy, _Hz;
 
         public Func<double, double> Ey { init => _Ey = value; }
         public Func<double, double> Ez { init => _Ez = value; }
@@ -142,7 +119,7 @@ namespace FDTD
         public Func<double, double> Hy { init => _Hy = value; }
         public Func<double, double> Hz { init => _Hz = value; }
 
-        public Source1D(
+        public FunctionSource1D(
             int i,
             Func<double, double> Ey = null,
             Func<double, double> Ez = null,
@@ -155,13 +132,13 @@ namespace FDTD
             (_Hy, _Hz) = (Hy, Hz);
         }
 
-        public void ProcessE(double[] Ey, double[] Ez, double t)
+        public override void ProcessE(double[] Ey, double[] Ez, double t)
         {
             if (_Ey != null) Ey[_i] += _Ey(t);
             if (_Ez != null) Ez[_i] += _Ez(t);
         }
 
-        public void ProcessH(double[] Hy, double[] Hz, double t)
+        public override void ProcessH(double[] Hy, double[] Hz, double t)
         {
             if (_Hy != null) Hy[_i] += _Hy(t);
             if (_Hz != null) Hz[_i] += _Hz(t);
@@ -185,18 +162,18 @@ namespace FDTD
         public void ApplyH(double[] Hy, double[] Hz)
         {
             MinHy?.Process(Hy);
-            MaxHy?.Process(Hy);
+            MinHz?.Process(Hy);
 
-            MinHz?.Process(Hz);
+            MaxHy?.Process(Hz);
             MaxHz?.Process(Hz);
         }
 
         public void ApplyE(double[] Ey, double[] Ez)
         {
             MinEy?.Process(Ey);
-            MaxEy?.Process(Ey);
-
             MinEz?.Process(Ez);
+
+            MaxEy?.Process(Ey);
             MaxEz?.Process(Ez);
         }
     }

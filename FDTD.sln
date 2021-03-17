@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FDTD", "FDTD\FDTD.csproj", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{A007C3F3-5383-4BB3-BE84-1A258B80835D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTest", "Tests\ConsoleTest\ConsoleTest.csproj", "{03ABDB80-59D3-439A-BDEE-FF1556BBF3F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleTest", "Tests\ConsoleTest\ConsoleTest.csproj", "{03ABDB80-59D3-439A-BDEE-FF1556BBF3F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FDTD.Tests", "Tests\FDTD.Tests\FDTD.Tests.csproj", "{827F85BB-5DB4-4E94-9606-7E1E70127860}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,12 +25,17 @@ Global
 		{03ABDB80-59D3-439A-BDEE-FF1556BBF3F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03ABDB80-59D3-439A-BDEE-FF1556BBF3F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03ABDB80-59D3-439A-BDEE-FF1556BBF3F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{827F85BB-5DB4-4E94-9606-7E1E70127860}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{827F85BB-5DB4-4E94-9606-7E1E70127860}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{827F85BB-5DB4-4E94-9606-7E1E70127860}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{827F85BB-5DB4-4E94-9606-7E1E70127860}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{03ABDB80-59D3-439A-BDEE-FF1556BBF3F0} = {A007C3F3-5383-4BB3-BE84-1A258B80835D}
+		{827F85BB-5DB4-4E94-9606-7E1E70127860} = {A007C3F3-5383-4BB3-BE84-1A258B80835D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {598DF119-0BCB-4F92-A230-F9B2087A73EB}
