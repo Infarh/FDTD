@@ -151,9 +151,9 @@ namespace FDTD
             for (var i = 1; i < _Nx; i++)
                 for (var j = 1; j < _Ny; j++)
                 {
-                    Ex[i, j] = (Cex is null ? Ex[i, j] : Ex[i, j] * Cex[i, j]) - CexH[i, j] * dEx(i, j, Hz);
-                    Ey[i, j] = (Cey is null ? Ey[i, j] : Ey[i, j] * Cey[i, j]) - CeyH[i, j] * dEy(i, j, Hz);
-                    Ez[i, j] = (Cez is null ? Ez[i, j] : Ez[i, j] * Cez[i, j]) - CezH[i, j] * dEz(i, j, Hx, Hy);
+                    Ex[i, j] = (Cex is null ? Ex[i, j] : Ex[i, j] * Cex[i, j]) + CexH[i, j] * dEx(i, j, Hz);
+                    Ey[i, j] = (Cey is null ? Ey[i, j] : Ey[i, j] * Cey[i, j]) + CeyH[i, j] * dEy(i, j, Hz);
+                    Ez[i, j] = (Cez is null ? Ez[i, j] : Ez[i, j] * Cez[i, j]) + CezH[i, j] * dEz(i, j, Hx, Hy);
                 }
         }
 
@@ -380,6 +380,19 @@ namespace FDTD
         public BoundaryX X { get; } = new();
         public class BoundaryX
         {
+            public Boundary2DMinX Min
+            {
+                set
+                {
+                    MinEx = value;
+                    MinEy = value;
+                    MinEz = value;
+                    MinHx = value;
+                    MinHy = value;
+                    MinHz = value;
+                }
+            }
+
             public Boundary2DMinX MinEx { get; set; }
             public Boundary2DMinX MinEy { get; set; }
             public Boundary2DMinX MinEz { get; set; }
@@ -387,7 +400,20 @@ namespace FDTD
             public Boundary2DMinX MinHy { get; set; }
             public Boundary2DMinX MinHz { get; set; }
 
-            public Boundary2DMinX MaxEx { get; set; }
+            public Boundary2DMaxX Max
+            {
+                set
+                {
+                    MaxEx = value;
+                    MaxEy = value;
+                    MaxEz = value;
+                    MaxHx = value;
+                    MaxHy = value;
+                    MaxHz = value;
+                }
+            }
+
+            public Boundary2DMaxX MaxEx { get; set; }
             public Boundary2DMaxX MaxEy { get; set; }
             public Boundary2DMaxX MaxEz { get; set; }
             public Boundary2DMaxX MaxHx { get; set; }
@@ -398,6 +424,19 @@ namespace FDTD
         public BoundaryY Y { get; } = new();
         public class BoundaryY
         {
+            public Boundary2DMinY Min
+            {
+                set
+                {
+                    MinEx = value;
+                    MinEy = value;
+                    MinEz = value;
+                    MinHx = value;
+                    MinHy = value;
+                    MinHz = value;
+                }
+            }
+
             public Boundary2DMinY MinEx { get; set; }
             public Boundary2DMinY MinEy { get; set; }
             public Boundary2DMinY MinEz { get; set; }
@@ -405,7 +444,20 @@ namespace FDTD
             public Boundary2DMinY MinHy { get; set; }
             public Boundary2DMinY MinHz { get; set; }
 
-            public Boundary2DMinY MaxEx { get; set; }
+            public Boundary2DMaxY Max
+            {
+                set
+                {
+                    MaxEx = value;
+                    MaxEy = value;
+                    MaxEz = value;
+                    MaxHx = value;
+                    MaxHy = value;
+                    MaxHz = value;
+                }
+            }
+
+            public Boundary2DMaxY MaxEx { get; set; }
             public Boundary2DMaxY MaxEy { get; set; }
             public Boundary2DMaxY MaxEz { get; set; }
             public Boundary2DMaxY MaxHx { get; set; }
