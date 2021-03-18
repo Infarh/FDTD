@@ -9,8 +9,6 @@ namespace FDTD
 {
     public class Solver1D
     {
-        private const double imp0 = 120 * Math.PI;
-
         private readonly int _Nx;
         private readonly double _dx;
 
@@ -23,25 +21,25 @@ namespace FDTD
         private double dHy(int i, double[] Ez)
         {
             var ez_dx = (Ez[i + 1] - Ez[i]) / _dx;
-            return -ez_dx / imp0;
+            return -ez_dx / Consts.Imp0;
         }
 
         private double dHz(int i, double[] Ey)
         {
             var ey_dx = (Ey[i + 1] - Ey[i]) / _dx;
-            return ey_dx / imp0;
+            return ey_dx / Consts.Imp0;
         }
 
         private double dEy(int i, double[] Hz)
         {
             var hz_dx = (Hz[i] - Hz[i - 1]) / _dx;
-            return -hz_dx * imp0;
+            return -hz_dx * Consts.Imp0;
         }
 
         private double dEz(int i, double[] Hy)
         {
             var hy_dx = (Hy[i] - Hy[i - 1]) / _dx;
-            return hy_dx * imp0;
+            return hy_dx * Consts.Imp0;
         }
 
         private void ProcessH(double[] Hy, double[] Hz, double[] Ey, double[] Ez)
@@ -82,18 +80,23 @@ namespace FDTD
             var Ey = new double[_Nx];
             var Ez = new double[_Nx];
 
-            var sources = Sources.ToArray();
+            var sources_e = Sources.Where(s => s.HasE).ToArray();
+            var sources_h = Sources.Where(s => s.HasH).ToArray();
+            if (sources_e.Length == 0) sources_e = null;
+            if (sources_h.Length == 0) sources_h = null;
+
+            var boundaries = Boundaries;
 
             var i = 0;
             for (var t = 0d; t < T; t += dt)
             {
-                Boundaries.ApplyH(Hy, Hz);
+                boundaries.ApplyH(Hy, Hz);
                 ProcessH(Hy, Hz, Ey, Ez);
-                ApplySourceH(sources, t, Hy, Hz);
+                sources_h?.ProcessH(t, Hy, Hz);
 
-                Boundaries.ApplyE(Ey, Ez);
+                boundaries.ApplyE(Ey, Ez);
                 ProcessE(Hy, Hz, Ey, Ez);
-                ApplySourceE(sources, t, Ey, Ez);
+                sources_e?.ProcessE(t, Ey, Ez);
 
                 yield return new(i++, t, Hy, Hz, Ey, Ez);
             }
@@ -102,8 +105,28 @@ namespace FDTD
 
     public abstract class Source1D
     {
+        public abstract bool HasE { get; }
+        public abstract bool HasH { get; }
+
         public abstract void ProcessE(double[] Ey, double[] Ez, double t);
         public abstract void ProcessH(double[] Hy, double[] Hz, double t);
+    }
+
+    public static class Source1DEx
+    {
+        public static void ProcessH(this Source1D[] sources, double t, double[] Hy, double[] Hz)
+        {
+            if(sources is not { Length: > 0 }) return;
+            for (var i = 0; i < sources.Length; i++)
+                sources[i].ProcessH(Hy, Hz, t);
+        }
+
+        public static void ProcessE(this Source1D[] sources, double t, double[] Ey, double[] Ez)
+        {
+            if (sources is not { Length: > 0 }) return;
+            for (var i = 0; i < sources.Length; i++)
+                sources[i].ProcessE(Ey, Ez, t);
+        }
     }
 
     public class FunctionSource1D : Source1D
@@ -118,6 +141,9 @@ namespace FDTD
 
         public Func<double, double> Hy { init => _Hy = value; }
         public Func<double, double> Hz { init => _Hz = value; }
+
+        public override bool HasE => _Ey != null || _Ez != null;
+        public override bool HasH => _Hy != null || _Hz != null;
 
         public FunctionSource1D(
             int i,

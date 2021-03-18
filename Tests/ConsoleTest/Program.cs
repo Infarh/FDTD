@@ -11,7 +11,7 @@ namespace ConsoleTest
             Solver2DTest.Run();
 
            Console.WriteLine("Завершено!");
-           Console.ReadLine();
+           //Console.ReadLine();
         }
     }
 }

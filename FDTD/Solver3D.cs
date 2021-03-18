@@ -6,8 +6,6 @@ namespace FDTD
 {
     public class Solver3D
     {
-        private const double imp0 = 120 * Math.PI;
-
         private readonly int _Nx, _Ny, _Nz;
         private readonly double _dx, _dy, _dz;
 
@@ -34,42 +32,42 @@ namespace FDTD
         {
             var ez_dy = (_Ez[i, j + 1, k] - _Ez[i, j, k]) / _dy;
             var ey_dz = (_Ey[i, j, k + 1] - _Ey[i, j, k]) / _dz;
-            return (ez_dy - ey_dz) / imp0;
+            return (ez_dy - ey_dz) / Consts.Imp0;
         }
 
         private double dHy(int i, int j, int k)
         {
             var ex_dz = (_Ex[i, j, k + 1] - _Ex[i, j, k]) / _dz;
             var ez_dx = (_Ez[i + 1, j, k] - _Ez[i, j, k]) / _dx;
-            return (ex_dz - ez_dx) / imp0;
+            return (ex_dz - ez_dx) / Consts.Imp0;
         }
 
         private double dHz(int i, int j, int k)
         {
             var ey_dx = (_Ey[i + 1, j, k] - _Ey[i, j, k]) / _dx;
             var ex_dy = (_Ex[i, j + 1, k] - _Ex[i, j, k]) / _dy;
-            return (ey_dx - ex_dy) / imp0;
+            return (ey_dx - ex_dy) / Consts.Imp0;
         }
 
         private double dEx(int i, int j, int k)
         {
             var hz_dy = (_Hz[i, j, k] - _Hz[i, j - 1, k]) / _dy;
             var hy_dz = (_Hy[i, j, k] - _Hy[i, j, k - 1]) / _dz;
-            return (hz_dy - hy_dz) * imp0;
+            return (hz_dy - hy_dz) * Consts.Imp0;
         }
 
         private double dEy(int i, int j, int k)
         {
             var hx_dz = (_Hx[i, j, k] - _Hx[i, j, k - 1]) / _dz;
             var hz_dx = (_Hz[i, j, k] - _Hz[i - 1, j, k]) / _dx;
-            return (hx_dz - hz_dx) * imp0;
+            return (hx_dz - hz_dx) * Consts.Imp0;
         }
 
         private double dEz(int i, int j, int k)
         {
             var hy_dx = (_Hy[i, j, k] - _Hy[i - 1, j, k]) / _dx;
             var hx_dy = (_Hx[i, j, k] - _Hx[i, j - 1, k]) / _dy;
-            return (hy_dx - hx_dy) * imp0;
+            return (hy_dx - hx_dy) * Consts.Imp0;
         }
 
         private void ProcessH()
