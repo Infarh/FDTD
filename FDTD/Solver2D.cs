@@ -254,7 +254,7 @@ namespace FDTD
                     var sigma = Sigma[i, j] * dt05 / eps;
 
                     ce[i, j] = (1 - sigma) / (1 + sigma);
-                    ce_h[i, j] = 1 / (1 + sigma) / eps;
+                    ce_h[i, j] = dt / (1 + sigma) / eps;
                 }
             return (ce, ce_h);
         }
@@ -276,13 +276,13 @@ namespace FDTD
 
             var boundaries = Boundaries;
 
-            var (c_hx, c_hx_e) = InitializeCh(dt, _Nx, _Nx, _Sigma, _Mu);
-            var (c_hy, c_hy_e) = InitializeCh(dt, _Nx, _Nx, _Sigma, _Mu);
-            var (c_hz, c_hz_e) = InitializeCh(dt, _Nx, _Nx, _Sigma, _Mu);
+            var (c_hx, c_hx_e) = InitializeCh(dt, _Nx, _Ny, _Sigma, _Mu);
+            var (c_hy, c_hy_e) = InitializeCh(dt, _Nx, _Ny, _Sigma, _Mu);
+            var (c_hz, c_hz_e) = InitializeCh(dt, _Nx, _Ny, _Sigma, _Mu);
 
-            var (c_ex, c_ex_h) = InitializeCe(dt, _Nx, _Nx, _Sigma, _Eps);
-            var (c_ey, c_ey_h) = InitializeCe(dt, _Nx, _Nx, _Sigma, _Eps);
-            var (c_ez, c_ez_h) = InitializeCe(dt, _Nx, _Nx, _Sigma, _Eps);
+            var (c_ex, c_ex_h) = InitializeCe(dt, _Nx, _Ny, _Sigma, _Eps);
+            var (c_ey, c_ey_h) = InitializeCe(dt, _Nx, _Ny, _Sigma, _Eps);
+            var (c_ez, c_ez_h) = InitializeCe(dt, _Nx, _Ny, _Sigma, _Eps);
 
             Initialize?.Invoke(((Ex, Ey, Ez), (Hx, Hy, Hz)));
 
@@ -557,12 +557,13 @@ namespace FDTD
     {
         public override void Process(double[,] Field)
         {
-            for (int i = 0, count_j0 = Field.GetLength(0) - 1,
-                     count_j1 = Field.GetLength(0) - 2,
-                     count_i = Field.GetLength(1);
+            for (int i = 0, 
+                     count_i = Field.GetLength(0),
+                     count_j0 = Field.GetLength(1) - 1,
+                     count_j1 = Field.GetLength(1) - 2;
                  i < count_i;
                  i++)
-                Field[i, count_j0] = Field[i, count_j1 - 1];
+                Field[i, count_j0] = Field[i, count_j1];
         }
     }
 }
