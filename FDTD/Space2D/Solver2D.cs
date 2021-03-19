@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Intrinsics.Arm;
+
 // ReSharper disable MergeConditionalExpression
 
-namespace FDTD
+namespace FDTD.Space2D
 {
     public class Solver2D
     {

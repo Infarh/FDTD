@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 
 using FDTD;
-
+using FDTD.Space2D;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.PixelFormats;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace FDTD
+namespace FDTD.Space2D
 {
     public readonly struct Solver2DFrame
     {

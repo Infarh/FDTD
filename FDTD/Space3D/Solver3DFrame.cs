@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FDTD
+namespace FDTD.Space3D
 {
     public readonly struct Solver3DFrame
     {

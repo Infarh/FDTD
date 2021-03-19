@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FDTD
+namespace FDTD.Space3D
 {
     public class Solver3D
     {

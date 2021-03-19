@@ -1,10 +1,7 @@
-using System;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Solver = FDTD.Space2D.Solver2D;
 
-using Solver = FDTD.Solver2D;
-
-namespace FDTD.Tests
+namespace FDTD.Tests.Space2D
 {
     [TestClass]
     public class Solver2D

@@ -1,9 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace FDTD.Tests
+namespace FDTD.Tests.Space1D
 {
     [TestClass]
-    public class Solver3D
+    public class Solver1D
     {
         [TestMethod]
         public void Test()

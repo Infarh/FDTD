@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
+
 // ReSharper disable ForCanBeConvertedToForeach
 
-namespace FDTD
+namespace FDTD.Space1D
 {
     public class Solver1D
     {

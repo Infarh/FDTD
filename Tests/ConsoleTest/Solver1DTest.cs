@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using FDTD;
-
+using FDTD.Space1D;
 using static System.Math;
 
 namespace ConsoleTest
