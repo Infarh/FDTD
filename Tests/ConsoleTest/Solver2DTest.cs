@@ -5,6 +5,7 @@ using System.Linq;
 
 using FDTD;
 using FDTD.Space2D;
+using FDTD.Space2D.Boundaries.ABC;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.PixelFormats;
