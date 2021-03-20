@@ -56,8 +56,8 @@ namespace FDTD.Space2D
 
         public void Deconstruct(
             out int Index,
-            out double Time, 
-            out (double[,] Ex, double[,] Ey, double[,] Ez) E, 
+            out double Time,
+            out (double[,] Ex, double[,] Ey, double[,] Ez) E,
             out (double[,] Hx, double[,] Hy, double[,] Hz) H)
         {
             Index = this.Index;
@@ -84,6 +84,12 @@ namespace FDTD.Space2D
         {
             var (x, y, z) = GetPower(i, j);
             return Math.Sqrt(x * x + y * y + z * z);
+        }
+
+        public double GetPowerAbsdb(int i, int j)
+        {
+            var db = 10 * Math.Log10(GetPowerAbs(i, j));
+            return db is double.NaN or double.NegativeInfinity ? -180 : db;
         }
     }
 }

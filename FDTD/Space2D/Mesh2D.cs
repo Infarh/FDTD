@@ -94,7 +94,10 @@ namespace FDTD.Space2D
                     _ChxE, _ChyE, _ChzE,
                     _Hx, _Hy, _Hz,
                     _Ex, _Ey, _Ez);
-                _SourcesH?.ProcessH(t, _Hx, _Hy, _Hz);
+                _SourcesH?.ProcessH(
+                    t,
+                    _ChxE, _ChyE, _ChzE,
+                    _Hx, _Hy, _Hz);
 
                 _Boundaries.ApplyE(_Ex, _Ey, _Ez);
                 ProcessE(
@@ -104,12 +107,16 @@ namespace FDTD.Space2D
                     _CexH, _CeyH, _CezH,
                     _Hx, _Hy, _Hz,
                     _Ex, _Ey, _Ez);
-                _SourcesE?.ProcessE(t, _Ex, _Ey, _Ez);
+                _SourcesE?.ProcessE(
+                    t,
+                    _CexH, _CeyH, _CezH,
+                    _Ex, _Ey, _Ez);
 
-                yield return new(_TimeIndex + i, t, _Hx, _Hy, _Hz, _Ex, _Ey, _Ez);
-
-                //if (i % 100 == 0)
-                //    Console.WriteLine();
+                yield return new(
+                    _TimeIndex + i, 
+                    t, 
+                    _Hx, _Hy, _Hz, 
+                    _Ex, _Ey, _Ez);
 
                 t += _dt;
             }
