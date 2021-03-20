@@ -68,8 +68,10 @@ namespace ConsoleTest
             //(double[,] Ex, double[,] Ey, double[,] Ez) E;
             //(double[,] Hx, double[,] Hy, double[,] Hz) H;
 
+            var mesh = solver.GetMesh(dt);
+
             var timer = Stopwatch.StartNew();
-            foreach (var frame in solver.Calculation(total_time, dt).Skip(1).Where(frame => frame.Index % 25 == 0))
+            foreach (var frame in mesh.Calculation(total_time).Skip(1).Where(frame => frame.Index % 25 == 0))
             {
                 var elapsed = timer.Elapsed;
 

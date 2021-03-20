@@ -44,7 +44,9 @@ namespace FDTD.Tests.Space2D
                 Hz[i] = new double[Nx, Ny];
             }
 
-            foreach (var frame in solver.Calculation(total_time, dt))
+            var mesh = solver.GetMesh(dt);
+
+            foreach (var frame in mesh.Calculation(total_time))
             {
                 frame.CopyExTo(Ex[frame.Index]);
 

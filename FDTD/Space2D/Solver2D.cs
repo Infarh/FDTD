@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using FDTD.Space2D.Boundaries;
 using FDTD.Space2D.Sources;
 
@@ -10,14 +11,21 @@ namespace FDTD.Space2D
 {
     public class Solver2D
     {
-        public event Action<((double[,] Ex, double[,] Ey, double[,] Ez) E, (double[,] Hx, double[,] Hy, double[,] Hz) H)> Initialize;
-
         private readonly int _Nx, _Ny;
         private readonly double _dx, _dy;
 
-        private double[,] _Eps;
-        private double[,] _Mu;
-        private double[,] _Sigma;
+        private Func<int, int, double> _EpsInitializer;
+        private Func<int, int, double> _MuInitializer;
+        private Func<int, int, double> _SigmaInitializer;
+
+        public Func<int, int, double> EpsGrid { set => SetEpsGrid(value); }
+        public Func<double, double, double> EpsSpace { set => SetEpsSpace(value); }
+
+        public Func<int, int, double> MuGrid { set => SetMuGrid(value); }
+        public Func<double, double, double> MuSpace { set => SetMuSpace(value); }
+
+        public Func<int, int, double> SigmaGrid { set => SetSigmaGrid(value); }
+        public Func<double, double, double> SigmaSpace { set => SetSigmaSpace(value); }
 
         public ICollection<Source2D> Sources { get; } = new List<Source2D>();
 
@@ -29,135 +37,17 @@ namespace FDTD.Space2D
             (_dx, _dy) = (dx, dy);
         }
 
-        public void SetEpsGrid(Func<int, int, double> Setter)
-        {
-            _Eps ??= new double[_Nx, _Ny];
+        public void SetEpsGrid(Func<int, int, double> Setter) => _EpsInitializer = Setter;
 
-            for (var i = 0; i < _Nx; i++)
-                for (var j = 0; j < _Ny; j++)
-                    if (Setter(i, j) > 0)
-                        _Eps[i, j] = Setter(i, j);
-        }
+        public void SetEpsSpace(Func<double, double, double> Setter) => SetEpsGrid((i, j) => Setter(i * _dx, j * _dx));
 
-        public void SetEpsSpace(Func<double, double, double> Setter)
-        {
-            _Eps ??= new double[_Nx, _Ny];
+        public void SetMuGrid(Func<int, int, double> Setter) => _MuInitializer = Setter;
 
-            for (var i = 0; i < _Nx; i++)
-                for (var j = 0; j < _Ny; j++)
-                    if (Setter(i * _dx, j * _dy) > 0)
-                        _Eps[i, j] = Setter(i * _dx, j * _dy);
-        }
+        public void SetMuSpace(Func<double, double, double> Setter) => SetMuGrid((i, j) => Setter(i * _dx, j * _dx));
 
-        public ref double SetEps(int i, int j)
-        {
-            _Eps ??= new double[_Nx, _Ny];
-            return ref _Eps[i, j];
-        }
+        public void SetSigmaGrid(Func<int, int, double> Setter) => _SigmaInitializer = Setter;
 
-        public void SetMuGrid(Func<int, int, double> Setter)
-        {
-            _Mu ??= new double[_Nx, _Ny];
-
-            for (var i = 0; i < _Nx; i++)
-                for (var j = 0; j < _Ny; j++)
-                    if (Setter(i, j) > 0)
-                        _Mu[i, j] = Setter(i, j);
-        }
-
-        public void SetMuSpace(Func<double, double, double> Setter)
-        {
-            _Mu ??= new double[_Nx, _Ny];
-
-            for (var i = 0; i < _Nx; i++)
-                for (var j = 0; j < _Ny; j++)
-                    if (Setter(i * _dx, j * _dy) > 0)
-                        _Mu[i, j] = Setter(i * _dx, j * _dy);
-        }
-
-        public ref double SetMu(int i, int j)
-        {
-            _Mu ??= new double[_Nx, _Ny];
-            return ref _Mu[i, j];
-        }
-
-        public void SetSigmaGrid(Func<int, int, double> Setter)
-        {
-            _Sigma ??= new double[_Nx, _Ny];
-
-            for (var i = 0; i < _Nx; i++)
-                for (var j = 0; j < _Ny; j++)
-                    if (Setter(i, j) >= 0)
-                        _Sigma[i, j] = Setter(i, j);
-        }
-
-        public void SetSigmaSpace(Func<double, double, double> Setter)
-        {
-            _Sigma ??= new double[_Nx, _Ny];
-
-            for (var i = 0; i < _Nx; i++)
-                for (var j = 0; j < _Ny; j++)
-                    if (Setter(i * _dx, j * _dy) >= 0)
-                        _Sigma[i, j] = Setter(i * _dx, j * _dy);
-        }
-
-        public ref double SetSigma(int i, int j)
-        {
-            _Sigma ??= new double[_Nx, _Ny];
-            return ref _Sigma[i, j];
-        }
-
-        private double dHx(int i, int j, double[,] Ez) => (Ez[i, j + 1] - Ez[i, j]) / _dy;
-
-        private double dHy(int i, int j, double[,] Ez) => -(Ez[i + 1, j] - Ez[i, j]) / _dx;
-
-        private double dHz(int i, int j, double[,] Ex, double[,] Ey)
-        {
-            var ey_dx = (Ey[i + 1, j] - Ey[i, j]) / _dx;
-            var ex_dy = (Ex[i, j + 1] - Ex[i, j]) / _dy;
-            return ey_dx - ex_dy;
-        }
-
-        private double dEx(int i, int j, double[,] Hz) => (Hz[i, j] - Hz[i, j - 1]) / _dy;
-
-        private double dEy(int i, int j, double[,] Hz) => -(Hz[i, j] - Hz[i - 1, j]) / _dx;
-
-        private double dEz(int i, int j, double[,] Hx, double[,] Hy)
-        {
-            var hy_dx = (Hy[i, j] - Hy[i - 1, j]) / _dx;
-            var hx_dy = (Hx[i, j] - Hx[i, j - 1]) / _dy;
-            return hy_dx - hx_dy;
-        }
-
-        private void ProcessH(
-            double[,] Chx, double[,] Chy, double[,] Chz,
-            double[,] ChxE, double[,] ChyE, double[,] ChzE,
-            double[,] Hx, double[,] Hy, double[,] Hz,
-            double[,] Ex, double[,] Ey, double[,] Ez)
-        {
-            for (var i = 0; i < _Nx - 1; i++)
-                for (var j = 0; j < _Ny - 1; j++)
-                {
-                    Hx[i, j] = (Chx is null ? Hx[i, j] : Hx[i, j] * Chx[i, j]) - ChxE[i, j] * dHx(i, j, Ez);
-                    Hy[i, j] = (Chy is null ? Hy[i, j] : Hy[i, j] * Chy[i, j]) - ChyE[i, j] * dHy(i, j, Ez);
-                    Hz[i, j] = (Chz is null ? Hz[i, j] : Hz[i, j] * Chz[i, j]) - ChzE[i, j] * dHz(i, j, Ex, Ey);
-                }
-        }
-
-        private void ProcessE(
-            double[,] Cex, double[,] Cey, double[,] Cez,
-            double[,] CexH, double[,] CeyH, double[,] CezH,
-            double[,] Hx, double[,] Hy, double[,] Hz,
-            double[,] Ex, double[,] Ey, double[,] Ez)
-        {
-            for (var i = 1; i < _Nx; i++)
-                for (var j = 1; j < _Ny; j++)
-                {
-                    Ex[i, j] = (Cex is null ? Ex[i, j] : Ex[i, j] * Cex[i, j]) + CexH[i, j] * dEx(i, j, Hz);
-                    Ey[i, j] = (Cey is null ? Ey[i, j] : Ey[i, j] * Cey[i, j]) + CeyH[i, j] * dEy(i, j, Hz);
-                    Ez[i, j] = (Cez is null ? Ez[i, j] : Ez[i, j] * Cez[i, j]) + CezH[i, j] * dEz(i, j, Hx, Hy);
-                }
-        }
+        public void SetSigmaSpace(Func<double, double, double> Setter) => SetSigmaGrid((i, j) => Setter(i * _dx, j * _dx));
 
         private static (double[,] Ch, double[,] ChE) InitializeCh(
             double dt,
@@ -261,7 +151,25 @@ namespace FDTD.Space2D
             return (ce, ce_h);
         }
 
-        public IEnumerable<Solver2DFrame> Calculation(double T, double dt)
+        private static double[,] CreateArray(int Nx, int Ny, Func<int, int, double> Initializer)
+        {
+            if (Initializer is null) return null;
+            var result = new double[Nx, Ny];
+            for (var i = 0; i < Nx; i++)
+                for (var j = 0; j < Nx; j++)
+                    result[i, j] = Initializer(i, j);
+            return result;
+        }
+
+        private static (double[,] Eps, double[,] Mu, double[,] Sigma) CreateMesh(
+            int Nx,
+            int Ny,
+            Func<int, int, double> Eps,
+            Func<int, int, double> Mu,
+            Func<int, int, double> Sigma) =>
+            (CreateArray(Nx, Ny, Eps), CreateArray(Nx, Ny, Mu), CreateArray(Nx, Ny, Sigma));
+
+        public Mesh2D GetMesh(double dt)
         {
             var Hx = new double[_Nx, _Ny];
             var Hy = new double[_Nx, _Ny];
@@ -271,44 +179,33 @@ namespace FDTD.Space2D
             var Ey = new double[_Nx, _Ny];
             var Ez = new double[_Nx, _Ny];
 
+            var (eps, mu, sigma) = CreateMesh(
+                _Nx, _Ny, 
+                _EpsInitializer,
+                _MuInitializer, 
+                _SigmaInitializer);
+
+            var chx = InitializeCh(dt, _Nx, _Ny, sigma, mu);
+            var chy = InitializeCh(dt, _Nx, _Ny, sigma, mu);
+            var chz = InitializeCh(dt, _Nx, _Ny, sigma, mu);
+
+            var cex = InitializeCe(dt, _Nx, _Ny, sigma, eps);
+            var cey = InitializeCe(dt, _Nx, _Ny, sigma, eps);
+            var cez = InitializeCe(dt, _Nx, _Ny, sigma, eps);
+
             var sources_h = Sources.Where(s => s.HasH).ToArray();
             var sources_e = Sources.Where(s => s.HasE).ToArray();
-            if (sources_h.Length == 0) sources_h = null;
-            if (sources_e.Length == 0) sources_e = null;
 
-            var boundaries = Boundaries;
-
-            var (c_hx, c_hx_e) = InitializeCh(dt, _Nx, _Ny, _Sigma, _Mu);
-            var (c_hy, c_hy_e) = InitializeCh(dt, _Nx, _Ny, _Sigma, _Mu);
-            var (c_hz, c_hz_e) = InitializeCh(dt, _Nx, _Ny, _Sigma, _Mu);
-
-            var (c_ex, c_ex_h) = InitializeCe(dt, _Nx, _Ny, _Sigma, _Eps);
-            var (c_ey, c_ey_h) = InitializeCe(dt, _Nx, _Ny, _Sigma, _Eps);
-            var (c_ez, c_ez_h) = InitializeCe(dt, _Nx, _Ny, _Sigma, _Eps);
-
-            Initialize?.Invoke(((Ex, Ey, Ez), (Hx, Hy, Hz)));
-
-            var i = 0;
-            for (var t = 0d; t < T; t += dt)
-            {
-                boundaries.ApplyH(Hx, Hy, Hz);
-                ProcessH(
-                    c_hx, c_hy, c_hz,
-                    c_hx_e, c_hy_e, c_hz_e,
-                    Hx, Hy, Hz,
-                    Ex, Ey, Ez);
-                sources_h?.ProcessH(t, Hx, Hy, Hz);
-
-                boundaries.ApplyE(Ex, Ey, Ez);
-                ProcessE(
-                    c_ex, c_ey, c_ez,
-                    c_ex_h, c_ey_h, c_ez_h,
-                    Hx, Hy, Hz,
-                    Ex, Ey, Ez);
-                sources_e?.ProcessE(t, Ex, Ey, Ez);
-
-                yield return new(i++, t, Hx, Hy, Hz, Ex, Ey, Ez);
-            }
+            return new(
+                dt,
+                _Nx, _Ny,
+                _dx, _dy,
+                Ex, Ey, Ez,
+                Hx, Hy, Hz,
+                chx, chy, chz,
+                cex, cey, cez,
+                Boundaries,
+                sources_h, sources_e);
         }
     }
 }

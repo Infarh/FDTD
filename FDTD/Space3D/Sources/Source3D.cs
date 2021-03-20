@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace FDTD.Space3D.Sources
 {
@@ -37,6 +38,7 @@ namespace FDTD.Space3D.Sources
             if (_Ex != null) Ex[_i, _j, _k] = _Ex(t);
             if (_Ey != null) Ey[_i, _j, _k] = _Ey(t);
             if (_Ez != null) Ez[_i, _j, _k] = _Ez(t);
+
         }
 
         public void ProcessH(double[,,] Hx, double[,,] Hy, double[,,] Hz, double t)
