@@ -37,6 +37,21 @@ namespace FDTD.Space2D
             (_dx, _dy) = (dx, dy);
         }
 
+        private static double GetValueMin(double Nx, double Ny, Func<int, int, double> Initializer)
+        {
+            if (Initializer is null) return 1;
+            var min = 1d;
+            for (var i = 0; i < Nx; i++)
+                for (var j = 0; j < Nx; j++)
+                    min = Math.Max(min, Initializer(i, j));
+            return min;
+        }
+
+        public double GetMaxStableTimeStep() => 
+            Math.Sqrt(GetValueMin(_Nx, _Ny, _EpsInitializer) * GetValueMin(_Nx, _Ny, _MuInitializer))
+                / Math.Sqrt(1 / (_dx * _dx) + 1 / (_dy * _dy))
+                / Consts.SpeedOfLight;
+
         public void SetEpsGrid(Func<int, int, double> Setter) => _EpsInitializer = Setter;
 
         public void SetEpsSpace(Func<double, double, double> Setter) => SetEpsGrid((i, j) => Setter(i * _dx, j * _dx));
@@ -156,7 +171,7 @@ namespace FDTD.Space2D
             if (Initializer is null) return null;
             var result = new double[Nx, Ny];
             for (var i = 0; i < Nx; i++)
-                for (var j = 0; j < Nx; j++)
+                for (var j = 0; j < Ny; j++)
                     result[i, j] = Initializer(i, j);
             return result;
         }
@@ -171,19 +186,29 @@ namespace FDTD.Space2D
 
         public Mesh2D GetMesh(double dt)
         {
-            var Hx = new double[_Nx, _Ny];
-            var Hy = new double[_Nx, _Ny];
-            var Hz = new double[_Nx, _Ny];
-
-            var Ex = new double[_Nx, _Ny];
-            var Ey = new double[_Nx, _Ny];
-            var Ez = new double[_Nx, _Ny];
-
             var (eps, mu, sigma) = CreateMesh(
-                _Nx, _Ny, 
+                _Nx, _Ny,
                 _EpsInitializer,
-                _MuInitializer, 
+                _MuInitializer,
                 _SigmaInitializer);
+
+            var eps_min = 1d;
+            if (eps != null)
+                for (var i = 0; i < _Nx; i++)
+                    for (var j = 0; j < _Nx; j++)
+                        eps_min = Math.Min(eps_min, Math.Abs(eps[i, j]));
+
+            var mu_min = 1d;
+            if (mu != null)
+                for (var i = 0; i < _Nx; i++)
+                    for (var j = 0; j < _Nx; j++)
+                        mu_min = Math.Min(mu_min, Math.Abs(mu[i, j]));
+
+            var v_max = Consts.SpeedOfLight / Math.Sqrt(eps_min * mu_min);
+            var max_stable_dt = Math.Sqrt(1 / (_dx * _dx) + 1 / (_dy * _dy)) / v_max;
+
+            if (dt > max_stable_dt)
+                throw new ArgumentOutOfRangeException(nameof(dt), dt, $"Указанное значение dt {dt} превышает максимально допустимый шаг {max_stable_dt}");
 
             var chx = InitializeCh(dt, _Nx, _Ny, sigma, mu);
             var chy = InitializeCh(dt, _Nx, _Ny, sigma, mu);
@@ -195,6 +220,14 @@ namespace FDTD.Space2D
 
             var sources_h = Sources.Where(s => s.HasH).ToArray();
             var sources_e = Sources.Where(s => s.HasE).ToArray();
+
+            var Hx = new double[_Nx, _Ny];
+            var Hy = new double[_Nx, _Ny];
+            var Hz = new double[_Nx, _Ny];
+
+            var Ex = new double[_Nx, _Ny];
+            var Ey = new double[_Nx, _Ny];
+            var Ez = new double[_Nx, _Ny];
 
             return new(
                 dt,

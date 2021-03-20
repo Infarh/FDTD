@@ -5,6 +5,8 @@ namespace FDTD.Space2D
 {
     public readonly struct Solver2DFrame
     {
+        private static double Sqr(double x) => x * x;
+
         public int Index { get; }
         public double Time { get; }
         public double[,] Hx { get; }
@@ -62,6 +64,26 @@ namespace FDTD.Space2D
             Time = this.Time;
             E = (Ex, Ey, Ez);
             H = (Hx, Hy, Hz);
+        }
+
+        public (double Hx, double Hy, double Hz) GetH(int i, int j) => (Hx[i, j], Hy[i, j], Hz[i, j]);
+        public (double Ex, double Ey, double Ez) GetE(int i, int j) => (Ex[i, j], Ey[i, j], Ez[i, j]);
+
+        public double GetPowerH(int i, int j) => Sqr(Hx[i, j]) + Sqr(Hy[i, j]) + Sqr(Hz[i, j]);
+        public double GetPowerE(int i, int j) => Sqr(Ex[i, j]) + Sqr(Ey[i, j]) + Sqr(Ez[i, j]);
+
+        public double GetAbsH(int i, int j) => Math.Sqrt(GetPowerH(i, j));
+        public double GetAbsE(int i, int j) => Math.Sqrt(GetPowerE(i, j));
+
+        public (double Px, double Py, double Pz) GetPower(int i, int j) => (
+            Ey[i, j] * Hz[i, j] - Ez[i, j] * Hy[i, j],
+            Ez[i, j] * Hx[i, j] - Ex[i, j] * Hz[i, j],
+            Ex[i, j] * Hy[i, j] - Ey[i, j] * Hx[i, j]);
+
+        public double GetPowerAbs(int i, int j)
+        {
+            var (x, y, z) = GetPower(i, j);
+            return Math.Sqrt(x * x + y * y + z * z);
         }
     }
 }

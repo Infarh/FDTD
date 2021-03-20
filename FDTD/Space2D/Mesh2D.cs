@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using FDTD.Space2D.Boundaries;
 using FDTD.Space2D.Sources;
@@ -25,6 +26,14 @@ namespace FDTD.Space2D
         private readonly Source2D[] _SourcesH, _SourcesE;
 
         private int _TimeIndex;
+
+        public double[,] Ex => _Ex;
+        public double[,] Ey => _Ey;
+        public double[,] Ez => _Ez;
+
+        public double[,] Hx => _Hx;
+        public double[,] Hy => _Hy;
+        public double[,] Hz => _Hz;
 
         internal Mesh2D(
             double dt,
@@ -98,6 +107,10 @@ namespace FDTD.Space2D
                 _SourcesE?.ProcessE(t, _Ex, _Ey, _Ez);
 
                 yield return new(_TimeIndex + i, t, _Hx, _Hy, _Hz, _Ex, _Ey, _Ez);
+
+                //if (i % 100 == 0)
+                //    Console.WriteLine();
+
                 t += _dt;
             }
             _TimeIndex += count;

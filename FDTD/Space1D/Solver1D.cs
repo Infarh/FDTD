@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+
 using FDTD.Space1D.Boundaries;
 using FDTD.Space1D.Sources;
 
@@ -18,58 +19,26 @@ namespace FDTD.Space1D
 
         public Solver1D(int Nx, double dx) => (_Nx, _dx) = (Nx, dx);
 
-        private double dHy(int i, double[] Ez)
-        {
-            var ez_dx = (Ez[i + 1] - Ez[i]) / _dx;
-            return -ez_dx / Consts.Imp0;
-        }
-
-        private double dHz(int i, double[] Ey)
-        {
-            var ey_dx = (Ey[i + 1] - Ey[i]) / _dx;
-            return ey_dx / Consts.Imp0;
-        }
-
-        private double dEy(int i, double[] Hz)
-        {
-            var hz_dx = (Hz[i] - Hz[i - 1]) / _dx;
-            return -hz_dx * Consts.Imp0;
-        }
-
-        private double dEz(int i, double[] Hy)
-        {
-            var hy_dx = (Hy[i] - Hy[i - 1]) / _dx;
-            return hy_dx * Consts.Imp0;
-        }
-
         private void ProcessH(double[] Hy, double[] Hz, double[] Ey, double[] Ez)
         {
+            static double dHy(int i, double[] Ez) => -(Ez[i + 1] - Ez[i]);
+            static double dHz(int i, double[] Ey) => Ey[i + 1] - Ey[i];
             for (var i = 0; i < _Nx - 1; i++)
             {
-                Hy[i] -= dHy(i, Ez);
-                Hz[i] -= dHz(i, Ey);
+                Hy[i] -= dHy(i, Ez) / _dx / Consts.Imp0;
+                Hz[i] -= dHz(i, Ey) / _dx / Consts.Imp0;
             }
         }
 
         private void ProcessE(double[] Hy, double[] Hz, double[] Ey, double[] Ez)
         {
+            static double dEy(int i, double[] Hz) => -(Hz[i] - Hz[i - 1]);
+            static double dEz(int i, double[] Hy) => Hy[i] - Hy[i - 1];
             for (var i = 1; i < _Nx; i++)
             {
-                Ey[i] += dEy(i, Hz);
-                Ez[i] += dEz(i, Hy);
+                Ey[i] += dEy(i, Hz) / _dx * Consts.Imp0;
+                Ez[i] += dEz(i, Hy) / _dx * Consts.Imp0;
             }
-        }
-
-        private static void ApplySourceH(Source1D[] sources, double t, double[] Hy, double[] Hz)
-        {
-            for (var i = 0; i < sources.Length; i++)
-                sources[i].ProcessH(Hy, Hz, t);
-        }
-
-        private static void ApplySourceE(Source1D[] sources, double t, double[] Ey, double[] Ez)
-        {
-            for (var i = 0; i < sources.Length; i++)
-                sources[i].ProcessE(Ey, Ez, t);
         }
 
         public IEnumerable<Solver1DFrame> Calculation(double T, double dt)
