@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using FDTD.Space2D.Boundaries;
 using FDTD.Space2D.Sources;

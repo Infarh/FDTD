@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using FDTD;
 using FDTD.Space1D;
 using FDTD.Space1D.Boundaries.ABC;
 using FDTD.Space1D.Sources;

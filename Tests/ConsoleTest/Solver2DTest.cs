@@ -2,11 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-
-using FDTD.Signals;
 using FDTD.Space2D;
-using FDTD.Space2D.Boundaries.ABC;
-
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.PixelFormats;

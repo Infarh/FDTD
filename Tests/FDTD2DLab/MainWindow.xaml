@@ -1,0 +1,260 @@
+﻿<Window x:Class="FDTD2DLab.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" mc:Ignorable="d"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:fa="http://schemas.fontawesome.com/icons/"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:l="clr-namespace:FDTD2DLab"
+        xmlns:svm="clr-namespace:FDTD2DLab.ViewModels.Shapes"
+        xmlns:b="clr-namespace:FDTD2DLab.Infrastructure.Behaviors"
+        xmlns:c="clr-namespace:FDTD2DLab.Infrastructure.Converters"
+        xmlns:inf="clr-namespace:FDTD2DLab.Infrastructure"
+        DataContext="{Binding MainWindowModel, Source={StaticResource Locator}}"
+        Title="{Binding Title}"
+        Width="1100" Height="600">
+    <Window.InputBindings>
+        <KeyBinding Gesture="Ctrl+N"/>
+        <KeyBinding Gesture="Ctrl+O"/>
+        <KeyBinding Gesture="Ctrl+S"/>
+        <KeyBinding Gesture="Ctrl+P"/>
+        <KeyBinding Gesture="Ctrl+Q"/>
+    </Window.InputBindings>
+    <DockPanel>
+        <Menu IsMainMenu="True">
+            <MenuItem Header="Файл">
+                <MenuItem Header="Создать" InputGestureText="Ctrl+N"/>
+                <MenuItem Header="Открыть" InputGestureText="Ctrl+O"/>
+                <MenuItem Header="Сохранить" InputGestureText="Ctrl+S"/>
+                <MenuItem Header="Сохранить как..."/>
+                <Separator/>
+                <MenuItem Header="Выход" InputGestureText="Ctrl+Q"/>
+            </MenuItem>
+            <MenuItem Header="Правка"/>
+            <MenuItem Header="Рисование"/>
+            <MenuItem Header="Параметры"/>
+            <MenuItem Header="Экран"/>
+            <MenuItem Header="Моделирование"/>
+            <MenuItem Header="Окно"/>
+            <MenuItem Header="Справка"/>
+        </Menu>
+        <StatusBar>
+            <StatusBarItem DockPanel.Dock="Right">
+                <ResizeGrip/>
+            </StatusBarItem>
+            <StatusBarItem Content="Готов!"/>
+        </StatusBar>
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar>
+                <Button fa:Awesome.Content="Regular_File"/>
+                <Button fa:Awesome.Content="Regular_FolderOpen"/>
+                <Button fa:Awesome.Content="Regular_Save"/>
+                <Button fa:Awesome.Content="Solid_Save"/>
+                <Separator/>
+                <Button fa:Awesome.Content="Solid_Cut"/>
+                <Button fa:Awesome.Content="Solid_Copy"/>
+                <Button fa:Awesome.Content="Solid_Paste"/>
+                <Separator/>
+            </ToolBar>
+        </ToolBarTray>
+        <TabControl>
+            <TabItem Header="Пространство">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="130"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="80"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Column="1" Grid.Row="0" Background="Transparent"
+                            ClipToBounds="True"
+                            BorderThickness="2" BorderBrush="Black">
+                        <i:Interaction.Behaviors>
+                            <b:MouseMove PositionRelative="{Binding Grid.GridMousePosition, Mode=OneWayToSource}"/>
+                        </i:Interaction.Behaviors>
+                        <Grid>
+                            <ItemsControl ItemsSource="{Binding Grid.GridX}">
+                                <ItemsControl.Resources>
+                                    <c:Div x:Key="DivX" Parameter="{Binding Grid.Nx}"/>
+                                </ItemsControl.Resources>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderThickness="0,0,0.25,0" BorderBrush="Gray"
+                                                Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Grid}, Converter={StaticResource DivX}}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <ItemsControl ItemsSource="{Binding Grid.GridY}">
+                                <ItemsControl.Resources>
+                                    <c:Div x:Key="DivY" Parameter="{Binding Grid.Ny}"/>
+                                </ItemsControl.Resources>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Vertical"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderThickness="0,0,0,0.25" BorderBrush="Gray"
+                                                Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}, Converter={StaticResource DivY}}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <ItemsControl ItemsSource="{Binding Grid.Shapes}">
+                                <ItemsControl.Resources>
+                                    <c:Div x:Key="Lx" Parameter="{Binding Grid.Lx}"/>
+                                    <c:Div x:Key="Ly" Parameter="{Binding Grid.Ly}"/>
+
+
+                                    <c:Mul x:Key="Width"  Parameter="{Binding ActualWidth,  RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource Lx}}"/>
+                                    <c:Mul x:Key="Height" Parameter="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource Ly}}"/>
+
+                                    <DataTemplate DataType="{x:Type svm:EllipseViewModel}">
+                                        <Grid Width="{Binding Width, Converter={StaticResource Width}}" 
+                                              Height="{Binding Height, Converter={StaticResource Height}}">
+                                            <Ellipse  Fill="Blue"/>
+                                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="12" Foreground="White"
+                                                       Text="{Binding ActualWidth,  RelativeSource={RelativeSource AncestorType=Border}, StringFormat=f1}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.Resources>
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <!--<Setter Property="Canvas.Left" Value="0"/>
+                                        <Setter Property="Canvas.Bottom" Value="0"/>-->
+                                        <Setter Property="inf:RelPos.CanvasBinding" Value="True"/>
+                                        <Setter Property="inf:RelPos.ContainerWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                        <Setter Property="inf:RelPos.ContainerHeight" Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                        <Setter Property="inf:RelPos.MaxX" Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                        <Setter Property="inf:RelPos.MaxY" Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                        <Setter Property="inf:RelPos.X" Value="{Binding X}"/>
+                                        <Setter Property="inf:RelPos.Y" Value="{Binding Y}"/>
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <Canvas/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </Grid>
+                    </Border>
+                    <GroupBox Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+                              BorderThickness="0"
+                              DataContext="{Binding Grid}">
+                        <Grid Margin="5">
+                            <Grid.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <Trigger Property="Grid.Column" Value="0">
+                                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter Property="VerticalAlignment" Value="Center"/>
+                                            <Setter Property="Margin" Value="0,0,3,0"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="Margin" Value="0,1.5,1,1.5"/>
+                                </Style>
+                                <Style TargetType="ComboBox">
+                                    <Setter Property="Margin" Value="0,1.5,0,1.5"/>
+                                </Style>
+                            </Grid.Resources>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="44"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Column="0" Grid.Row="0" Text="Nx:" HorizontalAlignment="Right"/>
+                            <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Nx}"/>
+
+                            <TextBlock Grid.Column="0" Grid.Row="1" Text="Ny:" HorizontalAlignment="Right"/>
+                            <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Ny}"/>
+
+                            <TextBlock Grid.Column="0" Grid.Row="2" Text="dx:" HorizontalAlignment="Right"/>
+                            <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding dx}"/>
+                            <ComboBox Grid.Column="2" Grid.Row="2"
+                                      ItemsSource="{Binding SpaceUnits}" 
+                                      SelectedItem="{Binding SpaceUnit}">
+                                <ComboBox.ToolTip>
+                                    <TextBlock Text="{Binding SpaceUnitValue, StringFormat={}{0} м}"/>
+                                </ComboBox.ToolTip>
+                            </ComboBox>
+
+                            <TextBlock Grid.Column="0" Grid.Row="3" Text="dy:" HorizontalAlignment="Right"/>
+                            <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding dy}"/>
+                            <ComboBox Grid.Column="2" Grid.Row="3"
+                                      ItemsSource="{Binding SpaceUnits}" 
+                                      SelectedItem="{Binding SpaceUnit}">
+                                <ComboBox.ToolTip>
+                                    <TextBlock Text="{Binding SpaceUnitValue, StringFormat={}{0} м}"/>
+                                </ComboBox.ToolTip>
+                            </ComboBox>
+
+                            <TextBlock Grid.Column="0" Grid.Row="4" Text="Lx:" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="1" Grid.Row="4" Text="{Binding Lx}"/>
+                            <TextBlock Grid.Column="2" Grid.Row="4" Text="{Binding SpaceUnit}" Margin="6,0,0,0"/>
+
+                            <TextBlock Grid.Column="0" Grid.Row="5" Text="Ly:" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="1" Grid.Row="5" Text="{Binding Ly}"/>
+                            <TextBlock Grid.Column="2" Grid.Row="5" Text="{Binding SpaceUnit}" Margin="6,0,0,0"/>
+                           
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Grid.Column="1" Grid.Row="1" BorderThickness="0" Margin="3">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="{Binding Grid.MousePosition.X, StringFormat=x:{0:0.##}}"/>
+                                <TextBlock Text="{Binding Grid.MousePosition.Y, StringFormat=y:{0:0.##}}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <DockPanel DataContext="{Binding Grid.Shapes[0]}">
+                                    <TextBlock Text="{Binding X, StringFormat=f2}" Margin="0,0,3,0" Width="30"/>
+                                    <Slider Value="{Binding X}" SmallChange="1"
+                                            Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=StackPanel}}"/>
+                                </DockPanel>
+                                <DockPanel DataContext="{Binding Grid.Shapes[0]}">
+                                    <TextBlock Text="{Binding Y, StringFormat=f2}" Margin="0,0,3,0" Width="30"/>
+                                    <Slider Value="{Binding Y}" SmallChange="1"
+                                            Maximum="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=StackPanel}}"/>
+                                </DockPanel>
+                                <DockPanel DataContext="{Binding Grid.Shapes[0]}">
+                                    <TextBlock Text="{Binding Width, StringFormat=f2}" Margin="0,0,3,0" Width="30"/>
+                                    <Slider Value="{Binding Width}" SmallChange="1"
+                                            Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=StackPanel}}"/>
+                                </DockPanel>
+                                <DockPanel DataContext="{Binding Grid.Shapes[0]}">
+                                    <TextBlock Text="{Binding Height, StringFormat=f2}" Margin="0,0,3,0" Width="30"/>
+                                    <Slider Value="{Binding Height}" SmallChange="1"
+                                            Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=StackPanel}}"/>
+                                </DockPanel>
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Поле"></TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>
