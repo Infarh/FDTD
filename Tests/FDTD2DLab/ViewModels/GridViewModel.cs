@@ -35,6 +35,11 @@ namespace FDTD2DLab.ViewModels
         [DependencyOn(nameof(GridMousePosition))]
         public Point MousePosition => new(Lx * _GridMousePosition.X, Ly * (1 - _GridMousePosition.Y));
 
+        [DependencyOn(nameof(dx))]
+        [DependencyOn(nameof(dy))]
+        [DependencyOn(nameof(MousePosition))]
+        public Point MousePositionCell => new(Math.Ceiling(Lx * _GridMousePosition.X / _dx) - 1, Math.Ceiling(Ly * (1 - _GridMousePosition.Y) / _dy) - 1);
+
         #endregion
 
         #region Nx : int - Размер сетки по горизонтали

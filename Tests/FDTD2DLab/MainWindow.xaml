@@ -66,14 +66,12 @@
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition/>
-                        <RowDefinition Height="80"/>
+                        <RowDefinition Height="120"/>
                     </Grid.RowDefinitions>
-                    <Border Grid.Column="1" Grid.Row="0" Background="Transparent"
+                    <Border Grid.Column="1" Grid.Row="0" 
                             ClipToBounds="True"
-                            BorderThickness="2" BorderBrush="Black">
-                        <i:Interaction.Behaviors>
-                            <b:MouseMove PositionRelative="{Binding Grid.GridMousePosition, Mode=OneWayToSource}"/>
-                        </i:Interaction.Behaviors>
+                            BorderThickness="1" BorderBrush="Black" 
+                            Padding="1">
                         <Grid>
                             <ItemsControl ItemsSource="{Binding Grid.GridX}">
                                 <ItemsControl.Resources>
@@ -107,18 +105,14 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <ItemsControl ItemsSource="{Binding Grid.Shapes}">
+                            <ItemsControl ItemsSource="{Binding Grid.Shapes}" Background="Transparent">
+                                <i:Interaction.Behaviors>
+                                    <b:MouseMove PositionRelative="{Binding Grid.GridMousePosition, Mode=OneWayToSource}"/>
+                                </i:Interaction.Behaviors>
                                 <ItemsControl.Resources>
-                                    <c:Div x:Key="Lx" Parameter="{Binding Grid.Lx}"/>
-                                    <c:Div x:Key="Ly" Parameter="{Binding Grid.Ly}"/>
-
-
-                                    <c:Mul x:Key="Width"  Parameter="{Binding ActualWidth,  RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource Lx}}"/>
-                                    <c:Mul x:Key="Height" Parameter="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}, Converter={StaticResource Ly}}"/>
-
                                     <DataTemplate DataType="{x:Type svm:EllipseViewModel}">
-                                        <Grid Width="{Binding Width, Converter={StaticResource Width}}" 
-                                              Height="{Binding Height, Converter={StaticResource Height}}">
+                                        <Grid>
+                                            <Border BorderThickness="1" BorderBrush="Gray"/>
                                             <Ellipse  Fill="Blue"/>
                                             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="12" Foreground="White"
                                                        Text="{Binding ActualWidth,  RelativeSource={RelativeSource AncestorType=Border}, StringFormat=f1}"/>
@@ -127,15 +121,15 @@
                                 </ItemsControl.Resources>
                                 <ItemsControl.ItemContainerStyle>
                                     <Style TargetType="ContentPresenter">
-                                        <!--<Setter Property="Canvas.Left" Value="0"/>
-                                        <Setter Property="Canvas.Bottom" Value="0"/>-->
-                                        <Setter Property="inf:RelPos.CanvasBinding" Value="True"/>
+                                        <Setter Property="inf:RelPos.Binding" Value="True"/>
                                         <Setter Property="inf:RelPos.ContainerWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                         <Setter Property="inf:RelPos.ContainerHeight" Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                         <Setter Property="inf:RelPos.MaxX" Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                         <Setter Property="inf:RelPos.MaxY" Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                         <Setter Property="inf:RelPos.X" Value="{Binding X}"/>
                                         <Setter Property="inf:RelPos.Y" Value="{Binding Y}"/>
+                                        <Setter Property="inf:RelPos.ValueWidth" Value="{Binding Width}"/>
+                                        <Setter Property="inf:RelPos.ValueHeight" Value="{Binding Height}"/>
                                     </Style>
                                 </ItemsControl.ItemContainerStyle>
                                 <ItemsControl.ItemsPanel>
@@ -225,29 +219,43 @@
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="{Binding Grid.MousePosition.X, StringFormat=x:{0:0.##}}"/>
-                                <TextBlock Text="{Binding Grid.MousePosition.Y, StringFormat=y:{0:0.##}}"/>
+                                <TextBlock>
+                                    Cell
+                                    <TextBlock Text="{Binding Grid.MousePositionCell.X, StringFormat=x:{0:f0}}" Width="50"/>
+                                    (<TextBlock Text="{Binding Grid.MousePosition.X, StringFormat={}{0:0.##}}"/>
+                                    <TextBlock Text="{Binding Grid.SpaceUnit}"/>)
+                                </TextBlock>
+                                <TextBlock>
+                                    Cell
+                                    <TextBlock Text="{Binding Grid.MousePositionCell.Y, StringFormat=y:{0:f0}}" Width="50"/>
+                                    (<TextBlock Text="{Binding Grid.MousePosition.Y, StringFormat={}{0:0.##}}"/>
+                                    <TextBlock Text="{Binding Grid.SpaceUnit}"/>)
+                                </TextBlock>
                             </StackPanel>
                             <StackPanel Grid.Column="1">
                                 <DockPanel DataContext="{Binding Grid.Shapes[0]}">
-                                    <TextBlock Text="{Binding X, StringFormat=f2}" Margin="0,0,3,0" Width="30"/>
+                                    <TextBlock Text="{Binding X, StringFormat=x:{0:f2}}" Margin="0,0,3,0" Width="40"/>
                                     <Slider Value="{Binding X}" SmallChange="1"
                                             Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=StackPanel}}"/>
                                 </DockPanel>
                                 <DockPanel DataContext="{Binding Grid.Shapes[0]}">
-                                    <TextBlock Text="{Binding Y, StringFormat=f2}" Margin="0,0,3,0" Width="30"/>
+                                    <TextBlock Text="{Binding Y, StringFormat=y:{0:f2}}" Margin="0,0,3,0" Width="40"/>
                                     <Slider Value="{Binding Y}" SmallChange="1"
                                             Maximum="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=StackPanel}}"/>
                                 </DockPanel>
                                 <DockPanel DataContext="{Binding Grid.Shapes[0]}">
-                                    <TextBlock Text="{Binding Width, StringFormat=f2}" Margin="0,0,3,0" Width="30"/>
+                                    <TextBlock Text="{Binding Width, StringFormat=w:{0:f2}}" Margin="0,0,3,0" Width="40"/>
                                     <Slider Value="{Binding Width}" SmallChange="1"
                                             Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=StackPanel}}"/>
                                 </DockPanel>
                                 <DockPanel DataContext="{Binding Grid.Shapes[0]}">
-                                    <TextBlock Text="{Binding Height, StringFormat=f2}" Margin="0,0,3,0" Width="30"/>
+                                    <TextBlock Text="{Binding Height, StringFormat=h:{0:f2}}" Margin="0,0,3,0" Width="40"/>
                                     <Slider Value="{Binding Height}" SmallChange="1"
                                             Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=StackPanel}}"/>
+                                </DockPanel>
+                                <DockPanel DataContext="{Binding Grid.Shapes[0]}">
+                                    <TextBlock Text="{Binding Angle, StringFormat=a:{0:f2}}" Margin="0,0,3,0" Width="40"/>
+                                    <Slider Value="{Binding Angle}" SmallChange="1" Maximum="360"/>
                                 </DockPanel>
                             </StackPanel>
                         </Grid>
