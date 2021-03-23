@@ -45,7 +45,7 @@ namespace FDTD2DLab.ViewModels
         #region Nx : int - Размер сетки по горизонтали
 
         /// <summary>Размер сетки по горизонтали</summary>
-        private int _Nx = 100;
+        private int _Nx = 300;
 
         /// <summary>Размер сетки по горизонтали</summary>
         public int Nx { get => _Nx; set => SetValue(ref _Nx, value, n => n > 2).Then(UpdateGridX); }
@@ -143,12 +143,12 @@ namespace FDTD2DLab.ViewModels
 
         public ObservableCollection<ShapeViewModel> Shapes { get; } = new()
         {
-            new EllipseViewModel
+            new RectViewModel
             {
                 Width = 50,
-                Height = 20,
-                X = 5,
-                Y = 2,
+                Height = 50,
+                X = 75,
+                Y = 50,
             }
         };
     }

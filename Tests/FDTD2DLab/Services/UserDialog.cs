@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-
+using System.Windows;
 using FDTD2DLab.Services.Interfaces;
 using FDTD2DLab.ViewModels;
 using FDTD2DLab.Views;
@@ -41,6 +41,37 @@ namespace FDTD2DLab.Services
             };
             model.Completed += (_, e) => dialog.DialogResult = e;
             return dialog.ShowDialog() == true ? model.Value : Default;
+        }
+
+        public bool YesNoQuestion(string Text, string Title = "Вопрос...")
+        {
+            var result = MessageBox.Show(App.CurrentWindow, Text, Title, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            return result == MessageBoxResult.Yes;
+        }
+
+        public bool OkCancelQuestion(string Text, string Title = "Вопрос...")
+        {
+            var result = MessageBox.Show(App.CurrentWindow, Text, Title, MessageBoxButton.OKCancel, MessageBoxImage.Question);
+            return result == MessageBoxResult.OK;
+        }
+
+        public void Information(string Text, string Title = "Вопрос...") => 
+            MessageBox.Show(App.CurrentWindow, Text, Title, MessageBoxButton.OK, MessageBoxImage.Information);
+
+        public void Warning(string Text, string Title = "Вопрос...") => 
+            MessageBox.Show(App.CurrentWindow, Text, Title, MessageBoxButton.OK, MessageBoxImage.Warning);
+
+        public void Error(string Text, string Title = "Вопрос...") => 
+            MessageBox.Show(App.CurrentWindow, Text, Title, MessageBoxButton.OK, MessageBoxImage.Error);
+
+        public IProgressInfo Progress(string Title)
+        {
+            var progress_model = new ProgressViewModel
+            {
+                Title = Title
+            };
+
+            return progress_model;
         }
     }
 }

@@ -63,5 +63,15 @@ namespace FDTD2DLab.ViewModels.Shapes
         public double Height { get => _Height; set => Set(ref _Height, value); }
 
         #endregion
+
+        #region Angle : double - Угол поворота в градусах
+
+        /// <summary>Угол поворота в градусах</summary>
+        private double _Angle;
+
+        /// <summary>Угол поворота в градусах</summary>
+        public double Angle { get => _Angle; set => Set(ref _Angle, value); }
+
+        #endregion
     }
 }

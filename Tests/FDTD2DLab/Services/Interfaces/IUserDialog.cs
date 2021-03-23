@@ -6,5 +6,10 @@ namespace FDTD2DLab.Services.Interfaces
     {
         FileInfo OpenFile(string Title, string Filter = "Все файлы (*.*)|*.*", string DefaultFilePath = null);
         string GetString(string Title, string Caption, string Default = null);
+        bool YesNoQuestion(string Text, string Title = "Вопрос...");
+        bool OkCancelQuestion(string Text, string Title = "Вопрос...");
+        void Information(string Text, string Title = "Вопрос...");
+        void Warning(string Text, string Title = "Вопрос...");
+        void Error(string Text, string Title = "Вопрос...");
     }
 }

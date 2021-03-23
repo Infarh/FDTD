@@ -1,12 +1,17 @@
-﻿using System.Windows;
+﻿using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Media;
+using MathCore.WPF.Converters;
 
 namespace FDTD2DLab.Infrastructure
 {
     public class RelPos
     {
         #region Attached property Binding : bool - Инициализация связи с канвой
+
         /// <summary>Инициализация связи с канвой</summary>
         public static readonly DependencyProperty BindingProperty =
             DependencyProperty.RegisterAttached(
@@ -15,28 +20,181 @@ namespace FDTD2DLab.Infrastructure
                 typeof(RelPos),
                 new PropertyMetadata(default(bool), OnBinding));
 
-        private static void OnBinding(DependencyObject D, DependencyPropertyChangedEventArgs E)
-        {
-            if ((bool)E.NewValue)
-            {
-                BindingOperations.SetBinding(D, LeftProperty, new Binding("(Canvas.Left)") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
-                BindingOperations.SetBinding(D, BottomProperty, new Binding("(Canvas.Bottom)") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
-
-                BindingOperations.SetBinding(D, WidthProperty, new Binding("Width") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
-                BindingOperations.SetBinding(D, HeightProperty, new Binding("Height") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
-            }
-            else
-            {
-                BindingOperations.ClearBinding(D, LeftProperty);
-                BindingOperations.ClearBinding(D, BottomProperty);
-            }
-        }
-
         /// <summary>Инициализация связи с канвой</summary>
         public static void SetBinding(DependencyObject d, bool value) => d.SetValue(BindingProperty, value);
 
         /// <summary>Инициализация связи с канвой</summary>
         public static bool GetBinding(DependencyObject d) => (bool)d.GetValue(BindingProperty);
+
+        private static readonly Divide __Div2Neg = new(-2);
+        private static void OnBinding(DependencyObject D, DependencyPropertyChangedEventArgs E)
+        {
+            if ((bool)E.NewValue)
+            {
+                BindingOperations.SetBinding(D, LeftProperty, new Binding("(Canvas.Left)")
+                {
+                    RelativeSource = new RelativeSource(RelativeSourceMode.Self)
+                });
+                BindingOperations.SetBinding(D, BottomProperty, new Binding("(Canvas.Bottom)")
+                {
+                    RelativeSource = new RelativeSource(RelativeSourceMode.Self)
+                });
+
+                BindingOperations.SetBinding(D, WidthProperty, new Binding("Width") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
+                BindingOperations.SetBinding(D, HeightProperty, new Binding("Height") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
+
+                if (D is FrameworkElement element)
+                {
+                    element.AddHandler(Mouse.MouseDownEvent, new MouseButtonEventHandler(OnMouseDown));
+                }
+            }
+            else
+            {
+                BindingOperations.ClearBinding(D, LeftProperty);
+                BindingOperations.ClearBinding(D, BottomProperty);
+
+                if (D is FrameworkElement element)
+                {
+                    element.RemoveHandler(Mouse.MouseMoveEvent, new MouseEventHandler(OnMouseMoveElement));
+                    element.RemoveHandler(Mouse.MouseDownEvent, new MouseButtonEventHandler(OnMouseDown));
+                    element.RemoveHandler(Mouse.MouseUpEvent, new MouseButtonEventHandler(OnMouseUp));
+                }
+            }
+        }
+
+        private const double __EdgeWidth = 4;
+
+        private static void OnMouseDown(object Sender, MouseButtonEventArgs E)
+        {
+            if (Sender is not FrameworkElement element) return;
+            if (VisualTreeHelper.GetParent(element) is not Canvas canvas) return;
+
+            var point_in_canvas = E.GetPosition(canvas);
+            var point_in_element = E.GetPosition(element);
+            var element_width = (double)element.GetValue(FrameworkElement.WidthProperty);
+            var element_height = (double)element.GetValue(FrameworkElement.HeightProperty);
+
+            SetMouseDownPoint(element, point_in_canvas);
+            Mouse.Capture(element);
+            element.AddHandler(Mouse.MouseUpEvent, new MouseButtonEventHandler(OnMouseUp));
+
+            var is_left_edge = point_in_element.X < __EdgeWidth;
+            var is_right_edge = element_width - point_in_element.X < __EdgeWidth;
+            var is_top_edge = point_in_element.Y < __EdgeWidth;
+            var is_bottom_edge = element_height - point_in_element.Y < __EdgeWidth;
+
+            switch ((is_left_edge, is_top_edge, is_right_edge, is_bottom_edge))
+            {
+                case (true, false, false, false): // левая граница
+                    break;
+
+                case (true, true, false, false): // левый верхний угол
+                    break;
+
+                case (false, true, false, false): // верхняя граница
+                    break;
+
+                case (false, true, true, false): // верхний правый угол
+                    break;
+
+                case (false, false, true, false): // правая граница
+                    //StartResizing
+                    break;
+
+                case (false, false, true, true): // правый нижний угол
+                    break;
+
+                case (false, false, false, true): // нижняя граница
+                    break;
+
+                case (true, false, false, true): // правый нижний угол
+                    break;
+
+                default:
+                    StartElementDragMove(element);
+                    break;
+            }
+        }
+
+        private static void StartElementDragMove(FrameworkElement element)
+        {
+            element.AddHandler(Mouse.MouseMoveEvent, new MouseEventHandler(OnMouseMoveElement));
+
+            var canvas_left = (double)element.GetValue(Canvas.LeftProperty);
+            var canvas_bottom = (double)element.GetValue(Canvas.BottomProperty);
+            SetStartPositionPoint(element, new(canvas_left, canvas_bottom));
+
+            element.SetValue(FrameworkElement.CursorProperty, Cursors.ScrollAll);
+        }
+
+        private static void OnMouseUp(object Sender, MouseButtonEventArgs E)
+        {
+            if (Sender is not FrameworkElement element) return;
+            if (VisualTreeHelper.GetParent(element) is not Canvas canvas) return;
+
+            SetMouseDownPoint(element, null);
+            SetStartPositionPoint(element, null);
+            element.SetValue(FrameworkElement.CursorProperty, DependencyProperty.UnsetValue);
+
+            Mouse.Capture(element, CaptureMode.None);
+
+            element.RemoveHandler(Mouse.MouseMoveEvent, new MouseEventHandler(OnMouseMoveElement));
+            element.RemoveHandler(Mouse.MouseUpEvent, new MouseButtonEventHandler(OnMouseUp));
+        }
+
+        public static void OnMouseMoveElement(object Sender, MouseEventArgs E)
+        {
+            if (Sender is not FrameworkElement element) return;
+            if (GetMouseDownPoint(element) is not { } start_point) return;
+            if (GetStartPositionPoint(element) is not { } canvas_start_point) return;
+            if (VisualTreeHelper.GetParent(element) is not Canvas canvas) return;
+
+            var current_point = E.GetPosition(canvas);
+
+            var delta = current_point.Sub(start_point);
+            var current_canvas_point = new Point(canvas_start_point.X + delta.X, canvas_start_point.Y - delta.Y);
+
+            element.SetValue(Canvas.LeftProperty, current_canvas_point.X);
+            element.SetValue(Canvas.BottomProperty, current_canvas_point.Y);
+        }
+
+        #endregion
+
+        /* ----------------------------------------------------------------------------------------------- */
+
+        #region Attached property MouseDownPoint : Point - Точка нажатия мыши
+
+        /// <summary>Точка нажатия мыши</summary>
+        public static readonly DependencyProperty MouseDownPointProperty =
+            DependencyProperty.RegisterAttached(
+                "MouseDownPoint",
+                typeof(Point?),
+                typeof(RelPos),
+                new PropertyMetadata(default(Point?)));
+
+        /// <summary>Точка нажатия мыши</summary>
+        public static void SetMouseDownPoint(DependencyObject d, Point? value) => d.SetValue(MouseDownPointProperty, value);
+
+        /// <summary>Точка нажатия мыши</summary>
+        public static Point? GetMouseDownPoint(DependencyObject d) => (Point?)d.GetValue(MouseDownPointProperty);
+
+        #endregion
+
+        #region Attached property StartPositionPoint : Point - Точка нажатия мыши
+
+        /// <summary>Точка нажатия мыши</summary>
+        public static readonly DependencyProperty StartPositionPointProperty =
+            DependencyProperty.RegisterAttached(
+                "StartPositionPoint",
+                typeof(Point?),
+                typeof(RelPos),
+                new PropertyMetadata(default(Point?)));
+
+        /// <summary>Точка нажатия мыши</summary>
+        public static void SetStartPositionPoint(DependencyObject d, Point? value) => d.SetValue(StartPositionPointProperty, value);
+
+        /// <summary>Точка нажатия мыши</summary>
+        public static Point? GetStartPositionPoint(DependencyObject d) => (Point)d.GetValue(StartPositionPointProperty);
 
         #endregion
 
