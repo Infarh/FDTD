@@ -238,8 +238,22 @@
                                             <i:Interaction.Behaviors>
                                                 <b:MouseWheelIncrement Value="{Binding Angle}" Ratio="-0.01"/>
                                             </i:Interaction.Behaviors>
-                                            <Border BorderThickness="1" BorderBrush="Gray"/>
                                             <Ellipse Fill="Blue"/>
+                                            <Border>
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="BorderBrush" Value="Red"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                        <Setter Property="Margin" Value="-2"/>
+                                                        <Setter Property="Visibility" Value="Hidden"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                            </Border>
                                         </Grid>
                                     </DataTemplate>
                                     <DataTemplate DataType="{x:Type svm:RectViewModel}">
@@ -247,8 +261,22 @@
                                             <i:Interaction.Behaviors>
                                                 <b:MouseWheelIncrement Value="{Binding Angle}" Ratio="-0.01"/>
                                             </i:Interaction.Behaviors>
-                                            <Border BorderThickness="1" BorderBrush="Gray"/>
                                             <Rectangle Fill="Blue"/>
+                                            <Border>
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="BorderBrush" Value="Red"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                        <Setter Property="Margin" Value="-2"/>
+                                                        <Setter Property="Visibility" Value="Hidden"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                            </Border>
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsControl.Resources>
@@ -263,6 +291,8 @@
                                         <Setter Property="inf:RelPos.Y" Value="{Binding Y}"/>
                                         <Setter Property="inf:RelPos.ValueWidth" Value="{Binding Width}"/>
                                         <Setter Property="inf:RelPos.ValueHeight" Value="{Binding Height}"/>
+                                        <Setter Property="inf:RelPos.MouseButtonDownCommand" Value="{Binding DataContext.Grid.SetShapeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                        <Setter Property="inf:RelPos.MouseButtonUpCommand" Value="{Binding DataContext.Grid.UnSetShapeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                         <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
                                         <Setter Property="RenderTransform">
                                             <Setter.Value>

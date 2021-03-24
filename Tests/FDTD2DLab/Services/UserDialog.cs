@@ -71,6 +71,16 @@ namespace FDTD2DLab.Services
                 Title = Title
             };
 
+            var view = new ProgressWindow
+            {
+                DataContext = progress_model
+            };
+            progress_model.Disposed += (_, _) => view.Close();
+            view.Closing += (_, e) => e.Cancel = !progress_model.CancelCommand.CanExecute(null);
+            view.Closed += (_, _) => progress_model.CancelCommand.Execute(null);
+
+            view.Show();
+
             return progress_model;
         }
     }

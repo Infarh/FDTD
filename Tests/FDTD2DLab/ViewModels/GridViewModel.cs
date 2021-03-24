@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
-
+using System.Windows.Input;
+using FDTD2DLab.Infrastructure.Extensions;
 using FDTD2DLab.ViewModels.Shapes;
 
+using MathCore.WPF.Commands;
 using MathCore.WPF.ViewModels;
 
 namespace FDTD2DLab.ViewModels
@@ -15,6 +17,8 @@ namespace FDTD2DLab.ViewModels
         public GridViewModel(MainWindowViewModel MainModel)
         {
             this.MainModel = MainModel;
+            //Shapes.CollectionChanged += (_, e) =>
+            Shapes.OnItems().Changed(nameof(ShapeViewModel.IsSelected), OnChangedIsSelectedChanged); 
             UpdateGridX();
             UpdateGridY();
         }
@@ -147,9 +151,71 @@ namespace FDTD2DLab.ViewModels
             {
                 Width = 50,
                 Height = 50,
-                X = 75,
+                X = 125,
                 Y = 50,
-            }
+                IsSelected = true
+            },
+            new EllipseViewModel
+            {
+                Width = 60,
+                Height = 20,
+                X = 50,
+                Y = 40,
+            },
         };
+
+        private void OnChangedIsSelectedChanged(object Shape) => SelectedShape = (ShapeViewModel)Shape;
+
+        #region Command SetShapeCommandCommand - Выбор элемента сетки
+
+        /// <summary>Выбор элемента сетки</summary>
+        private LambdaCommand<ShapeViewModel> _SetShapeCommandCommand;
+
+        /// <summary>Выбор элемента сетки</summary>
+        public ICommand SetShapeCommandCommand => _SetShapeCommandCommand
+            ??= new(OnSetShapeCommandCommandExecuted, CanSetShapeCommandCommandExecute);
+
+        /// <summary>Проверка возможности выполнения - Выбор элемента сетки</summary>
+        private bool CanSetShapeCommandCommandExecute(ShapeViewModel Shape) => Shapes.Contains(Shape);
+
+        /// <summary>Логика выполнения - Выбор элемента сетки</summary>
+        private void OnSetShapeCommandCommandExecuted(ShapeViewModel Shape) => SelectedShape = Shape;
+
+        #endregion
+
+        #region Command UnSetShapeCommandCommand - Снятие выбора элемента сетки
+
+        /// <summary>Снятие выбора элемента сетки</summary>
+        private LambdaCommand<ShapeViewModel> _UnSetShapeCommandCommand;
+
+        /// <summary>Снятие выбора элемента сетки</summary>
+        public ICommand UnSetShapeCommandCommand => _UnSetShapeCommandCommand
+            ??= new(OnUnSetShapeCommandCommandExecuted, CanUnSetShapeCommandCommandExecute);
+
+        /// <summary>Проверка возможности выполнения - Снятие выбора элемента сетки</summary>
+        private bool CanUnSetShapeCommandCommandExecute(ShapeViewModel Shape) => Shapes.Contains(Shape);
+
+        /// <summary>Логика выполнения - Снятие выбора элемента сетки</summary>
+        private void OnUnSetShapeCommandCommandExecuted(ShapeViewModel Shape)
+        {
+            if (Equals(Shape, _SelectedShape))
+                SelectedShape = null;
+        }
+
+        #endregion
+
+        #region SelectedShape : ShapeViewModel - Выбранная модель
+
+        /// <summary>Выбранная модель</summary>
+        private ShapeViewModel _SelectedShape;
+
+        /// <summary>Выбранная модель</summary>
+        public ShapeViewModel SelectedShape
+        {
+            get => _SelectedShape;
+            set => SetValue(ref _SelectedShape, value).Then(selected => Shapes.Foreach(selected, (s, current) => s.IsSelected = Equals(s, current)));
+        }
+
+        #endregion
     }
 }

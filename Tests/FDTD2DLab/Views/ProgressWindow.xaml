@@ -8,7 +8,39 @@
         d:DataContext="{d:DesignInstance vm:ProgressViewModel, IsDesignTimeCreatable=True}"
         Title="{Binding Title}"
         Width="400" Height="170">
-    <DockPanel>
-
+    <DockPanel Margin="10">
+        <DockPanel DockPanel.Dock="Bottom">
+            <Button DockPanel.Dock="Right" Content="Cancel" Margin="5,5,0,5"
+                    Padding="25,4"/>
+            <TextBlock Text="{Binding StatusValue}"/>
+        </DockPanel>
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,10">
+            <TextBlock DockPanel.Dock="Right" Text="{Binding ProgressValue, StringFormat=p1}" 
+                       Width="40" TextAlignment="Right"
+                       VerticalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ProgressValue}" Value="NaN">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <ProgressBar Value="{Binding ProgressValue}"
+                         Maximum="{Binding ProgressMaxValue}">
+                <ProgressBar.Style>
+                    <Style TargetType="ProgressBar">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ProgressValue}" Value="NaN">
+                                <Setter Property="IsIndeterminate" Value="True"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ProgressBar.Style>
+            </ProgressBar>
+        </DockPanel>
+        <TextBlock Text="{Binding InformationValue}" VerticalAlignment="Bottom"/>
     </DockPanel>
 </Window>

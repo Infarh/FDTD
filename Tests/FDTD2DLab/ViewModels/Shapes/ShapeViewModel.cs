@@ -73,5 +73,15 @@ namespace FDTD2DLab.ViewModels.Shapes
         public double Angle { get => _Angle; set => Set(ref _Angle, value); }
 
         #endregion
+
+        #region IsSelected : bool - Модель выбрана
+
+        /// <summary>Модель выбрана</summary>
+        private bool _IsSelected;
+
+        /// <summary>Модель выбрана</summary>
+        public bool IsSelected { get => _IsSelected; set => Set(ref _IsSelected, value); }
+
+        #endregion
     }
 }

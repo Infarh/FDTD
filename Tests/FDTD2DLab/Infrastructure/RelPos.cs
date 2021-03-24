@@ -10,6 +10,42 @@ namespace FDTD2DLab.Infrastructure
 {
     public class RelPos
     {
+        #region Attached property MouseButtonDownCommand : ICommand - Команда, выполняемая при опускании клавиши мыши
+
+        /// <summary>Команда, выполняемая при опускании клавиши мыши</summary>
+        public static readonly DependencyProperty MouseButtonDownCommandProperty =
+            DependencyProperty.RegisterAttached(
+                "MouseButtonDownCommand",
+                typeof(ICommand),
+                typeof(RelPos),
+                new PropertyMetadata(default(ICommand)));
+
+        /// <summary>Команда, выполняемая при опускании клавиши мыши</summary>
+        public static void SetMouseButtonDownCommand(DependencyObject d, ICommand value) => d.SetValue(MouseButtonDownCommandProperty, value);
+
+        /// <summary>Команда, выполняемая при опускании клавиши мыши</summary>
+        public static ICommand GetMouseButtonDownCommand(DependencyObject d) => (ICommand) d.GetValue(MouseButtonDownCommandProperty);
+
+        #endregion
+
+        #region Attached property MouseButtonUpCommand : ICommand - Команда, выполняемая при поднятии клавиши мыши
+
+        /// <summary>Команда, выполняемая при поднятии клавиши мыши</summary>
+        public static readonly DependencyProperty MouseButtonUpCommandProperty =
+            DependencyProperty.RegisterAttached(
+                "MouseButtonUpCommand",
+                typeof(ICommand),
+                typeof(RelPos),
+                new PropertyMetadata(default(ICommand)));
+
+        /// <summary>Команда, выполняемая при поднятии клавиши мыши</summary>
+        public static void SetMouseButtonUpCommand(DependencyObject d, ICommand value) => d.SetValue(MouseButtonUpCommandProperty, value);
+
+        /// <summary>Команда, выполняемая при поднятии клавиши мыши</summary>
+        public static ICommand GetMouseButtonUpCommand(DependencyObject d) => (ICommand) d.GetValue(MouseButtonUpCommandProperty);
+
+        #endregion
+
         #region Attached property Binding : bool - Инициализация связи с канвой
 
         /// <summary>Инициализация связи с канвой</summary>
@@ -68,6 +104,9 @@ namespace FDTD2DLab.Infrastructure
         {
             if (Sender is not FrameworkElement element) return;
             if (VisualTreeHelper.GetParent(element) is not Canvas canvas) return;
+
+            if(GetMouseButtonDownCommand(element) is { } down_command && element.DataContext is { } obj && down_command.CanExecute(obj))
+                down_command.Execute(obj);
 
             var point_in_canvas = E.GetPosition(canvas);
             var point_in_element = E.GetPosition(element);
@@ -131,6 +170,9 @@ namespace FDTD2DLab.Infrastructure
         {
             if (Sender is not FrameworkElement element) return;
             if (VisualTreeHelper.GetParent(element) is not Canvas canvas) return;
+
+            if (GetMouseButtonUpCommand(element) is { } up_command && element.DataContext is { } obj && up_command.CanExecute(obj))
+                up_command.Execute(obj);
 
             SetMouseDownPoint(element, null);
             SetStartPositionPoint(element, null);
