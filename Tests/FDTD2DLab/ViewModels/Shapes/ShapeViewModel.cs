@@ -24,6 +24,16 @@ namespace FDTD2DLab.ViewModels.Shapes
 
         #endregion
 
+        #region Sigma : double - Проводимость
+
+        /// <summary>Проводимость</summary>
+        private double _Sigma;
+
+        /// <summary>Проводимость</summary>
+        public double Sigma { get => _Sigma; set => Set(ref _Sigma, value, v => v >= 0); }
+
+        #endregion
+
         #region X : double - Положение по горизонтали
 
         /// <summary>Положение по горизонтали</summary>

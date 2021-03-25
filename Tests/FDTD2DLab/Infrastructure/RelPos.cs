@@ -1,9 +1,11 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+
 using MathCore.WPF.Converters;
 
 namespace FDTD2DLab.Infrastructure
@@ -24,7 +26,7 @@ namespace FDTD2DLab.Infrastructure
         public static void SetMouseButtonDownCommand(DependencyObject d, ICommand value) => d.SetValue(MouseButtonDownCommandProperty, value);
 
         /// <summary>Команда, выполняемая при опускании клавиши мыши</summary>
-        public static ICommand GetMouseButtonDownCommand(DependencyObject d) => (ICommand) d.GetValue(MouseButtonDownCommandProperty);
+        public static ICommand GetMouseButtonDownCommand(DependencyObject d) => (ICommand)d.GetValue(MouseButtonDownCommandProperty);
 
         #endregion
 
@@ -42,7 +44,7 @@ namespace FDTD2DLab.Infrastructure
         public static void SetMouseButtonUpCommand(DependencyObject d, ICommand value) => d.SetValue(MouseButtonUpCommandProperty, value);
 
         /// <summary>Команда, выполняемая при поднятии клавиши мыши</summary>
-        public static ICommand GetMouseButtonUpCommand(DependencyObject d) => (ICommand) d.GetValue(MouseButtonUpCommandProperty);
+        public static ICommand GetMouseButtonUpCommand(DependencyObject d) => (ICommand)d.GetValue(MouseButtonUpCommandProperty);
 
         #endregion
 
@@ -100,12 +102,26 @@ namespace FDTD2DLab.Infrastructure
 
         private const double __EdgeWidth = 4;
 
+        [Flags]
+        private enum ResizingMode : byte
+        {
+            None = 0b0000,
+            Left = 0b0001,
+            LeftTop = 0b0011,
+            Top = 0b0010,
+            TopRight = 0b0110,
+            Right = 0b0100,
+            RightBottom = 0b1100,
+            Bottom = 0b1000,
+            LeftBottom = 0b1001,
+        }
+
         private static void OnMouseDown(object Sender, MouseButtonEventArgs E)
         {
             if (Sender is not FrameworkElement element) return;
             if (VisualTreeHelper.GetParent(element) is not Canvas canvas) return;
 
-            if(GetMouseButtonDownCommand(element) is { } down_command && element.DataContext is { } obj && down_command.CanExecute(obj))
+            if (GetMouseButtonDownCommand(element) is { } down_command && element.DataContext is { } obj && down_command.CanExecute(obj))
                 down_command.Execute(obj);
 
             var point_in_canvas = E.GetPosition(canvas);
@@ -122,31 +138,38 @@ namespace FDTD2DLab.Infrastructure
             var is_top_edge = point_in_element.Y < __EdgeWidth;
             var is_bottom_edge = element_height - point_in_element.Y < __EdgeWidth;
 
-            switch ((is_left_edge, is_top_edge, is_right_edge, is_bottom_edge))
+            switch (is_left_edge, is_top_edge, is_right_edge, is_bottom_edge)
             {
                 case (true, false, false, false): // левая граница
+                    SetResizingMode(element, ResizingMode.Left);
                     break;
 
                 case (true, true, false, false): // левый верхний угол
+                    SetResizingMode(element, ResizingMode.LeftTop);
                     break;
 
                 case (false, true, false, false): // верхняя граница
+                    SetResizingMode(element, ResizingMode.Top);
                     break;
 
                 case (false, true, true, false): // верхний правый угол
+                    SetResizingMode(element, ResizingMode.TopRight);
                     break;
 
                 case (false, false, true, false): // правая граница
-                    //StartResizing
+                    SetResizingMode(element, ResizingMode.Right);
                     break;
 
                 case (false, false, true, true): // правый нижний угол
+                    SetResizingMode(element, ResizingMode.RightBottom);
                     break;
 
                 case (false, false, false, true): // нижняя граница
+                    SetResizingMode(element, ResizingMode.Bottom);
                     break;
 
                 case (true, false, false, true): // правый нижний угол
+                    SetResizingMode(element, ResizingMode.LeftBottom);
                     break;
 
                 default:
@@ -199,6 +222,24 @@ namespace FDTD2DLab.Infrastructure
             element.SetValue(Canvas.LeftProperty, current_canvas_point.X);
             element.SetValue(Canvas.BottomProperty, current_canvas_point.Y);
         }
+
+        #endregion
+
+        #region Private Attached property ResizingMode : ResizingMode - Режим изменения размера
+
+        /// <summary>Режим изменения размера</summary>
+        private static readonly DependencyProperty ResizingModeProperty =
+            DependencyProperty.RegisterAttached(
+                "ResizingMode",
+                typeof(ResizingMode),
+                typeof(RelPos),
+                new PropertyMetadata(default(ResizingMode)));
+
+        /// <summary>Режим изменения размера</summary>
+        private static void SetResizingMode(DependencyObject d, ResizingMode value) => d.SetValue(ResizingModeProperty, value);
+
+        /// <summary>Режим изменения размера</summary>
+        private static ResizingMode GetResizingMode(DependencyObject d) => (ResizingMode) d.GetValue(ResizingModeProperty);
 
         #endregion
 
