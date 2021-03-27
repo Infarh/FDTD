@@ -1,27 +1,92 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace FDTD2DLab
 {
-    /// <summary>
-    /// Логика взаимодействия для TestWindow.xaml
-    /// </summary>
-    public partial class TestWindow : Window
+    public partial class TestWindow
     {
-        public TestWindow()
+        public TestWindow() => InitializeComponent();
+
+        private void OnNumberTextChanged(object Sender, TextCompositionEventArgs E)
         {
-            InitializeComponent();
+            if(E.Source is not TextBox { Text: {Length: > 0} text }) return;
+            E.Handled = !IsDouble(text + E.Text);
+        }
+
+        private static bool IsDouble(string str)
+        {
+            var is_fraction = false;
+            IFormatProvider provider = CultureInfo.CurrentCulture;
+            var s = NumberFormatInfo.GetInstance(provider).NumberDecimalSeparator[0];
+            for (var i = 0; i < str.Length; i++)
+            {
+                if (is_fraction)
+                {
+                    if (!char.IsDigit(str, i))
+                        return false;
+                }
+                else
+                {
+                    var c = str[i];
+                    if (char.IsDigit(c)) continue;
+                    if (c == s) 
+                        is_fraction = true;
+                    else
+                        switch (str[i])
+                        {
+                            default: return false;
+                            case '+' when i == 0:
+                            case '-' when i == 0:
+                                break;
+                        }
+                }
+            }
+
+            return true;
+        }
+    }
+
+    public static class Handlers
+    {
+        public static void OnNumberTextChanged(object Sender, TextCompositionEventArgs E)
+        {
+            if (E.Source is not TextBox { Text: { Length: > 0 } text }) return;
+            E.Handled = !IsDouble(text + E.Text);
+        }
+
+        private static bool IsDouble(string str)
+        {
+            var is_fraction = false;
+            IFormatProvider provider = CultureInfo.CurrentCulture;
+            var s = NumberFormatInfo.GetInstance(provider).NumberDecimalSeparator[0];
+            for (var i = 0; i < str.Length; i++)
+            {
+                if (is_fraction)
+                {
+                    if (!char.IsDigit(str, i))
+                        return false;
+                }
+                else
+                {
+                    var c = str[i];
+                    if (char.IsDigit(c)) continue;
+                    if (c == s)
+                        is_fraction = true;
+                    else
+                        switch (str[i])
+                        {
+                            default: return false;
+                            case '+' when i == 0:
+                            case '-' when i == 0:
+                                break;
+                        }
+                }
+            }
+
+            return true;
         }
     }
 }

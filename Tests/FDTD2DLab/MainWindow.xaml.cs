@@ -1,4 +1,6 @@
-﻿namespace FDTD2DLab
+﻿using System.Windows.Input;
+
+namespace FDTD2DLab
 {
     public partial class MainWindow
     {

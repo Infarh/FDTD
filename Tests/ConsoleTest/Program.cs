@@ -6,10 +6,13 @@ namespace ConsoleTest
     {
         public static void Main(string[] args)
         {
-            //Solver1DTest.Run();
-            Solver2DTest.Run();
+            Benchmark.CheckData();
+            Benchmark.Run();
 
-           Console.WriteLine("Завершено!");
+            //Solver1DTest.Run();
+            //Solver2DTest.Run();
+
+           //Console.WriteLine("Завершено!");
            //Console.ReadLine();
         }
     }

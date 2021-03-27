@@ -1,0 +1,217 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="clr-namespace:FDTD2DLab.Infrastructure.Converters">
+
+    <SolidColorBrush x:Key="UpDown_FocusVisual" Color="DarkGray"/>
+    <SolidColorBrush x:Key="UpDown_Button_Background_MouseOver" Color="LightBlue"/>
+    <SolidColorBrush x:Key="UpDown_Button_Background_MousePressed" Color="SkyBlue"/>
+    <SolidColorBrush x:Key="UpDown_Button_Background_Disabled" Color="LightGray"/>
+
+    <SolidColorBrush x:Key="UpDown_TextBox_Background" Color="White"/>
+    <SolidColorBrush x:Key="UpDown_TextBox_Foreground" Color="Black"/>
+
+    <Style x:Key="UpDownFocusVisual">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Margin="2" StrokeDashArray="1 2" 
+                               SnapsToDevicePixels="true" 
+                               StrokeThickness="1" 
+                               Stroke="{StaticResource UpDown_FocusVisual}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="UpDownButton" TargetType="{x:Type RepeatButton}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource UpDownFocusVisual}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Padding" Value="1"/>
+        <Setter Property="Focusable" Value="false"/>
+        <Setter Property="IsTabStop" Value="false"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                    <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                SnapsToDevicePixels="true">
+                        <ContentPresenter x:Name="contentPresenter" 
+                                              Focusable="False" OverridesDefaultStyle="True"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                                              Margin="{TemplateBinding Padding}" 
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource UpDown_Button_Background_MouseOver}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter TargetName="border" Property="Background" Value="{StaticResource UpDown_Button_Background_MousePressed}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="contentPresenter" Property="Opacity" Value="0.56"/>
+                            <Setter Property="Background" TargetName="border" Value="{StaticResource UpDown_Button_Background_Disabled}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="UpDownTextBox" TargetType="{x:Type TextBox}">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="KeyboardNavigation.TabNavigation" Value="None"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="AllowDrop" Value="true"/>
+        <Setter Property="ScrollViewer.PanningMode" Value="VerticalFirst"/>
+        <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TextBox}">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Focusable="false"
+                                      HorizontalScrollBarVisibility="Hidden" 
+                                      VerticalScrollBarVisibility="Hidden"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsInactiveSelectionHighlightEnabled" Value="true"/>
+                    <Condition Property="IsSelectionActive" Value="false"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="SelectionBrush" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
+            </MultiTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <SolidColorBrush x:Key="UpDown_Background" Color="White"/>
+    <SolidColorBrush x:Key="UpDown_Border" Color="LightGray"/>
+    <SolidColorBrush x:Key="UpDown_Border_MouseOver" Color="LightBlue"/>
+    <SolidColorBrush x:Key="UpDown_Border_Focused" Color="Blue"/>
+
+    <Style x:Key="UpDownScrollBar" TargetType="{x:Type ScrollBar}">
+        <Style.Resources>
+            <converters:EqualsMulti x:Key="Equals"/>
+        </Style.Resources>
+        <Setter Property="Orientation" Value="Horizontal"/>
+        <Setter Property="Background" Value="{StaticResource UpDown_Background}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource UpDown_Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="Width" Value="Auto"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ScrollBar}">
+                    <DockPanel>
+                        <ContentPresenter x:Name="TagContent" 
+                                          DockPanel.Dock="Left" 
+                                          Content="{TemplateBinding Tag}" VerticalAlignment="Center"
+                                          Margin="0,0,3,0"/>
+                        <Border BorderThickness="{TemplateBinding BorderThickness}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                Background="{TemplateBinding Background}">
+                            <DockPanel>
+                                <Border DockPanel.Dock="Right" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1,0,0,0">
+                                    <UniformGrid x:Name="Buttons" SnapsToDevicePixels="true" Columns="1" DockPanel.Dock="Right">
+                                        <RepeatButton x:Name="PART_LineDownButton"
+                                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                                  Background="{TemplateBinding Background}"
+                                                  Command="{x:Static ScrollBar.LineDownCommand}"
+                                                  IsEnabled="{TemplateBinding IsEnabled}"
+                                                  Style="{StaticResource UpDownButton}"
+                                                  BorderThickness="0,0,0,0.5">
+                                            <Path x:Name="Path_Plus" SnapsToDevicePixels="True"
+                                              StrokeThickness="1"
+                                              Stroke="{TemplateBinding Foreground}"
+                                              Width="4" Height="4"
+                                              Data="M0,2 h6 M2,0 v6"/>
+                                        </RepeatButton>
+                                        <RepeatButton x:Name="PART_LineUpButton" 
+                                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                                  Background="{TemplateBinding Background}"
+                                                  Command="{x:Static ScrollBar.LineUpCommand}" 
+                                                  IsEnabled="{TemplateBinding IsEnabled}" 
+                                                  Style="{StaticResource UpDownButton}"
+                                                  Padding="4,0"
+                                                  BorderThickness="0,0.5,0,0">
+                                            <Path x:Name="Path_Minus" SnapsToDevicePixels="True"
+                                              StrokeThickness="1"
+                                              Stroke="{TemplateBinding Foreground}"
+                                              Width="4" Height="4"
+                                              Data="M0,2 h4"/>
+                                        </RepeatButton>
+                                    </UniformGrid>
+                                </Border>
+                                <TextBox Style="{DynamicResource UpDownTextBox}"
+                                     Foreground="{TemplateBinding Foreground}"
+                                     Text="{Binding Value, RelativeSource={RelativeSource Mode=TemplatedParent}, StringFormat=0.########}"/>
+                            </DockPanel>
+                        </Border>
+                    </DockPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Orientation" Value="Horizontal">
+                            <Setter TargetName="Buttons" Property="Columns" Value="2"/>
+                            <Setter TargetName="PART_LineDownButton" Property="BorderThickness" Value="0,0,0.5,0"/>
+                            <Setter TargetName="PART_LineDownButton" Property="Command" Value="{x:Static ScrollBar.LineRightCommand}" />
+                            <Setter TargetName="PART_LineUpButton" Property="BorderThickness" Value="0.5,0,0,0"/>
+                            <Setter TargetName="PART_LineUpButton" Property="Command" Value="{x:Static ScrollBar.LineLeftCommand}" />
+                            <Setter TargetName="Path_Plus" Property="Width" Value="8"/>
+                            <Setter TargetName="Path_Minus" Property="Width" Value="8"/>
+                            <Setter TargetName="Path_Plus" Property="Height" Value="8"/>
+                            <Setter TargetName="Path_Minus" Property="Height" Value="8"/>
+                            <Setter TargetName="Path_Plus" Property="Data" Value="M0,4 h8 M4,0 v8"/>
+                            <Setter TargetName="Path_Minus" Property="Data" Value="M0,4 h8"/>
+                        </Trigger>
+                        <DataTrigger Value="True">
+                            <DataTrigger.Binding>
+                                <MultiBinding Converter="{StaticResource Equals}">
+                                    <MultiBinding.Bindings>
+                                        <Binding Path="Value" RelativeSource="{RelativeSource Mode=Self}"/>
+                                        <Binding Path="Minimum" RelativeSource="{RelativeSource Mode=Self}"/>
+                                    </MultiBinding.Bindings>
+                                </MultiBinding>
+                            </DataTrigger.Binding>
+                            <Setter TargetName="PART_LineUpButton" Property="IsEnabled" Value="False"/>
+                        </DataTrigger>
+                        <DataTrigger Value="True">
+                            <DataTrigger.Binding>
+                                <MultiBinding Converter="{StaticResource Equals}">
+                                    <MultiBinding.Bindings>
+                                        <Binding Path="Value" RelativeSource="{RelativeSource Mode=Self}"/>
+                                        <Binding Path="Maximum" RelativeSource="{RelativeSource Mode=Self}"/>
+                                    </MultiBinding.Bindings>
+                                </MultiBinding>
+                            </DataTrigger.Binding>
+                            <Setter TargetName="PART_LineDownButton" Property="IsEnabled" Value="False"/>
+                        </DataTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" Value="{StaticResource UpDown_Border_MouseOver}"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter Property="BorderBrush" Value="{StaticResource UpDown_Border_Focused}"/>
+                        </Trigger>
+                        <Trigger Property="Tag" Value="{x:Null}">
+                            <Setter TargetName="TagContent" Property="Visibility" Value="Collapsed"></Setter>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

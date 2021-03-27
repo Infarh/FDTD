@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+
 using FDTD2DLab.Infrastructure.Extensions;
 using FDTD2DLab.ViewModels.Shapes;
 
@@ -18,7 +21,7 @@ namespace FDTD2DLab.ViewModels
         {
             this.MainModel = MainModel;
             //Shapes.CollectionChanged += (_, e) =>
-            Shapes.OnItems().Changed(nameof(ShapeViewModel.IsSelected), OnChangedIsSelectedChanged); 
+            Shapes.OnItems().Changed(nameof(ShapeViewModel.IsSelected), OnChangedIsSelectedChanged);
             UpdateGridX();
             UpdateGridY();
         }
@@ -145,7 +148,7 @@ namespace FDTD2DLab.ViewModels
 
         #endregion
 
-        public ObservableCollection<ShapeViewModel> Shapes { get; } = new()
+        private ObservableCollection<ShapeViewModel> _Shapes = new()
         {
             new RectViewModel
             {
@@ -163,6 +166,21 @@ namespace FDTD2DLab.ViewModels
                 Y = 40,
             },
         };
+
+        private CollectionItemsChangeTracker<ObservableCollection<ShapeViewModel>> _ShapesTracker;
+
+        public ObservableCollection<ShapeViewModel> Shapes
+        {
+            get => _Shapes;
+            set
+            {
+                if (!Set(ref _Shapes, value, out var old_shapes)) return;
+                _ShapesTracker?.Dispose();
+                var tracker = value.OnItems();
+                tracker?.Changed(nameof(ShapeViewModel.IsSelected), OnChangedIsSelectedChanged);
+                _ShapesTracker = tracker;
+            }
+        }
 
         private void OnChangedIsSelectedChanged(object Shape) => SelectedShape = (ShapeViewModel)Shape;
 
@@ -214,6 +232,71 @@ namespace FDTD2DLab.ViewModels
         {
             get => _SelectedShape;
             set => SetValue(ref _SelectedShape, value).Then(selected => Shapes.Foreach(selected, (s, current) => s.IsSelected = Equals(s, current)));
+        }
+
+        #endregion
+
+
+
+        #region Items : Collection - Элементы
+
+        private ICollection<ViewModel> _Items = new ObservableCollection<ViewModel>();
+
+        public ICollection<ViewModel> Items
+        {
+            get => _Items;
+            set
+            {
+                var old_items = _Items;
+                if (!Set(ref _Items, value)) return;
+
+                if (old_items is INotifyCollectionChanged old_observable)
+                {
+                    old_observable.CollectionChanged -= OnItemsCollectionChanged;
+                    foreach (var item in old_items)
+                        OnItemsElementRemoved(item);
+                }
+
+                if (value is INotifyCollectionChanged new_observable)
+                {
+                    new_observable.CollectionChanged += OnItemsCollectionChanged;
+                    foreach (var item in value)
+                        OnItemsElementAdded(item);
+                }
+            }
+        }
+
+        protected virtual void OnItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    if (e.NewItems is { Count: > 0 } added)
+                        foreach (ViewModel item in added)
+                            OnItemsElementAdded(item);
+                    break;
+                case NotifyCollectionChangedAction.Remove:
+                    if(e.OldItems is { Count: > 0 } removed)
+                        foreach (ViewModel item in removed)
+                            OnItemsElementRemoved(item);
+                    break;
+                case NotifyCollectionChangedAction.Replace:
+                    if (e.OldItems is { Count: > 0 } old_items)
+                        foreach (ViewModel item in old_items)
+                            OnItemsElementRemoved(item);
+                    if (e.NewItems is { Count: > 0 } new_items)
+                        foreach (ViewModel item in new_items)
+                            OnItemsElementAdded(item);
+                    break;
+            }
+        }
+
+        protected virtual void OnItemsElementAdded(ViewModel item) => item.PropertyChanged += OnItemPropertyChanged;
+        protected virtual void OnItemsElementRemoved(ViewModel item) => item.PropertyChanged -= OnItemPropertyChanged;
+
+        protected virtual void OnItemPropertyChanged(object item, PropertyChangedEventArgs e)
+        {
+
         }
 
         #endregion

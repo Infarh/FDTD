@@ -12,7 +12,23 @@ namespace FDTD2DLab.Services
     {
         public FileInfo OpenFile(string Title, string Filter = "Все файлы (*.*)|*.*", string DefaultFilePath = null)
         {
-            var dialog = new OpenFileDialog()
+            var dialog = new OpenFileDialog
+            {
+                Title = Title,
+                RestoreDirectory = true,
+                Filter = Filter ?? throw new ArgumentNullException(nameof(Filter)),
+            };
+            if (DefaultFilePath is { Length: > 0 })
+                dialog.FileName = DefaultFilePath;
+
+            return dialog.ShowDialog(App.CurrentWindow) == true 
+                ? new(dialog.FileName) 
+                : DefaultFilePath is null ? null : new(DefaultFilePath);
+        }
+
+        public FileInfo SaveFile(string Title, string Filter = "Все файлы (*.*)|*.*", string DefaultFilePath = null)
+        {
+            var dialog = new SaveFileDialog
             {
                 Title = Title,
                 RestoreDirectory = true,
@@ -40,7 +56,7 @@ namespace FDTD2DLab.Services
                 Owner = App.CurrentWindow
             };
             model.Completed += (_, e) => dialog.DialogResult = e;
-            return dialog.ShowDialog() == true ? model.Value : Default;
+            return dialog.ShowDialog() == true ? model.Value : null;
         }
 
         public bool YesNoQuestion(string Text, string Title = "Вопрос...")

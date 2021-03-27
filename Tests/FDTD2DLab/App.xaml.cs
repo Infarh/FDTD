@@ -12,7 +12,7 @@ namespace FDTD2DLab
     public partial class App
     {
         public static Window FocusedWindow => Current.Windows.Cast<Window>().FirstOrDefault(w => w.IsFocused);
-        public static Window ActiveWindow => Current.Windows.Cast<Window>().FirstOrDefault(w => w.IsFocused);
+        public static Window ActiveWindow => Current.Windows.Cast<Window>().FirstOrDefault(w => w.IsActive);
         public static Window CurrentWindow => FocusedWindow ?? ActiveWindow;
 
         private static IHost __Hosting;
