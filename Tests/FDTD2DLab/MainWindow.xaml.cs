@@ -1,9 +1,8 @@
 ﻿using System.Windows.Input;
 
-namespace FDTD2DLab
+namespace FDTD2DLab;
+
+public partial class MainWindow
 {
-    public partial class MainWindow
-    {
-        public MainWindow() => InitializeComponent();
-    }
+    public MainWindow() => InitializeComponent();
 }

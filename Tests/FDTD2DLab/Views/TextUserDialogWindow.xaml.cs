@@ -1,7 +1,6 @@
-﻿namespace FDTD2DLab.Views
+﻿namespace FDTD2DLab.Views;
+
+public partial class TextUserDialogWindow
 {
-    public partial class TextUserDialogWindow
-    {
-        public TextUserDialogWindow() => InitializeComponent();
-    }
+    public TextUserDialogWindow() => InitializeComponent();
 }

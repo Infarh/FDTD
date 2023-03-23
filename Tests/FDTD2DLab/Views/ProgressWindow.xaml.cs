@@ -12,16 +12,15 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace FDTD2DLab.Views
+namespace FDTD2DLab.Views;
+
+/// <summary>
+/// Логика взаимодействия для ProgressWindow.xaml
+/// </summary>
+public partial class ProgressWindow : Window
 {
-    /// <summary>
-    /// Логика взаимодействия для ProgressWindow.xaml
-    /// </summary>
-    public partial class ProgressWindow : Window
+    public ProgressWindow()
     {
-        public ProgressWindow()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

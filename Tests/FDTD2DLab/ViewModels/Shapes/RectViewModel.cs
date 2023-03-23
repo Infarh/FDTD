@@ -1,4 +1,3 @@
-﻿namespace FDTD2DLab.ViewModels.Shapes
-{
-    public class RectViewModel : ShapeViewModel { }
-}
+﻿namespace FDTD2DLab.ViewModels.Shapes;
+
+public class RectViewModel : ShapeViewModel { }

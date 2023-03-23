@@ -12,16 +12,15 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace FDTD2DLab
+namespace FDTD2DLab;
+
+/// <summary>
+/// Логика взаимодействия для TestWindow2.xaml
+/// </summary>
+public partial class TestWindow2 : Window
 {
-    /// <summary>
-    /// Логика взаимодействия для TestWindow2.xaml
-    /// </summary>
-    public partial class TestWindow2 : Window
+    public TestWindow2()
     {
-        public TestWindow2()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

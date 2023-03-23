@@ -1,19 +1,18 @@
 ﻿using System;
 
-namespace ConsoleTest
+namespace ConsoleTest;
+
+internal static class Program
 {
-    internal static class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            Benchmark.CheckData();
-            Benchmark.Run();
+        Benchmark.CheckData();
+        Benchmark.Run();
 
-            //Solver1DTest.Run();
-            //Solver2DTest.Run();
+        //Solver1DTest.Run();
+        //Solver2DTest.Run();
 
-           //Console.WriteLine("Завершено!");
-           //Console.ReadLine();
-        }
+       //Console.WriteLine("Завершено!");
+       //Console.ReadLine();
     }
 }

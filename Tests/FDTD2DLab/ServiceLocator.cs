@@ -1,10 +1,9 @@
 ﻿using FDTD2DLab.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FDTD2DLab
+namespace FDTD2DLab;
+
+public class ServiceLocator
 {
-    public class ServiceLocator
-    {
-        public MainWindowViewModel MainWindowModel => App.Services.GetRequiredService<MainWindowViewModel>();
-    }
+    public MainWindowViewModel MainWindowModel => App.Services.GetRequiredService<MainWindowViewModel>();
 }
