@@ -1,15 +1,15 @@
-﻿using System;
+﻿using FDTD2DLab.Services.Interfaces;
+using MathCore.ViewModels;
+using MathCore.WPF.Commands;
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-
-using FDTD2DLab.Services.Interfaces;
-
-using MathCore.ViewModels;
-using MathCore.WPF.Commands;
+using FDTD2DLab.ViewModels.Shapes;
+using Newtonsoft.Json;
 
 namespace FDTD2DLab.ViewModels;
 
@@ -28,7 +28,7 @@ public class MainWindowViewModel : ViewModel
     private readonly IUserDialog _UserDialog;
     private readonly IComputer _Computer;
 
-    public ObservableCollection<FileInfo> RecentFiles { get; } = new();
+    //public ObservableCollection<FileInfo> RecentFiles { get; } = new();
 
     #region Grid : GridViewModel - Счётная область
 
@@ -138,8 +138,8 @@ public class MainWindowViewModel : ViewModel
         file ??= _UserDialog.OpenFile("Открыть проект", "Файлы проекта (*.fdtdproj)|*.fdtdproj|Xml-файлы (*.xml)|*.xml|Json-файлы (*.json)|*.json|Все файлы (*.*)|*.*");
         if (file is null) return;
 
-        RecentFiles.Remove(file);
-        RecentFiles.Insert(0, file);
+        //RecentFiles.Remove(file);
+        //RecentFiles.Insert(0, file);
         ProjectFile = file;
 
         Status = $"Открыть проект {file.Name}";
@@ -190,8 +190,84 @@ public class MainWindowViewModel : ViewModel
         if (GetnewProjectFile(file) is not { } new_file)
             return;
 
+
         Status = $"Проект сохранён в {new_file.Name}";
     }
 
     #endregion
+
+
+    #region
+
+    private void SaveGridViewModelToJson(FileInfo filePath, GridViewModel SaveGrid)
+    {
+        string jsonString = JsonConvert.SerializeObject(SaveGrid);
+        File.WriteAllText(filePath, jsonString);
+    }
+
+    private GridViewModel LoadGridViewModelFromJson(string filePath)
+    {
+        string jsonString = File.ReadAllText(filePath);
+        return JsonConvert.DeserializeObject<GridViewModel>(jsonString);
+    }
+
+    #endregion
+
+
+    //#region Command AddRectShapeToGrid - добавление прямоугольника на grid
+
+    //private LambdaCommand _AddRectShapeToGrid;
+
+    ///// <summary>Сохранить как</summary>
+    //public ICommand AddRectShapeToGrid => _AddRectShapeToGrid ??= new(OnAddRectShapeToGridExecute, CanAddRectShapeToGridExecute);
+
+    ///// <summary>Проверка возможности выполнения - Сохранить как</summary>
+    //private bool CanAddRectShapeToGridExecute() => true;
+
+    ///// <summary>Логика выполнения - Сохранить как</summary>
+    //private void OnAddRectShapeToGridExecute()
+    //{
+    //    var item = new RectViewModel
+    //    {
+    //        Width = 50,
+    //        Height = 50,
+    //        X = 125,
+    //        Y = 50,
+    //        IsSelected = false
+    //    };
+    //    Grid.Shapes.Add(item);
+
+    //    Status = $"Добавлен прямоугольник в пространство задачи";
+    //}
+
+    //#endregion
+
+    //#region Command AddRectShapeToGrid - добавление элипса на grid
+
+    //private LambdaCommand _AddEllipseShapeToGrid;
+
+    ///// <summary>Сохранить как</summary>
+    //public ICommand AddEllipseShapeToGrid => _AddEllipseShapeToGrid ??= new(OnAddEllipseShapeToGridExecute, CanAddEllipseShapeToGridExecute);
+
+    ///// <summary>Проверка возможности выполнения - Сохранить как</summary>
+    //private bool CanAddEllipseShapeToGridExecute() => true;
+
+    ///// <summary>Логика выполнения - Сохранить как</summary>
+    //private void OnAddEllipseShapeToGridExecute()
+    //{
+    //    var item = new EllipseViewModel
+    //    {
+    //        Width = 60,
+    //        Height = 20,
+    //        X = 50,
+    //        Y = 40,
+    //        IsSelected = false
+    //    };
+    //    Grid.Shapes.Add(item);
+
+    //    Status = $"Добавлен овал в пространство задачи";
+    //}
+
+    //#endregion
+
 }

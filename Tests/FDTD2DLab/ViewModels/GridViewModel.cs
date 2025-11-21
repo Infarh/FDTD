@@ -1,17 +1,16 @@
-﻿using System;
+﻿using FDTD2DLab.Infrastructure.Extensions;
+using FDTD2DLab.ViewModels.Shapes;
+using MathCore.WPF.Commands;
+using MathCore.WPF.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
-
-using FDTD2DLab.Infrastructure.Extensions;
-using FDTD2DLab.ViewModels.Shapes;
-
-using MathCore.WPF.Commands;
-using MathCore.WPF.ViewModels;
 
 namespace FDTD2DLab.ViewModels;
 
@@ -21,7 +20,8 @@ public class GridViewModel : ViewModel
     {
         this.MainModel = MainModel;
         //Shapes.CollectionChanged += (_, e) =>
-        Shapes.OnItems().Changed(nameof(ShapeViewModel.IsSelected), OnChangedIsSelectedChanged);
+        //Shapes.OnItems().Changed(nameof(ShapeViewModel.IsSelected), OnChangedIsSelectedChanged);
+
         UpdateGridX();
         UpdateGridY();
     }
@@ -154,20 +154,22 @@ public class GridViewModel : ViewModel
         {
             Width = 50,
             Height = 50,
-            X = 125,
+            X = 180,
             Y = 50,
-            IsSelected = true
+            IsSelected = false
         },
+   
         new EllipseViewModel
         {
             Width = 60,
             Height = 20,
             X = 50,
-            Y = 40,
+            Y = 70,
+            IsSelected = false
         },
     };
 
-    private CollectionItemsChangeTracker<ObservableCollection<ShapeViewModel>> _ShapesTracker;
+    //private CollectionItemsChangeTracker<ObservableCollection<ShapeViewModel>> _ShapesTracker;
 
     public ObservableCollection<ShapeViewModel> Shapes
     {
@@ -175,14 +177,17 @@ public class GridViewModel : ViewModel
         set
         {
             if (!Set(ref _Shapes, value, out var old_shapes)) return;
-            _ShapesTracker?.Dispose();
-            var tracker = value.OnItems();
-            tracker?.Changed(nameof(ShapeViewModel.IsSelected), OnChangedIsSelectedChanged);
-            _ShapesTracker = tracker;
+            SetValue(ref _Shapes, value);
+            //_ShapesTracker?.Dispose();
+            //var tracker = value.OnItems();
+            //tracker?.Changed(nameof(ShapeViewModel.IsSelected), OnChangedIsSelectedChanged);
+            //_ShapesTracker = tracker;
         }
+        
+        
     }
 
-    private void OnChangedIsSelectedChanged(object Shape) => SelectedShape = (ShapeViewModel)Shape;
+    //private void OnChangedIsSelectedChanged(object Shape) => SelectedShape = (ShapeViewModel)Shape;
 
     #region Command SetShapeCommandCommand - Выбор элемента сетки
 
@@ -222,6 +227,64 @@ public class GridViewModel : ViewModel
 
     #endregion
 
+    #region Command AddRectShapeToGrid - добавление прямоугольника на grid
+
+    private LambdaCommand _AddRectShapeToGrid;
+
+    /// <summary>Сохранить как</summary>
+    public ICommand AddRectShapeToGrid => _AddRectShapeToGrid ??= new(OnAddRectShapeToGridExecute, CanAddRectShapeToGridExecute);
+
+    /// <summary>Проверка возможности выполнения - Сохранить как</summary>
+    private bool CanAddRectShapeToGridExecute() => true;
+
+    /// <summary>Логика выполнения - Сохранить как</summary>
+    private void OnAddRectShapeToGridExecute()
+    {
+        var item = new RectViewModel
+        {
+            Width = 50,
+            Height = 50,
+            X = 125,
+            Y = 50,
+            IsSelected = false
+        };
+        Shapes.Add(item);
+    }
+
+    #endregion
+
+    #region Command AddRectShapeToGrid - добавление элипса на grid
+
+    private LambdaCommand _AddEllipseShapeToGrid;
+
+    /// <summary>Сохранить как</summary>
+    public ICommand AddEllipseShapeToGrid => _AddEllipseShapeToGrid ??= new(OnAddEllipseShapeToGridExecute, CanAddEllipseShapeToGridExecute);
+
+    /// <summary>Проверка возможности выполнения - Сохранить как</summary>
+    private bool CanAddEllipseShapeToGridExecute() => true;
+
+    /// <summary>Логика выполнения - Сохранить как</summary>
+    private void OnAddEllipseShapeToGridExecute()
+    {
+        var item = new EllipseViewModel
+        {
+            Width = 60,
+            Height = 20,
+            X = 50,
+            Y = 40,
+            IsSelected = false,
+            Angle = 0,
+            Sigma = 0,
+            Mu = 1,
+            Eps = 1
+        };
+
+
+        Shapes.Add(item);
+    }
+
+    #endregion
+
     #region SelectedShape : ShapeViewModel - Выбранная модель
 
     /// <summary>Выбранная модель</summary>
@@ -231,10 +294,19 @@ public class GridViewModel : ViewModel
     public ShapeViewModel SelectedShape
     {
         get => _SelectedShape;
-        set => SetValue(ref _SelectedShape, value).Then(selected => Shapes.Foreach(selected, (s, current) => s.IsSelected = Equals(s, current)));
+        set => SetValue(ref _SelectedShape, value)
+            .Then
+            (
+            selected => Shapes.Foreach
+                (
+                selected, (s, current)
+                => s.IsSelected = Equals(s, current)
+                )
+            );
     }
 
     #endregion
+
 
 
 

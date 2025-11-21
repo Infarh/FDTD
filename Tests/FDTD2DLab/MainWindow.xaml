@@ -30,13 +30,30 @@
                 <Separator/>
                 <MenuItem Header="Выход" InputGestureText="Ctrl+Q" Command="{Binding ExitCommand}"/>
             </MenuItem>
-            <MenuItem Header="Правка"/>
-            <MenuItem Header="Рисование"/>
+            <MenuItem Header="Правка">
+                <MenuItem Header="Отменить" InputGestureText="Ctrl+Z" Command="{Binding CreateCommand}"/>
+                <MenuItem Header="Повторить" InputGestureText="Ctrl+Shift+Z" Command="{Binding OpenCommand}"/>
+                <MenuItem Header="Настройки" InputGestureText="Ctrl+O" Command="{Binding OpenCommand}"/>
+            </MenuItem>
+            <MenuItem Header="Рисование">
+                <MenuItem Header="Добавить объект">
+                    <MenuItem Header="Прямоугольник" Command="{Binding AddRectShapeToGrid}"/>
+                    <MenuItem Header="Элипс" Command="{Binding AddEllipseShapeToGrid}"/>
+                </MenuItem>
+                <MenuItem Header="Добавить источник">
+                    <MenuItem Header="Точечный"/>
+                    <MenuItem Header="Плоской волны"/>
+                </MenuItem>
+            </MenuItem>
             <MenuItem Header="Параметры"/>
             <MenuItem Header="Экран"/>
             <MenuItem Header="Моделирование"/>
             <MenuItem Header="Окно"/>
-            <MenuItem Header="Справка"/>
+            <MenuItem Header="Справка">
+                <MenuItem Header="Описание системы"/>
+                <MenuItem Header="Система быстрых команд"/>
+                <MenuItem Header="О создателях"/>
+            </MenuItem>
         </Menu>
         <StatusBar>
             <StatusBarItem DockPanel.Dock="Right">
@@ -251,7 +268,7 @@
                                 <DockPanel>
                                     <TextBlock Text="{Binding Height, StringFormat=h:{0:f2}}" Margin="0,0,3,0" Width="40"/>
                                     <Slider Value="{Binding Height}" SmallChange="1"
-                                            Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=GroupBox}}"/>
+                                            Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=GroupBox}}" ValueChanged="Slider_ValueChanged"/>
                                 </DockPanel>
                                 <DockPanel>
                                     <TextBlock Text="{Binding Angle, StringFormat=a:{0:f2}}" Margin="0,0,3,0" Width="40"/>
@@ -268,10 +285,10 @@
                                 <Button fa:Awesome.Content="Solid_Paste" ToolTip="Вставить"/>
                                 <Separator/>
                                 <TextBlock VerticalAlignment="Center" Text="Объекты:"/>
-                                <Button Width="16.5" Height="19" ToolTip="Прямоугольник">
+                                <Button Width="16.5" Height="19" Command="{Binding Grid.AddRectShapeToGrid}" ToolTip="Прямоугольник" >
                                     <Rectangle Fill="Blue" Width="8" Height="13" Stroke="DarkBlue" StrokeThickness="1"/>
                                 </Button>
-                                <Button Width="16.5" Height="19" ToolTip="Эллипс">
+                                <Button Width="16.5" Height="19" Command="{Binding Grid.AddEllipseShapeToGrid}" ToolTip="Эллипс">
                                     <Ellipse Fill="Blue" Width="8" Height="13" Stroke="DarkBlue" StrokeThickness="1"/>
                                 </Button>
                                 <Separator/>
@@ -365,7 +382,7 @@
                                                 <i:Interaction.Behaviors>
                                                     <b:MouseWheelIncrement Value="{Binding Angle}" Ratio="-0.01"/>
                                                 </i:Interaction.Behaviors>
-                                                <Rectangle Fill="Blue"/>
+                                                <Rectangle Fill="DarkSlateGray"/>
                                                 <Border>
                                                     <Border.Style>
                                                         <Style TargetType="Border">

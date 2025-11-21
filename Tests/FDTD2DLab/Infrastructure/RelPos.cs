@@ -243,6 +243,7 @@ public class RelPos
 
     #endregion
 
+
     /* ----------------------------------------------------------------------------------------------- */
 
     #region Attached property MouseDownPoint : Point - Точка нажатия мыши
