@@ -7,6 +7,7 @@
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:l="clr-namespace:FDTD2DLab"
         xmlns:svm="clr-namespace:FDTD2DLab.ViewModels.Shapes"
+        xmlns:vm="clr-namespace:FDTD2DLab.ViewModels"
         xmlns:b="clr-namespace:FDTD2DLab.Infrastructure.Behaviors"
         xmlns:c="clr-namespace:FDTD2DLab.Infrastructure.Converters"
         xmlns:inf="clr-namespace:FDTD2DLab.Infrastructure"
@@ -59,7 +60,7 @@
             <StatusBarItem DockPanel.Dock="Right">
                 <ResizeGrip/>
             </StatusBarItem>
-            <StatusBarItem Content="Готов!"/>
+            <StatusBarItem Content="{Binding Status}"/>
         </StatusBar>
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar>
@@ -226,6 +227,19 @@
                                         <TextBox Tag="sgm:" Text="{Binding Sigma}" ToolTip="Проводимость"/>
                                     </StackPanel>
                                 </Expander>
+                                <Expander Header="Графики" IsExpanded="True" Padding="3">
+                                    <ListBox ItemsSource="{Binding Shapes}"
+                                            SelectedItem="{Binding SelectedShape}">
+                                        <ListBox.Resources>
+                                            <DataTemplate DataType="{x:Type svm:RectViewModel}">
+                                                <TextBlock Text="Прямоугольник"/>
+                                            </DataTemplate>
+                                            <DataTemplate DataType="{x:Type svm:EllipseViewModel}">
+                                                <TextBlock Text="Эллипс"/>
+                                            </DataTemplate>
+                                        </ListBox.Resources>
+                                    </ListBox>
+                                </Expander>
                             </StackPanel>
                         </ScrollViewer>
                     </GroupBox>
@@ -277,8 +291,9 @@
                             </StackPanel>
                         </Grid>
                     </GroupBox>
+
                     <DockPanel Grid.Column="1" Grid.Row="0">
-                        <ToolBarTray DockPanel.Dock="Top" Background="White">
+                        <ToolBarTray DockPanel.Dock="Top" Background="White" Grid.Column="0">
                             <ToolBar Background="White">
                                 <Button fa:Awesome.Content="Solid_Cut" ToolTip="Вырезать"/>
                                 <Button fa:Awesome.Content="Solid_Copy" ToolTip="Копировать"/>
@@ -312,7 +327,15 @@
                                 <Separator/>
                             </ToolBar>
                         </ToolBarTray>
-                        <Border ClipToBounds="True" BorderThickness="1" BorderBrush="Black" Padding="1">
+                        <Grid>
+                            
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*"/>
+                                <ColumnDefinition Width="1*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            
+                            <Border ClipToBounds="True" BorderThickness="1" BorderBrush="Black" Padding="1" Grid.Column="0">
                             <Grid>
                                 <ItemsControl ItemsSource="{Binding Grid.GridX}">
                                     <ItemsControl.Resources>
@@ -329,7 +352,13 @@
                                                 Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Grid}, Converter={StaticResource DivX}}"/>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
+                                    <ItemsControl.ItemContainerStyle>
+                                        <Style TargetType="ContentPresenter">
+                                            <Setter Property="inf:RelPos.MouseButtonDownCommand" Value="{Binding DataContext.Grid.SetShapeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                        </Style>
+                                    </ItemsControl.ItemContainerStyle>
                                 </ItemsControl>
+                                
                                 <ItemsControl ItemsSource="{Binding Grid.GridY}">
                                     <ItemsControl.Resources>
                                         <c:Div x:Key="DivY" Parameter="{Binding Grid.Ny}"/>
@@ -345,16 +374,18 @@
                                                 Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}, Converter={StaticResource DivY}}"/>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+
+                                    </ItemsControl>
+
+                                
                                 <ItemsControl ItemsSource="{Binding Grid.Shapes}" Background="Transparent">
                                     <i:Interaction.Behaviors>
-                                        <b:MouseMove PositionRelative="{Binding Grid.GridMousePosition, Mode=OneWayToSource}"/>
-                                    </i:Interaction.Behaviors>
+                                            <b:MouseMove PositionRelative="{Binding Grid.GridMousePosition, Mode=OneWayToSource}"/>
+                                        </i:Interaction.Behaviors>
                                     <ItemsControl.Resources>
                                         <Divide x:Key="Div-2" Parameter="-2"></Divide>
-                                        <Divide x:Key="Div+2" Parameter="+2"></Divide>
-
-                                        <DataTemplate DataType="{x:Type svm:EllipseViewModel}">
+                                            <Divide x:Key="Div+2" Parameter="+2"></Divide>
+                                            <DataTemplate DataType="{x:Type svm:EllipseViewModel}">
                                             <Grid Background="Transparent">
                                                 <i:Interaction.Behaviors>
                                                     <b:MouseWheelIncrement Value="{Binding Angle}" Ratio="-0.01"/>
@@ -377,7 +408,7 @@
                                                 </Border>
                                             </Grid>
                                         </DataTemplate>
-                                        <DataTemplate DataType="{x:Type svm:RectViewModel}">
+                                            <DataTemplate DataType="{x:Type svm:RectViewModel}">
                                             <Grid Background="Transparent">
                                                 <i:Interaction.Behaviors>
                                                     <b:MouseWheelIncrement Value="{Binding Angle}" Ratio="-0.01"/>
@@ -434,6 +465,34 @@
                                 </ItemsControl>
                             </Grid>
                         </Border>
+
+                            <ScrollViewer Grid.Column="1" DataContext="{Binding Grid}">
+                                <StackPanel >
+                                    <ContentControl Content="{Binding SelectedProperty}">
+                                        <ContentControl.Resources>
+                                            <DataTemplate DataType="{x:Type svm:EllipseViewModel}">
+                                                <StackPanel>
+                                                    <TextBlock Text="эллипс"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                            <DataTemplate DataType="{x:Type svm:RectViewModel}">
+                                                <StackPanel>
+                                                    <TextBlock Text="прямоугольник"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                            <DataTemplate DataType="{x:Type vm:GridViewModel}">
+                                                <StackPanel>
+                                                    <TextBlock Text="сетка"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ContentControl.Resources>
+                                    </ContentControl>
+                                    <StackPanel.Resources>
+
+                                    </StackPanel.Resources>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Grid>
                     </DockPanel>
                 </Grid>
             </TabItem>

@@ -1,3 +1,11 @@
-﻿namespace FDTD2DLab.ViewModels.Shapes;
+﻿using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
-public class EllipseViewModel : ShapeViewModel { }
+namespace FDTD2DLab.ViewModels.Shapes;
+
+public class EllipseViewModel : ShapeViewModel 
+{
+    [JsonProperty]
+    public double test { get; set; }
+
+}

@@ -1,4 +1,5 @@
 ﻿using FDTD2DLab.Infrastructure.Extensions;
+using FDTD2DLab.ViewModels.Propertys;
 using FDTD2DLab.ViewModels.Shapes;
 using MathCore.WPF.Commands;
 using MathCore.WPF.ViewModels;
@@ -8,13 +9,14 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace FDTD2DLab.ViewModels;
 
-public class GridViewModel : ViewModel
+public class GridViewModel : ViewModel, IOptProperty
 {
     public GridViewModel(MainWindowViewModel MainModel)
     {
@@ -25,23 +27,23 @@ public class GridViewModel : ViewModel
         UpdateGridX();
         UpdateGridY();
     }
-
+    [JsonIgnore]
     public MainWindowViewModel MainModel { get; }
 
 
     #region GridMousePosition : Point - Положение мыши в сетке пространства
-
+    [JsonIgnore]
     /// <summary>Положение мыши в сетке пространства</summary>
     private Point _GridMousePosition;
-
+    [JsonIgnore]
     /// <summary>Положение мыши в сетке пространства</summary>
     public Point GridMousePosition { get => _GridMousePosition; set => Set(ref _GridMousePosition, value); }
-
+    [JsonIgnore]
     [DependencyOn(nameof(Lx))]
     [DependencyOn(nameof(Ly))]
     [DependencyOn(nameof(GridMousePosition))]
     public Point MousePosition => new(Lx * _GridMousePosition.X, Ly * (1 - _GridMousePosition.Y));
-
+    [JsonIgnore]
     [DependencyOn(nameof(dx))]
     [DependencyOn(nameof(dy))]
     [DependencyOn(nameof(MousePosition))]
@@ -125,10 +127,10 @@ public class GridViewModel : ViewModel
     public int CellCount => _Nx * _Ny;
 
     #region GridX : IEnumerable<double> - Сетка по оси X
-
+    [JsonIgnore]
     /// <summary>Сетка по оси X</summary>
     private IEnumerable<double> _GridX;
-
+    [JsonIgnore]
     /// <summary>Сетка по оси X</summary>
     public IEnumerable<double> GridX { get => _GridX; private set => Set(ref _GridX, value); }
 
@@ -137,10 +139,10 @@ public class GridViewModel : ViewModel
     #endregion
 
     #region GridY : IEnumerable<double> - Сетка по оси Y
-
+    [JsonIgnore]
     /// <summary>Сетка по оси Y</summary>
     private IEnumerable<double> _GridY;
-
+    [JsonIgnore]
     /// <summary>Сетка по оси Y</summary>
     public IEnumerable<double> GridY { get => _GridY; private set => Set(ref _GridY, value); }
 
@@ -156,16 +158,21 @@ public class GridViewModel : ViewModel
             Height = 50,
             X = 180,
             Y = 50,
-            IsSelected = false
+            IsSelected = false,
+            ShapeName = "прямоугольник",
+            ShapeType = typeof(RectViewModel)
         },
-   
+
         new EllipseViewModel
         {
+            test = 15,
             Width = 60,
             Height = 20,
             X = 50,
             Y = 70,
-            IsSelected = false
+            IsSelected = false,
+            ShapeName = "элипс",
+            ShapeType = typeof(EllipseViewModel)
         },
     };
 
@@ -202,9 +209,10 @@ public class GridViewModel : ViewModel
     private bool CanSetShapeCommandCommandExecute(ShapeViewModel Shape) => Shapes.Contains(Shape);
 
     /// <summary>Логика выполнения - Выбор элемента сетки</summary>
-    private void OnSetShapeCommandCommandExecuted(ShapeViewModel Shape) => SelectedShape = Shape;
+    private void OnSetShapeCommandCommandExecuted(ShapeViewModel Shape) { SelectedShape = Shape; SelectedProperty = Shape; }
 
     #endregion
+
 
     #region Command UnSetShapeCommandCommand - Снятие выбора элемента сетки
 
@@ -307,69 +315,83 @@ public class GridViewModel : ViewModel
 
     #endregion
 
+    /// <summary>Выбранная модель</summary>
+    private IOptProperty _SelectedProperty;
 
-
-
-    #region Items : Collection - Элементы
-
-    private ICollection<ViewModel> _Items = new ObservableCollection<ViewModel>();
-
-    public ICollection<ViewModel> Items
+    /// <summary>Выбранная модель</summary>
+    public IOptProperty SelectedProperty
     {
-        get => _Items;
-        set
-        {
-            var old_items = _Items;
-            if (!Set(ref _Items, value)) return;
-
-            if (old_items is INotifyCollectionChanged old_observable)
-            {
-                old_observable.CollectionChanged -= OnItemsCollectionChanged;
-                foreach (var item in old_items)
-                    OnItemsElementRemoved(item);
-            }
-
-            if (value is INotifyCollectionChanged new_observable)
-            {
-                new_observable.CollectionChanged += OnItemsCollectionChanged;
-                foreach (var item in value)
-                    OnItemsElementAdded(item);
-            }
-        }
+        get => _SelectedProperty;
+        set => SetValue(ref _SelectedProperty, value);
     }
 
-    protected virtual void OnItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-    {
-        switch (e.Action)
-        {
-            case NotifyCollectionChangedAction.Add:
-                if (e.NewItems is { Count: > 0 } added)
-                    foreach (ViewModel item in added)
-                        OnItemsElementAdded(item);
-                break;
-            case NotifyCollectionChangedAction.Remove:
-                if(e.OldItems is { Count: > 0 } removed)
-                    foreach (ViewModel item in removed)
-                        OnItemsElementRemoved(item);
-                break;
-            case NotifyCollectionChangedAction.Replace:
-                if (e.OldItems is { Count: > 0 } old_items)
-                    foreach (ViewModel item in old_items)
-                        OnItemsElementRemoved(item);
-                if (e.NewItems is { Count: > 0 } new_items)
-                    foreach (ViewModel item in new_items)
-                        OnItemsElementAdded(item);
-                break;
-        }
-    }
+    #region Selected Property
 
-    protected virtual void OnItemsElementAdded(ViewModel item) => item.PropertyChanged += OnItemPropertyChanged;
-    protected virtual void OnItemsElementRemoved(ViewModel item) => item.PropertyChanged -= OnItemPropertyChanged;
-
-    protected virtual void OnItemPropertyChanged(object item, PropertyChangedEventArgs e)
-    {
-
-    }
 
     #endregion
+
+    //[JsonIgnore]
+
+    //#region Items : Collection - Элементы
+
+    //private ICollection<ViewModel> _Items = new ObservableCollection<ViewModel>();
+    //[JsonIgnore]
+    //public ICollection<ViewModel> Items
+    //{
+    //    get => _Items;
+    //    set
+    //    {
+    //        var old_items = _Items;
+    //        if (!Set(ref _Items, value)) return;
+
+    //        if (old_items is INotifyCollectionChanged old_observable)
+    //        {
+    //            old_observable.CollectionChanged -= OnItemsCollectionChanged;
+    //            foreach (var item in old_items)
+    //                OnItemsElementRemoved(item);
+    //        }
+
+    //        if (value is INotifyCollectionChanged new_observable)
+    //        {
+    //            new_observable.CollectionChanged += OnItemsCollectionChanged;
+    //            foreach (var item in value)
+    //                OnItemsElementAdded(item);
+    //        }
+    //    }
+    //}
+
+    //protected virtual void OnItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    //{
+    //    switch (e.Action)
+    //    {
+    //        case NotifyCollectionChangedAction.Add:
+    //            if (e.NewItems is { Count: > 0 } added)
+    //                foreach (ViewModel item in added)
+    //                    OnItemsElementAdded(item);
+    //            break;
+    //        case NotifyCollectionChangedAction.Remove:
+    //            if(e.OldItems is { Count: > 0 } removed)
+    //                foreach (ViewModel item in removed)
+    //                    OnItemsElementRemoved(item);
+    //            break;
+    //        case NotifyCollectionChangedAction.Replace:
+    //            if (e.OldItems is { Count: > 0 } old_items)
+    //                foreach (ViewModel item in old_items)
+    //                    OnItemsElementRemoved(item);
+    //            if (e.NewItems is { Count: > 0 } new_items)
+    //                foreach (ViewModel item in new_items)
+    //                    OnItemsElementAdded(item);
+    //            break;
+    //    }
+    //}
+
+    //protected virtual void OnItemsElementAdded(ViewModel item) => item.PropertyChanged += OnItemPropertyChanged;
+    //protected virtual void OnItemsElementRemoved(ViewModel item) => item.PropertyChanged -= OnItemPropertyChanged;
+
+    //protected virtual void OnItemPropertyChanged(object item, PropertyChangedEventArgs e)
+    //{
+
+    //}
+
+    //#endregion
 }

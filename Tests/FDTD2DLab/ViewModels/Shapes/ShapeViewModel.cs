@@ -1,9 +1,24 @@
-﻿using MathCore.WPF.ViewModels;
+﻿using FDTD2DLab.ViewModels.Propertys;
+using MathCore.WPF.ViewModels;
+using System;
+using System.Text.Json.Serialization;
 
 namespace FDTD2DLab.ViewModels.Shapes;
 
-public abstract class ShapeViewModel : ViewModel
+
+[JsonDerivedType(typeof(RectViewModel))]
+[JsonDerivedType(typeof(EllipseViewModel))]
+public abstract class ShapeViewModel : ViewModel, IOptProperty
 {
+    [JsonIgnore]
+    private Type _ShapeType;
+    [JsonIgnore]
+    public Type ShapeType { get => _ShapeType; set => Set(ref _ShapeType, value); }
+
+    private string _ShapeName;
+
+    public string ShapeName { get => _ShapeName; set => Set(ref _ShapeName, value, v => 1 <= v.Length && v.Length <= 12); }
+
     #region Eps : double - Диэлектрическая проницаемость
 
     /// <summary>Диэлектрическая проницаемость</summary>

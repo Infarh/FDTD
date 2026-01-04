@@ -1,15 +1,17 @@
 ﻿using FDTD2DLab.Services.Interfaces;
+using FDTD2DLab.ViewModels.Shapes;
 using MathCore.ViewModels;
 using MathCore.WPF.Commands;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using FDTD2DLab.ViewModels.Shapes;
-using Newtonsoft.Json;
 
 namespace FDTD2DLab.ViewModels;
 
@@ -31,10 +33,8 @@ public class MainWindowViewModel : ViewModel
     //public ObservableCollection<FileInfo> RecentFiles { get; } = new();
 
     #region Grid : GridViewModel - Счётная область
-
     /// <summary>Счётная область</summary>
     private GridViewModel _Grid;
-
     /// <summary>Счётная область</summary>
     public GridViewModel Grid { get => _Grid; set => Set(ref _Grid, value); }
 
@@ -189,8 +189,13 @@ public class MainWindowViewModel : ViewModel
     {
         if (GetnewProjectFile(file) is not { } new_file)
             return;
+        // здесь записываем данные проекта
 
+        GridViewModel saved = this._Grid;
+        
 
+        SaveGridViewModelToJson(new_file.FullName, saved);
+            
         Status = $"Проект сохранён в {new_file.Name}";
     }
 
@@ -199,16 +204,20 @@ public class MainWindowViewModel : ViewModel
 
     #region
 
-    private void SaveGridViewModelToJson(FileInfo filePath, GridViewModel SaveGrid)
+    private void SaveGridViewModelToJson(string filePath, GridViewModel SaveGrid)
     {
-        string jsonString = JsonConvert.SerializeObject(SaveGrid);
+        string jsonString = JsonSerializer.Serialize(SaveGrid, new JsonSerializerOptions()
+        {   
+            WriteIndented = true,
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver() 
+        });
         File.WriteAllText(filePath, jsonString);
     }
 
     private GridViewModel LoadGridViewModelFromJson(string filePath)
     {
         string jsonString = File.ReadAllText(filePath);
-        return JsonConvert.DeserializeObject<GridViewModel>(jsonString);
+        return JsonSerializer.Deserialize<GridViewModel>(jsonString);
     }
 
     #endregion
