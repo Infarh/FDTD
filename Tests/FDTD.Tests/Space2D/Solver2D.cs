@@ -62,4 +62,40 @@ public class Solver2D
             //Assert.That.Value(hz).IsNotNull();
         }
     }
+
+
+
+
+    [TestMethod]
+    public void ABC_Boundary_Test()
+    {
+
+
+    }
+
+
+    [TestMethod]
+    public void ABC2_Boundary_Test()
+    {
+
+
+    }
+
+
+
+    [TestMethod]
+    public void PEC_Boundary_Test()
+    {
+
+
+    }
+
+
+    [TestMethod]
+    public void PML_Boundary_Test()
+    {
+
+
+    }
+
 }

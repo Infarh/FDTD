@@ -10,9 +10,9 @@ internal static class Program
         Benchmark.Run();
 
         //Solver1DTest.Run();
-        //Solver2DTest.Run();
+        Solver2DTest.Run();
 
-       //Console.WriteLine("Завершено!");
-       //Console.ReadLine();
+       Console.WriteLine("Завершено!");
+       Console.ReadLine();
     }
 }
