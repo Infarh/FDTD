@@ -1,6 +1,8 @@
 ﻿using FDTD2DLab.Infrastructure.Extensions;
+using FDTD2DLab.ViewModels.Material;
 using FDTD2DLab.ViewModels.Propertys;
 using FDTD2DLab.ViewModels.Shapes;
+using FDTD2DLab.ViewModels.Source;
 using MathCore.WPF.Commands;
 using MathCore.WPF.ViewModels;
 using System;
@@ -18,11 +20,22 @@ namespace FDTD2DLab.ViewModels;
 
 public class GridViewModel : ViewModel, IOptProperty
 {
+    //TODO static хранение библиотек материалов
+    // Материалы
+    static MaterialViewModel vacuum = new MaterialViewModel { Name = "Vacuum", Eps = 1, Mu = 1, Sigma = 0 };
+    static MaterialViewModel pec = new MaterialViewModel { Name = "PEC", Eps = 1, Mu = 1, Sigma = 1e10 };
     public GridViewModel(MainWindowViewModel MainModel)
     {
         this.MainModel = MainModel;
         //Shapes.CollectionChanged += (_, e) =>
         //Shapes.OnItems().Changed(nameof(ShapeViewModel.IsSelected), OnChangedIsSelectedChanged);
+
+
+        Materials.Add(vacuum);
+        BackgroundMaterial = vacuum;
+
+        Materials.Add(pec);
+
 
         UpdateGridX();
         UpdateGridY();
@@ -30,6 +43,7 @@ public class GridViewModel : ViewModel, IOptProperty
     [JsonIgnore]
     public MainWindowViewModel MainModel { get; }
 
+    private bool _ignoreSelectionChange;
 
     #region GridMousePosition : Point - Положение мыши в сетке пространства
     [JsonIgnore]
@@ -160,7 +174,8 @@ public class GridViewModel : ViewModel, IOptProperty
             Y = 50,
             IsSelected = false,
             ShapeName = "прямоугольник",
-            ShapeType = typeof(RectViewModel)
+            ShapeType = typeof(RectViewModel),
+            AppliedMaterial = vacuum
         },
 
         new EllipseViewModel
@@ -172,7 +187,8 @@ public class GridViewModel : ViewModel, IOptProperty
             Y = 70,
             IsSelected = false,
             ShapeName = "элипс",
-            ShapeType = typeof(EllipseViewModel)
+            ShapeType = typeof(EllipseViewModel),
+            AppliedMaterial = vacuum
         },
     };
 
@@ -209,7 +225,7 @@ public class GridViewModel : ViewModel, IOptProperty
     private bool CanSetShapeCommandCommandExecute(ShapeViewModel Shape) => Shapes.Contains(Shape);
 
     /// <summary>Логика выполнения - Выбор элемента сетки</summary>
-    private void OnSetShapeCommandCommandExecuted(ShapeViewModel Shape) { SelectedShape = Shape; SelectedProperty = Shape; }
+    private void OnSetShapeCommandCommandExecuted(ShapeViewModel Shape) { SelectedShape = Shape; SelectedProperty = Shape; SelectedMaterial = Shape.AppliedMaterial; }
 
     #endregion
 
@@ -302,18 +318,50 @@ public class GridViewModel : ViewModel, IOptProperty
     public ShapeViewModel SelectedShape
     {
         get => _SelectedShape;
-        set => SetValue(ref _SelectedShape, value)
-            .Then
-            (
-            selected => Shapes.Foreach
-                (
-                selected, (s, current)
-                => s.IsSelected = Equals(s, current)
-                )
-            );
+        set
+        {
+            // Отписываемся от предыдущей фигуры
+            if (_SelectedShape != null)
+                _SelectedShape.PropertyChanged -= OnShapePropertyChanged;
+
+            if (Set(ref _SelectedShape, value))
+            {
+                // Подписываемся на новую фигуру
+                if (value != null)
+                    value.PropertyChanged += OnShapePropertyChanged;
+
+                if (_ignoreSelectionChange) return;
+
+                if (value != null)
+                {
+                    SelectedProperty = value;
+                    SelectedMaterial = value.AppliedMaterial;
+                    SelectedSource = null;
+                }
+                // Если value == null, ничего не делаем, так как SelectedProperty мог быть установлен из другого места
+
+                _ignoreSelectionChange = true;
+            }
+        }
+    }
+
+    private void OnShapePropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ShapeViewModel.AppliedMaterial))
+        {
+            var shape = (ShapeViewModel)sender;
+            if (shape == SelectedShape)
+            {
+                _ignoreSelectionChange = true;
+                SelectedMaterial = shape.AppliedMaterial;
+                _ignoreSelectionChange = false;
+            }
+        }
     }
 
     #endregion
+
+    #region Selected Property
 
     /// <summary>Выбранная модель</summary>
     private IOptProperty _SelectedProperty;
@@ -322,13 +370,258 @@ public class GridViewModel : ViewModel, IOptProperty
     public IOptProperty SelectedProperty
     {
         get => _SelectedProperty;
-        set => SetValue(ref _SelectedProperty, value);
+        set
+        {
+            if (Set(ref _SelectedProperty, value))
+            {
+                if (_ignoreSelectionChange) return;
+
+                _ignoreSelectionChange = true;
+
+                // Синхронизируем вспомогательные свойства в зависимости от типа
+                if (value is ShapeViewModel shape)
+                {
+                    _ignoreSelectionChange = false;
+                    SelectedShape = shape;
+                    _ignoreSelectionChange = false;
+                    SelectedMaterial = shape.AppliedMaterial;
+                    SelectedSource = null;
+                    shape.IsSelected = true;
+                }
+                else if (value is MaterialViewModel material)
+                {
+                    SelectedMaterial = material;
+                    SelectedShape = null;
+                    SelectedSource = null;
+                }
+                else if (value is SourceViewModel source)
+                {
+                    SelectedSource = source;
+                    SelectedShape = null;
+                    SelectedMaterial = null;
+                }
+                else
+                {
+                    SelectedShape = null;
+                    SelectedMaterial = null;
+                    SelectedSource = null;
+                }
+
+                _ignoreSelectionChange = false;
+            }
+        }
     }
 
-    #region Selected Property
+    #endregion
+
+    #region dt : double - Шаг по времени (секунды)
+
+    private double _dt = 1e-9; // значение по умолчанию 1 нс
+
+    /// <summary>Шаг по времени (секунды)</summary>
+    public double dt
+    {
+        get => _dt;
+        set => SetValue(ref _dt, value, d => d > 0); // только положительные значения
+    }
+
+    #endregion
+
+    #region MaxDt : double - Максимально допустимый шаг по времени (расчётный)
+
+    [DependencyOn(nameof(dx))]
+    [DependencyOn(nameof(dy))]
+    [DependencyOn(nameof(Nx))]
+    [DependencyOn(nameof(Ny))]
+    public double MaxDt
+    {
+        get
+        {
+            // Формула Куранта для вакуума (ε=1, μ=1)
+            double c = 299792458; // 299792458 м/с
+            double inv_dx2 = 1.0 / (_dx * _dx);
+            double inv_dy2 = 1.0 / (_dy * _dy);
+            return 1.0 / (c * Math.Sqrt(inv_dx2 + inv_dy2));
+        }
+    }
+
+    #endregion
+
+    #region Sources
+
+    private ObservableCollection<SourceViewModel> _sources = new();
+    public ObservableCollection<SourceViewModel> Sources
+    {
+        get => _sources;
+        set => Set(ref _sources, value);
+    }
+
+    #endregion
+
+    #region Command AddPointSource - Добавить точечный источник
+
+    private LambdaCommand _addPointSourceCommand;
+    public ICommand AddPointSourceCommand => _addPointSourceCommand ??= new(OnAddPointSource);
+
+    private void OnAddPointSource()
+    {
+        var source = new PointSourceViewModel
+        {
+            Name = $"Точечный {Sources.Count + 1}",
+            X = Lx / 2,
+            Y = Ly / 2,
+            Amplitude = 1.0,
+            Tau = 1e-8,
+            T0 = 1e-9,
+            Frequency = 1e-3
+        };
+        Sources.Add(source);
+        SelectedSource = source;
+    }
+
+    #endregion
+
+    #region Command AddPlaneWaveSource - Добавить источник плоской волны
+
+    private LambdaCommand _addPlaneWaveSourceCommand;
+    public ICommand AddPlaneWaveSourceCommand => _addPlaneWaveSourceCommand ??= new(OnAddPlaneWaveSource);
+
+    private void OnAddPlaneWaveSource()
+    {
+        var source = new PlaneWaveSourceViewModel
+        {
+            Name = $"Плоская волна {Sources.Count + 1}",
+            Position = Lx / 2,
+            Start = 0,
+            End = Ly,
+            IsHorizontal = false,
+            Amplitude = 1.0,
+            Tau = 1e-9,
+            T0 = 1e-9
+        };
+        Sources.Add(source);
+        SelectedSource = source;
+    }
+
+    #endregion
+
+    #region SelectedSource : SourceViewModel - Выбранный источник
+
+    private SourceViewModel _selectedSource;
+    public SourceViewModel SelectedSource
+    {
+        get => _selectedSource;
+        set
+        {
+            if (Set(ref _selectedSource, value))
+            {
+                if (_ignoreSelectionChange) return;
+                _ignoreSelectionChange = true;
+
+                if (value != null)
+                {
+                    SelectedProperty = value;
+                    SelectedShape = null;
+                    SelectedMaterial = null;
+                }
+
+                _ignoreSelectionChange = false;
+            }
+        }
+    }
+
+    #endregion
+
+    #region DeleteShapeCommand
+
+    private LambdaCommand _deleteStructureCommand;
+    public ICommand DeletStructureCommand => _deleteStructureCommand ??= new(OnDeleteStructureCommand, CanDeleteStructureCommand);
+
+    private void OnDeleteStructureCommand()
+    {
+        if (SelectedProperty == null) return;
+
+        // Удаление фигуры
+        if (SelectedProperty is ShapeViewModel shape && Shapes.Contains(shape))
+        {
+            Shapes.Remove(shape);
+            SelectedProperty = null;
+        }
+        // Удаление источника
+        else if (SelectedProperty is SourceViewModel source && Sources.Contains(source))
+        {
+            Sources.Remove(source);
+            SelectedProperty = null;
+        }
+    }
+
+    private bool CanDeleteStructureCommand() => SelectedShape.IsNotNull();
 
 
     #endregion
+
+    #region Material
+
+    private ObservableCollection<MaterialViewModel> _materials = new();
+    public ObservableCollection<MaterialViewModel> Materials
+    {
+        get => _materials;
+        set => Set(ref _materials, value);
+    }
+
+    private MaterialViewModel _selectedMaterial;
+    public MaterialViewModel SelectedMaterial
+    {
+        get => _selectedMaterial;
+        set
+        {
+            if (Set(ref _selectedMaterial, value))
+            {
+                if (_ignoreSelectionChange) return;
+                _ignoreSelectionChange = true;
+
+                if (value != null)
+                {
+                    SelectedProperty = value;
+                    SelectedShape = null;
+                    SelectedSource = null;
+                }
+
+                _ignoreSelectionChange = false;
+            }
+        }
+    }
+
+    private MaterialViewModel _backgroundMaterial;
+    public MaterialViewModel BackgroundMaterial
+    {
+        get => _backgroundMaterial;
+        set => Set(ref _backgroundMaterial, value);
+    }
+
+    #endregion
+
+    #region AddMaterialCommand
+
+    private LambdaCommand _addMaterialCommand;
+    public ICommand AddMaterialCommand => _addMaterialCommand ??= new(OnAddMaterial);
+
+    private void OnAddMaterial()
+    {
+        var material = new MaterialViewModel
+        {
+            Name = $"Материал {Materials.Count + 1}",
+            Eps = 1.0,
+            Mu = 1.0,
+            Sigma = 0.0
+        };
+        Materials.Add(material);
+        SelectedMaterial = material; // автоматически отобразит свойства в правой панели
+    }
+
+    #endregion
+
+
 
     //[JsonIgnore]
 

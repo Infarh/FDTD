@@ -192,16 +192,17 @@ namespace FDTD.Space2D
                 _MuInitializer,
                 _SigmaInitializer);
 
+            //
             var eps_min = 1d;
             if (eps != null)
                 for (var i = 0; i < _Nx; i++)
-                    for (var j = 0; j < _Nx; j++)
+                    for (var j = 0; j < _Ny; j++)
                         eps_min = Math.Min(eps_min, Math.Abs(eps[i, j]));
 
             var mu_min = 1d;
             if (mu != null)
                 for (var i = 0; i < _Nx; i++)
-                    for (var j = 0; j < _Nx; j++)
+                    for (var j = 0; j < _Ny; j++)
                         mu_min = Math.Min(mu_min, Math.Abs(mu[i, j]));
 
             var v_max = Consts.SpeedOfLight / Math.Sqrt(eps_min * mu_min);

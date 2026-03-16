@@ -5,12 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:fa="http://schemas.fontawesome.com/icons/"
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:avalon="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:l="clr-namespace:FDTD2DLab"
         xmlns:svm="clr-namespace:FDTD2DLab.ViewModels.Shapes"
+        xmlns:cvm="clr-namespace:FDTD2DLab.ViewModels.Source"
+        xmlns:mvm="clr-namespace:FDTD2DLab.ViewModels.Material"
         xmlns:vm="clr-namespace:FDTD2DLab.ViewModels"
         xmlns:b="clr-namespace:FDTD2DLab.Infrastructure.Behaviors"
         xmlns:c="clr-namespace:FDTD2DLab.Infrastructure.Converters"
         xmlns:inf="clr-namespace:FDTD2DLab.Infrastructure"
+        xmlns:sche="clr-namespace:FDTD2DLab.Infrastructure.Converters"
         DataContext="{Binding MainWindowModel, Source={StaticResource Locator}}"
         Title="{Binding Title}"
         Width="1100" Height="600">
@@ -22,7 +26,11 @@
         <KeyBinding Gesture="Ctrl+Q" Command="{Binding ExitCommand}"/>
         <KeyBinding Gesture="Ctrl+R" Command="{Binding Grid.AddRectShapeToGrid}"/>
         <KeyBinding Gesture="Ctrl+E" Command="{Binding Grid.AddEllipseShapeToGrid}"/>
+        <KeyBinding Key="Delete" Command="{Binding Grid.DeletStructureCommand}"/>
     </Window.InputBindings>
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
     <DockPanel>
         <Menu IsMainMenu="True">
             <MenuItem Header="Файл">
@@ -44,8 +52,8 @@
                     <MenuItem Header="Элипс" Command="{Binding AddEllipseShapeToGrid}"/>
                 </MenuItem>
                 <MenuItem Header="Добавить источник">
-                    <MenuItem Header="Точечный"/>
-                    <MenuItem Header="Плоской волны"/>
+                    <MenuItem Header="Точечный" Command="{Binding Grid.AddPointSourceCommand}"/>
+                    <MenuItem Header="Плоской волны" Command="{Binding Grid.AddPlaneWaveSourceCommand}"/>
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="Параметры"/>
@@ -53,6 +61,8 @@
             <MenuItem Header="Моделирование">
                 <MenuItem Header="Настройки моделирования"/>
                 <MenuItem Header="Быстрый запуск"/>
+                <MenuItem Header="Запись GIF" Command="{Binding StartGifRecordingCommand}"/>
+                <MenuItem Header="Реальное время" Command="{Binding StartRealTimeCommand}"/>
                 <MenuItem Header="О создателях"/>
             </MenuItem>
             <MenuItem Header="Окно"/>
@@ -182,6 +192,41 @@
                                         </ListBox.Resources>
                                     </ListBox>
                                 </Expander>
+                                <Expander Header="Источники" IsExpanded="True" Padding="3">
+                                    <StackPanel>
+                                        <ListBox ItemsSource="{Binding Sources}"
+                                                    SelectedItem="{Binding SelectedSource}"
+                                                    DisplayMemberPath="Name">
+                                            <ListBox.Resources>
+                                                <DataTemplate DataType="{x:Type cvm:PointSourceViewModel}">
+                                                    <TextBlock Text="Точечный"/>
+                                                </DataTemplate>
+                                                <DataTemplate DataType="{x:Type cvm:PlaneWaveSourceViewModel}">
+                                                    <TextBlock Text="Плоский"/>
+                                                </DataTemplate>
+                                            </ListBox.Resources>
+                                        </ListBox>
+                                        <!--<StackPanel Orientation="Horizontal" Margin="0,5">
+                                            <Button Content="Точечный" Command="{Binding AddPointSourceCommand}" Margin="2"/>
+                                            <Button Content="Плоская волна" Command="{Binding AddPlaneWaveSourceCommand}" Margin="2"/>
+                                        </StackPanel>-->
+                                    </StackPanel>
+                                </Expander>
+                                <Expander Header="Материалы" IsExpanded="True" Padding="3">
+                                    <StackPanel>
+                                        <ListBox ItemsSource="{Binding Materials}" 
+                                                SelectedItem="{Binding SelectedMaterial}"
+                                                DisplayMemberPath="Name"
+                                                Background="Transparent">
+                                            <ListBox.ItemContainerStyle>
+                                                <Style TargetType="ListBoxItem">
+                                                    <Setter Property="b:DragDropBehavior.CanDrag" Value="True"/>
+                                                </Style>
+                                            </ListBox.ItemContainerStyle>
+                                        </ListBox>
+                                        <Button Content="Добавить материал" Command="{Binding AddMaterialCommand}" Margin="2"/>
+                                    </StackPanel>
+                                </Expander>
                                 <Expander Header="Графики" IsExpanded="True" Padding="3">
                                     <ListBox ItemsSource="{Binding Shapes}"
                                             SelectedItem="{Binding SelectedShape}">
@@ -263,13 +308,13 @@
                                 </Button>
                                 <Separator/>
                                 <TextBlock VerticalAlignment="Center" Text="Источники:"/>
-                                <Button Width="16.5" Height="19" ToolTip="Точечный">
+                                <Button Width="16.5" Height="19" ToolTip="Точечный" Command="{Binding Grid.AddPointSourceCommand}">
                                     <Ellipse Fill="Red" Width="5" Height="5" Stroke="DarkRed" StrokeThickness="1"/>
                                 </Button>
                                 <Button Width="16.5" Height="19" ToolTip="Линия">
                                     <Rectangle Fill="Red" Width="2" Height="13" />
                                 </Button>
-                                <Button Width="16.5" Height="19" ToolTip="Плоская падающая волна">
+                                <Button Width="16.5" Height="19" ToolTip="Плоская падающая волна" Command="{Binding Grid.AddPlaneWaveSourceCommand}">
                                     <Rectangle Width="9" Height="13" >
                                         <Rectangle.Fill>
                                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -310,6 +355,12 @@
 
                             <Border ClipToBounds="True" BorderThickness="1" BorderBrush="Black" Padding="1" Grid.Column="0">
                                 <Grid>
+                                    <Image Source="{Binding FieldBitmap}" 
+                                        Stretch="Fill" 
+                                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                        Panel.ZIndex="0" 
+                                        Opacity="0.7"/>
+                                    
                                     <ItemsControl ItemsSource="{Binding Grid.GridX}">
                                         <ItemsControl.Resources>
                                             <c:Div x:Key="DivX" Parameter="{Binding Grid.Nx}"/>
@@ -350,7 +401,6 @@
 
                                     </ItemsControl>
 
-
                                     <ItemsControl ItemsSource="{Binding Grid.Shapes}" Background="Transparent">
                                         <i:Interaction.Behaviors>
                                             <b:MouseMove PositionRelative="{Binding Grid.GridMousePosition, Mode=OneWayToSource}"/>
@@ -365,6 +415,7 @@
                                                     </i:Interaction.Behaviors>
                                                     <Ellipse Fill="Blue"/>
                                                     <Border>
+                                                        
                                                         <Border.Style>
                                                             <Style TargetType="Border">
                                                                 <Setter Property="BorderBrush" Value="Red"/>
@@ -407,6 +458,7 @@
                                         </ItemsControl.Resources>
                                         <ItemsControl.ItemContainerStyle>
                                             <Style TargetType="ContentPresenter">
+                                                <Setter Property="b:DragDropBehavior.CanDrop" Value="True"/>
                                                 <Setter Property="inf:RelPos.Binding" Value="True"/>
                                                 <Setter Property="inf:RelPos.ContainerWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                                 <Setter Property="inf:RelPos.ContainerHeight" Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
@@ -436,12 +488,71 @@
                                             </ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
                                     </ItemsControl>
+
+                                    <ItemsControl ItemsSource="{Binding Grid.Sources}" Panel.ZIndex="2">
+                                        <ItemsControl.Resources>
+                                            <!-- Шаблон для точечного источника -->
+                                            <DataTemplate DataType="{x:Type cvm:PointSourceViewModel}">
+                                                <Ellipse Fill="Red" Width="5" Height="5" Stroke="DarkRed" StrokeThickness="1" 
+                                                ToolTip="{Binding Name}"/>
+                                            </DataTemplate>
+
+                                            <!-- Шаблон для плоской волны -->
+                                            <DataTemplate DataType="{x:Type cvm:PlaneWaveSourceViewModel}">
+                                                <Rectangle Fill="Red" Stroke="DarkRed" StrokeThickness="1" 
+                                                    ToolTip="{Binding Name}">
+                                                    <Rectangle.Style>
+                                                        <Style TargetType="Rectangle">
+                                                            <Setter Property="inf:RelPos.X" Value="{Binding Start}"/>
+                                                            <Setter Property="inf:RelPos.Y" Value="{Binding Position}"/>
+                                                            <Setter Property="inf:RelPos.ValueWidth" Value="{Binding End, Converter={StaticResource Subtract}, ConverterParameter={Binding Start}}"/>
+                                                            <Setter Property="inf:RelPos.ValueHeight" Value="0.001"/>
+                                                            <!-- малая толщина -->
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsHorizontal}" Value="False">
+                                                                    <Setter Property="inf:RelPos.X" Value="{Binding Position}"/>
+                                                                    <Setter Property="inf:RelPos.Y" Value="{Binding Start}"/>
+                                                                    <Setter Property="inf:RelPos.ValueWidth" Value="0.001"/>
+                                                                    <Setter Property="inf:RelPos.ValueHeight" Value="{Binding End, Converter={StaticResource Subtract}, ConverterParameter={Binding Start}}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Rectangle.Style>
+                                                </Rectangle>
+                                            </DataTemplate>
+                                        </ItemsControl.Resources>
+
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <Canvas/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+
+                                        <ItemsControl.ItemContainerStyle>
+                                            <Style TargetType="ContentPresenter">
+                                                <!-- Привязка команды выбора источника -->
+                                                <Setter Property="inf:RelPos.MouseButtonDownCommand" 
+                                                    Value="{Binding DataContext.Grid.SelectSourceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                                <!-- Параметры для позиционирования RelPos -->
+                                                <Setter Property="inf:RelPos.ContainerWidth" 
+                                                    Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                                <Setter Property="inf:RelPos.ContainerHeight" 
+                                                    Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                                <Setter Property="inf:RelPos.MaxX" 
+                                                    Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                                <Setter Property="inf:RelPos.MaxY" 
+                                                    Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                            </Style>
+                                        </ItemsControl.ItemContainerStyle>
+                                    </ItemsControl>
+
                                 </Grid>
                             </Border>
 
                             <ScrollViewer Grid.Column="1" DataContext="{Binding Grid}" VerticalScrollBarVisibility="Visible">
                                 <StackPanel >
-                                    <ContentControl Content="{Binding SelectedProperty}">
+                                    <StackPanel>
+                                        <ContentControl Content="{Binding SelectedProperty}">
                                         <ContentControl.Resources>
                                             <DataTemplate DataType="{x:Type svm:EllipseViewModel}">
                                                 <StackPanel Margin="1,2,1,1">
@@ -500,44 +611,73 @@
                                                         <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
                                                         <TextBlock Text="Вертикальный размер" TextAlignment="Left" Padding="30,1,1,1"/>
                                                         <TextBox Tag="h:" Text="{Binding Height}" ToolTip="Высота"/>
-                                                        <Rectangle Height="2" Fill="DarkCyan" Margin="2,5,2,2"/>
-
-                                                        <TextBlock Text="Материал" TextAlignment="Center" FontSize="15" FontFamily="Segoe UI Semibold"/>
+                                                        <TextBlock Text="Угол поворота" TextAlignment="Left" Padding="30,1,1,1"/>
                                                         <TextBox Tag="ang:" Text="{Binding Angle}" ToolTip="Угол поворота"/>
-                                                        <TextBox Tag="eps:" Text="{Binding Eps}" ToolTip="Диэлектрическая проницаемость"/>
-                                                        <TextBox Tag="mu:" Text="{Binding Mu}" ToolTip="Магнитная проницаемость"/>
-                                                        <TextBox Tag="sgm:" Text="{Binding Sigma}" ToolTip="Проводимость"/>
-                                                    </StackPanel>
+                                                        <Rectangle Height="2" Fill="DarkCyan" Margin="2,5,2,2"/>
+                                                        
+                                                        </StackPanel>
                                                 </StackPanel>
                                             </DataTemplate>
                                             <DataTemplate DataType="{x:Type svm:RectViewModel}">
-                                                <StackPanel>
-                                                    <TextBlock Text="прямоугольник"/>
-                                                    <StackPanel DataContext="{Binding Grid.SelectedShape}">
-                                                        <DockPanel>
-                                                            <TextBlock Text="{Binding X, StringFormat=x:{0:f2}}" Margin="0,0,3,0" Width="40"/>
-                                                            <Slider Value="{Binding X}" SmallChange="1"
-                                                                                            Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=GroupBox}}"/>
-                                                        </DockPanel>
-                                                        <DockPanel>
-                                                            <TextBlock Text="{Binding Y, StringFormat=y:{0:f2}}" Margin="0,0,3,0" Width="40"/>
-                                                            <Slider Value="{Binding Y}" SmallChange="1"
-                                                                                            Maximum="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=GroupBox}}"/>
-                                                        </DockPanel>
-                                                        <DockPanel>
-                                                            <TextBlock Text="{Binding Width, StringFormat=w:{0:f2}}" Margin="0,0,3,0" Width="40"/>
-                                                            <Slider Value="{Binding Width}" SmallChange="1"
-                                                                                            Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=GroupBox}}"/>
-                                                        </DockPanel>
-                                                        <DockPanel>
-                                                            <TextBlock Text="{Binding Height, StringFormat=h:{0:f2}}" Margin="0,0,3,0" Width="40"/>
-                                                            <Slider Value="{Binding Height}" SmallChange="1"
-                                                                                            Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=GroupBox}}" ValueChanged="Slider_ValueChanged"/>
-                                                        </DockPanel>
-                                                        <DockPanel>
-                                                            <TextBlock Text="{Binding Angle, StringFormat=a:{0:f2}}" Margin="0,0,3,0" Width="40"/>
-                                                            <Slider Value="{Binding Angle}" SmallChange="1" Minimum="-360" Maximum="360"/>
-                                                        </DockPanel>
+                                                <StackPanel Margin="1,2,1,1">
+                                                    <TextBlock Text="ПРЯМОУГОЛЬНИК" TextAlignment="Center" FontSize="15" FontFamily="Segoe UI Semibold"/>
+                                                    <StackPanel  Grid.IsSharedSizeScope="True">
+                                                        <StackPanel.Resources>
+                                                            <Style TargetType="TextBox">
+                                                                <Setter Property="Margin" Value="0,1"></Setter>
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="TextBox">
+                                                                            <Grid>
+                                                                                <Grid.ColumnDefinitions>
+                                                                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Header"/>
+                                                                                    <ColumnDefinition/>
+                                                                                </Grid.ColumnDefinitions>
+                                                                                <ContentPresenter Grid.Column="0" Content="{TemplateBinding Tag}"
+                                                                                Margin="0,0,3,0"
+                                                                                HorizontalAlignment="Right" TextBlock.FontWeight="Bold"/>
+                                                                                <Border Grid.Column="1" x:Name="border"
+                                                                                Background="{TemplateBinding Background}"
+                                                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                                SnapsToDevicePixels="True">
+                                                                                <ScrollViewer x:Name="PART_ContentHost"
+                                                                                Focusable="False"
+                                                                                HorizontalScrollBarVisibility="Hidden"
+                                                                                VerticalScrollBarVisibility="Hidden"/>
+                                                                                </Border>
+                                                                            </Grid>
+                                                                            <ControlTemplate.Triggers>
+                                                                                <Trigger Property="IsEnabled" Value="False">
+                                                                                    <Setter TargetName="border" Property="Opacity" Value="0.56"/>
+                                                                                </Trigger>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter TargetName="border" Property="BorderBrush" Value="Blue"/>
+                                                                                </Trigger>
+                                                                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                                                                    <Setter TargetName="border" Property="BorderBrush" Value="DarkBlue"/>
+                                                                                </Trigger>
+                                                                            </ControlTemplate.Triggers>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Style>
+                                                        </StackPanel.Resources>
+
+                                                        <TextBlock Text="Горизонтальное положение" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="x:" Text="{Binding X}" ToolTip="Горизонтальное положение"/>
+                                                        <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
+                                                        <TextBlock Text="Расположение по y" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="y:" Text="{Binding Y}" ToolTip="Вертикальное положение"/>
+                                                        <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
+                                                        <TextBlock Text="Горизонтальный размер" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="w:" Text="{Binding Width}" ToolTip="Ширина"/>
+                                                        <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
+                                                        <TextBlock Text="Вертикальный размер" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="h:" Text="{Binding Height}" ToolTip="Высота"/>
+                                                        <TextBlock Text="Угол поворота" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="ang:" Text="{Binding Angle}" ToolTip="Угол поворота"/>
+                                                        <Rectangle Height="2" Fill="DarkCyan" Margin="2,5,2,2"/>
                                                     </StackPanel>
                                                 </StackPanel>
                                             </DataTemplate>
@@ -546,12 +686,168 @@
                                                     <TextBlock Text="сетка"/>
                                                 </StackPanel>
                                             </DataTemplate>
-                                        </ContentControl.Resources>
+                                            <DataTemplate DataType="{x:Type cvm:PointSourceViewModel}">
+                                                <StackPanel>
+                                                    <TextBlock Text="Точечный источник" FontWeight="Bold"/>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
+                                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="2"/>
+                                                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding X}"/>
+                                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="2"/>
+                                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Y}"/>
+                                                        <TextBlock Text="Угол поворота" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="ang:" Text="{Binding Angle}" ToolTip="Угол поворота"/>
+                                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Сигнал:" Margin="2"/>
+                                                        <ComboBox Grid.Row="2" Grid.Column="1" SelectedItem="{Binding SignalType}"
+                                                                ItemsSource="{Binding Source={StaticResource SignalTypes}}"/>
+                                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Амплитуда:" Margin="2"/>
+                                                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Amplitude}"/>
+                                                        <!-- Параметры для Gaussian -->
+                                                        <TextBlock Grid.Row="4" Grid.Column="0" Text="T0 (с):" Margin="2"/>
+                                                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding T0}"/>
+                                                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Tau (с):" Margin="2"/>
+                                                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Tau}"/>
+                                                        <!-- Параметры для Sine (видимость по условию) -->
+                                                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Частота (Гц):" Margin="2"/>
+                                                        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Frequency}"/>
+                                                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Фаза (рад):" Margin="2"/>
+                                                        <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Phase}"/>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                            <DataTemplate DataType="{x:Type cvm:PlaneWaveSourceViewModel}">
+                                                    <StackPanel>
+                                                        <TextBlock Text="Источник плоской волны" FontWeight="Bold"/>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                            </Grid.RowDefinitions>
+                                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="2"/>
+                                                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding X}"/>
+                                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="2"/>
+                                                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Y}"/>
+                                                            <TextBlock Text="Угол поворота" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                            <TextBox Tag="ang:" Text="{Binding Angle}" ToolTip="Угол поворота"/>
+                                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Сигнал:" Margin="2"/>
+                                                            <ComboBox Grid.Row="2" Grid.Column="1" SelectedItem="{Binding SignalType}"
+                                                             ItemsSource="{Binding Source={StaticResource SignalTypes}}"/>
+                                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Амплитуда:" Margin="2"/>
+                                                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Amplitude}"/>
+                                                            <!-- Параметры для Gaussian -->
+                                                            <TextBlock Grid.Row="4" Grid.Column="0" Text="T0 (с):" Margin="2"/>
+                                                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding T0}"/>
+                                                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Tau (с):" Margin="2"/>
+                                                            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Tau}"/>
+                                                            <!-- Параметры для Sine (видимость по условию) -->
+                                                            <TextBlock Grid.Row="6" Grid.Column="0" Text="Частота (Гц):" Margin="2"/>
+                                                            <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Frequency}"/>
+                                                            <TextBlock Grid.Row="7" Grid.Column="0" Text="Фаза (рад):" Margin="2"/>
+                                                            <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Phase}"/>
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ContentControl.Resources>
                                     </ContentControl>
-                                    <StackPanel.Resources>
+                                        <StackPanel.Resources>
 
-                                    </StackPanel.Resources>
+                                        </StackPanel.Resources>
+                                    </StackPanel>
+                                    <!--<StackPanel Name="Material_shape">
+                                        <ContentControl Content="{Binding SelectedProperty}">
+                                            <ContentControl.Resources>
+                                                <DataTemplate DataType="{x:Type svm:ShapeViewModel}">
+                                                    <StackPanel>
+                                                        <ComboBox ItemsSource="{Binding DataContext.Grid.Materials, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            SelectedItem="{Binding AppliedMaterial}"
+                                                            DisplayMemberPath="Name"
+                                                            Margin="2"/>
+                                                        <TextBlock Text="Материал" FontWeight="Bold" Margin="0,5"/>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                            </Grid.RowDefinitions>
+                                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Имя:" Margin="2"/>
+                                                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}"/>
+                                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="ε:" Margin="2"/>
+                                                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Eps}"/>
+                                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="μ:" Margin="2"/>
+                                                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Mu}"/>
+                                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="σ:" Margin="2"/>
+                                                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Sigma}"/>
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ContentControl.Resources>
+                                        </ContentControl>
+                                    </StackPanel>-->
+                                    <StackPanel>
+                                        <ContentControl Content="{Binding SelectedMaterial}">
+                                            <ContentControl.Resources>
+                                                <DataTemplate DataType="{x:Type mvm:MaterialViewModel}">
+                                                    <StackPanel>
+                                                        <ComboBox ItemsSource="{Binding DataContext.Grid.Materials, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            SelectedItem="{Binding AppliedMaterial}"
+                                                            DisplayMemberPath="Name"
+                                                            Margin="2"/>
+                                                        <TextBlock Text="Материал" FontWeight="Bold" Margin="0,5"/>
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                                <RowDefinition Height="Auto"/>
+                                                            </Grid.RowDefinitions>
+                                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Имя:" Margin="2"/>
+                                                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name}"/>
+                                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="ε:" Margin="2"/>
+                                                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Eps}"/>
+                                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="μ:" Margin="2"/>
+                                                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Mu}"/>
+                                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="σ:" Margin="2"/>
+                                                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Sigma}"/>
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ContentControl.Resources>
+                                        </ContentControl>
+                                    </StackPanel>
                                 </StackPanel>
+
                             </ScrollViewer>
                         </Grid>
                     </DockPanel>
@@ -561,7 +857,12 @@
                 </Grid>
 
             </TabItem>
-            <TabItem Header="Поле"></TabItem>
+            <TabItem Header="Поле">
+                <Grid>
+                    <Image Source="{Binding FieldBitmap}" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="Моделирование не запущено" Visibility="{Binding IsSimulating, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=inverse}"/>
+                </Grid>
+            </TabItem>
         </TabControl>
     </DockPanel>
 </Window>
