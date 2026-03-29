@@ -1,9 +1,12 @@
 ﻿using FDTD2DLab.ViewModels.Propertys;
+using FDTD2DLab.ViewModels.Shapes;
 using MathCore.WPF.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Security.AccessControl;
+using System.Text.Json.Serialization;
 
 namespace FDTD2DLab.ViewModels.Source
 {
@@ -13,8 +16,16 @@ namespace FDTD2DLab.ViewModels.Source
         Sine        // синусоида: sin(2πf t + φ)
     }
 
+    [JsonDerivedType(typeof(PointSourceViewModel))]
+    [JsonDerivedType(typeof(PlaneWaveSourceViewModel))]
     public abstract class SourceViewModel : ViewModel, INotifyPropertyChanged, IOptProperty
     {
+
+        [JsonIgnore]
+        private Type _SourceType;
+        [JsonIgnore]
+        public Type SourceType { get => _SourceType; set => Set(ref _SourceType, value); }
+
         private string _name = "Источник";
         private SignalType _signalType = SignalType.Gaussian;
         private double _amplitude = 1.0;
@@ -86,11 +97,12 @@ namespace FDTD2DLab.ViewModels.Source
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        protected bool SetField<T>(ref T field, T value, Action onChanged = null, [CallerMemberName] string propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(field, value)) return false;
             field = value;
             OnPropertyChanged(propertyName);
+            onChanged?.Invoke();
             return true;
         }
     }
@@ -117,35 +129,93 @@ namespace FDTD2DLab.ViewModels.Source
 
     public class PlaneWaveSourceViewModel : SourceViewModel
     {
-        private double _position;      // координата линии (например, x = const)
-        private double _start;         // начало линии по другой оси
-        private double _end;           // конец линии
-        private bool _isHorizontal;    // true – горизонтальная линия (постоянная Y), false – вертикальная (постоянная X)
+        private double _position;
+        private double _start;
+        private double _end;
+        private bool _isHorizontal;
+
+        // --- Исходные свойства (с уведомлениями) ---
 
         public double Position
         {
             get => _position;
-            set => SetField(ref _position, value);
+            set => SetField(ref _position, value, OnPositionChanged);
         }
 
         public double Start
         {
             get => _start;
-            set => SetField(ref _start, value);
+            set => SetField(ref _start, value, OnStartEndChanged);
         }
 
         public double End
         {
             get => _end;
-            set => SetField(ref _end, value);
+            set => SetField(ref _end, value, OnStartEndChanged);
         }
 
         public bool IsHorizontal
         {
             get => _isHorizontal;
-            set => SetField(ref _isHorizontal, value);
+            set => SetField(ref _isHorizontal, value, OnIsHorizontalChanged);
         }
 
+        // --- Зависимые свойства (используются для привязки в UI) ---
+
+        public double X
+        {
+            get => IsHorizontal ? Start : Position;
+            set
+            {
+                if (IsHorizontal)
+                    Start = value;
+                else
+                    Position = value;
+                OnPropertyChanged(); // уведомляем об изменении X
+            }
+        }
+
+        public double Y
+        {
+            get => IsHorizontal ? Position : Start;
+            set
+            {
+                if (IsHorizontal)
+                    Position = value;
+                else
+                    Start = value;
+                OnPropertyChanged(); // уведомляем об изменении Y
+            }
+        }
+
+        public double ValueWidth => IsHorizontal ? End - Start : 0.001;
+        public double ValueHeight => IsHorizontal ? 0.001 : End - Start;
+
+        // --- Вспомогательные методы для уведомлений ---
+
+        private void OnStartEndChanged()
+        {
+            OnPropertyChanged(nameof(X));
+            OnPropertyChanged(nameof(Y));
+            OnPropertyChanged(nameof(ValueWidth));
+            OnPropertyChanged(nameof(ValueHeight));
+        }
+
+        private void OnPositionChanged()
+        {
+            OnPropertyChanged(nameof(X));
+            OnPropertyChanged(nameof(Y));
+        }
+
+        private void OnIsHorizontalChanged()
+        {
+            OnPropertyChanged(nameof(X));
+            OnPropertyChanged(nameof(Y));
+            OnPropertyChanged(nameof(ValueWidth));
+            OnPropertyChanged(nameof(ValueHeight));
+        }
+
+        // Переопределяем TypeDisplayName
         public override string TypeDisplayName => "Плоская волна";
     }
 }

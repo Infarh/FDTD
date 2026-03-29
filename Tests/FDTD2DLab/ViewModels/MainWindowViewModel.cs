@@ -1,10 +1,15 @@
 ﻿using FDTD.Space2D;
 using FDTD.Space2D.Sources;
+using FDTD2DLab.Infrastructure.Serialization;
 using FDTD2DLab.Services.Interfaces;
+using FDTD2DLab.ViewModels.Material;
+using FDTD2DLab.ViewModels.Probe;
 using FDTD2DLab.ViewModels.Shapes;
 using FDTD2DLab.ViewModels.Source;
+using FDTD2DLab.Views;
 using MathCore.ViewModels;
 using MathCore.WPF.Commands;
+using MathCore.WPF.Converters;
 using Microsoft.Extensions.Options;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Gif;
@@ -13,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -28,12 +34,35 @@ namespace FDTD2DLab.ViewModels;
 
 public class MainWindowViewModel : ViewModel
 {
+
+    private string _projectFolder;
+
     public MainWindowViewModel(IUserDialog UserDialog, IComputer Computer)
     {
         Grid = new(this);
 
         _UserDialog = UserDialog;
         _Computer = Computer;
+
+        
+        OpenProbeTabCommand = new LambdaCommand<ProbeViewModel>(OpenProbeTab);
+
+        Tabs = new ObservableCollection<TabItemViewModel>
+        {
+            new TabItemViewModel
+            {
+                Header = "Пространство",
+                Content = new Views.SpaceView(this),
+                CanClose = false
+            },
+            new TabItemViewModel
+            {
+                Header = "Поле",
+                Content = new Views.FieldView(),
+                CanClose = false
+            }
+        };
+        //SelectedTab = Tabs[0];
 
         UpdateTitle();
     }
@@ -117,17 +146,55 @@ public class MainWindowViewModel : ViewModel
         if (_UserDialog.GetString("Название проекта", "Назовите проект", "Новый проект") is not { } project_name) return;
         Set(ref _ProjectName, project_name);
         Set(ref _ProjectFile, null);
+        _projectFolder = null;
         UpdateTitle();
 
+        // Сброс всех данных
         Grid.Shapes.Clear();
-
+        Grid.Sources.Clear();
+        Grid.Materials.Clear();
+        Grid.Probes.Clear();
+        Grid.BackgroundMaterial = Grid.Materials.FirstOrDefault() ?? new MaterialViewModel { Name = "Vacuum", Eps = 1, Mu = 1, Sigma = 0 };
         Grid.Nx = 100;
         Grid.Ny = 100;
         Grid.dx = 1;
         Grid.dy = 1;
-        Grid.SpaceUnit = Grid.SpaceUnits.First();
+        Grid.SpaceUnit = "м";
+        Grid.dt = 1e-9;
 
-        Status = "Новый проект проект";
+        Status = "Создан новый проект";
+
+        // Добавляем тестовые объекты, чтобы они были видны сразу
+        // Точечный источник
+        var pointSource = new PointSourceViewModel
+        {
+            Name = "Источник 1",
+            X = Grid.Lx / 2,
+            Y = Grid.Ly / 2,
+            Frequency = 1e4
+        };
+        Grid.Sources.Add(pointSource);
+
+        // Плоская волна (вертикальная линия)
+        var planeWave = new PlaneWaveSourceViewModel
+        {
+            Name = "Плоская волна",
+            Position = Grid.Lx / 2,
+            Start = Grid.Ly / 4,
+            End = 3 * Grid.Ly / 4,
+            IsHorizontal = false
+        };
+        Grid.Sources.Add(planeWave);
+
+        // Зонд
+        var probe = new ProbeViewModel
+        {
+            Name = "Зонд 1",
+            X = Grid.Lx / 2,
+            Y = Grid.Ly / 2,
+            Component = FieldComponent.Ez
+        };
+        Grid.Probes.Add(probe);
     }
 
     #endregion
@@ -146,14 +213,20 @@ public class MainWindowViewModel : ViewModel
     /// <summary>Логика выполнения - Открыть</summary>
     private void OnOpenCommandExecuted(FileInfo file)
     {
-        file ??= _UserDialog.OpenFile("Открыть проект", "Файлы проекта (*.fdtdproj)|*.fdtdproj|Xml-файлы (*.xml)|*.xml|Json-файлы (*.json)|*.json|Все файлы (*.*)|*.*");
-        if (file is null) return;
+        var folder = _UserDialog.SelectFolder("Выберите папку проекта");
+        if (string.IsNullOrEmpty(folder)) return;
 
-        //RecentFiles.Remove(file);
-        //RecentFiles.Insert(0, file);
-        ProjectFile = file;
+        // Проверяем, что в папке есть необходимые файлы
+        if (!File.Exists(Path.Combine(folder, "grid.gmfdtd")) ||
+            !File.Exists(Path.Combine(folder, "materials.mmfdtd")) ||
+            !File.Exists(Path.Combine(folder, "source.smfdtd")))
+        {
+            _UserDialog.Warning("Выбранная папка не содержит файлов проекта FDTD.");
+            return;
+        }
 
-        Status = $"Открыть проект {file.Name}";
+        LoadProject(folder);
+        _projectFolder = folder;
     }
 
     #endregion
@@ -167,20 +240,276 @@ public class MainWindowViewModel : ViewModel
     public ICommand SaveCommand => _SaveCommand ??= new(OnSaveCommandExecuted, CanSaveCommandExecute);
 
     /// <summary>Проверка возможности выполнения - Сохранить</summary>
-    private bool CanSaveCommandExecute() => ProjectFile != null;
+    private bool CanSaveCommandExecute() => _projectFolder != null;
 
     /// <summary>Логика выполнения - Сохранить</summary>
     private void OnSaveCommandExecuted()
     {
-        var file = GetnewProjectFile(ProjectFile);
-
-        Status = $"Проект сохранён в {file.Name}";
+        if (!string.IsNullOrEmpty(_projectFolder))
+        {
+            SaveProject(_projectFolder);
+            Status = $"Проект сохранён в {_projectFolder}";
+        }
+        else
+        {
+            OnSaveAsCommandExecuted(null);
+        }
     }
 
     private FileInfo GetnewProjectFile(FileInfo Default) => Default ?? _UserDialog.SaveFile(
         "Сохранить проект как...",
         "Файлы проекта (*.fdtdproj)|*.fdtdproj|Xml-файлы (*.xml)|*.xml|Json-файлы (*.json)|*.json|Все файлы (*.*)|*.*",
         ProjectFile?.FullName);
+
+    private void SaveProject(string folderPath)
+    {
+        if (!Directory.Exists(folderPath))
+            Directory.CreateDirectory(folderPath);
+
+        // Сохраняем сетку и фигуры
+        var gridData = new GridData
+        {
+            Nx = Grid.Nx,
+            Ny = Grid.Ny,
+            Dx = Grid.dx,
+            Dy = Grid.dy,
+            Dt = Grid.dt,
+            SpaceUnit = Grid.SpaceUnit,
+            BackgroundMaterialName = Grid.BackgroundMaterial?.Name,
+            Shapes = Grid.Shapes.Select(shape => new ShapeData
+            {
+                Type = shape is RectViewModel ? "Rect" : "Ellipse",
+                X = shape.X,
+                Y = shape.Y,
+                Width = shape.Width,
+                Height = shape.Height,
+                Angle = shape.Angle,
+                MaterialName = shape.AppliedMaterial?.Name,
+                Eps = shape.Eps,
+                Mu = shape.Mu,
+                Sigma = shape.Sigma
+            }).ToList()
+        };
+        var gridJson = JsonSerializer.Serialize(gridData, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(folderPath, "grid.gmfdtd"), gridJson);
+
+        // Сохраняем материалы (исключая стандартные Vacuum и PEC, если они есть)
+        var materialsToSave = Grid.Materials.Where(m => m.Name != "Vacuum" && m.Name != "PEC").ToList();
+        var materialsData = materialsToSave.Select(m => new MaterialData
+        {
+            Name = m.Name,
+            Eps = m.Eps,
+            Mu = m.Mu,
+            Sigma = m.Sigma
+        }).ToList();
+        var materialsJson = JsonSerializer.Serialize(materialsData, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(folderPath, "materials.mmfdtd"), materialsJson);
+
+        // Сохраняем источники
+        var sourcesData = Grid.Sources.Select(src => new SourceData
+        {
+            Type = src is PointSourceViewModel ? "Point" : "PlaneWave",
+            X = (src as PointSourceViewModel)?.X ?? 0,
+            Y = (src as PointSourceViewModel)?.Y ?? 0,
+            Position = (src as PlaneWaveSourceViewModel)?.Position ?? 0,
+            Start = (src as PlaneWaveSourceViewModel)?.Start ?? 0,
+            End = (src as PlaneWaveSourceViewModel)?.End ?? 0,
+            IsHorizontal = (src as PlaneWaveSourceViewModel)?.IsHorizontal ?? false,
+            Name = src.Name,
+            SignalType = src.SignalType,
+            Amplitude = src.Amplitude,
+            T0 = src.T0,
+            Tau = src.Tau,
+            Frequency = src.Frequency,
+            Phase = src.Phase
+        }).ToList();
+        var sourcesJson = JsonSerializer.Serialize(sourcesData, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(folderPath, "source.smfdtd"), sourcesJson);
+
+        // Сохраняем зонды (опционально)
+        var probesData = Grid.Probes.Select(p => new ProbeData
+        {
+            Name = p.Name,
+            X = p.X,
+            Y = p.Y,
+            Component = p.Component
+        }).ToList();
+        var probesJson = JsonSerializer.Serialize(probesData, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(Path.Combine(folderPath, "probes.pmfdtd"), probesJson);
+    }
+
+    private void LoadProject(string folderPath)
+    {
+        // Загрузка материалов (чтобы они были доступны для фигур)
+        var materialsFilePath = Path.Combine(folderPath, "materials.mmfdtd");
+        if (File.Exists(materialsFilePath))
+        {
+            var materialsData = JsonSerializer.Deserialize<List<MaterialData>>(File.ReadAllText(materialsFilePath));
+            if (materialsData != null)
+            {
+                Grid.Materials.Clear();
+                // Добавляем стандартные материалы
+                Grid.Materials.Add(new MaterialViewModel { Name = "Vacuum", Eps = 1, Mu = 1, Sigma = 0 });
+                Grid.Materials.Add(new MaterialViewModel { Name = "PEC", Eps = 1, Mu = 1, Sigma = 1e10 });
+                foreach (var m in materialsData)
+                {
+                    Grid.Materials.Add(new MaterialViewModel
+                    {
+                        Name = m.Name,
+                        Eps = m.Eps,
+                        Mu = m.Mu,
+                        Sigma = m.Sigma
+                    });
+                }
+            }
+        }
+
+        // Загрузка сетки и фигур
+        var gridFilePath = Path.Combine(folderPath, "grid.gmfdtd");
+        if (File.Exists(gridFilePath))
+        {
+            var gridData = JsonSerializer.Deserialize<GridData>(File.ReadAllText(gridFilePath));
+            if (gridData != null)
+            {
+                Grid.Nx = gridData.Nx;
+                Grid.Ny = gridData.Ny;
+                Grid.dx = gridData.Dx;
+                Grid.dy = gridData.Dy;
+                Grid.dt = gridData.Dt;
+                Grid.SpaceUnit = gridData.SpaceUnit;
+
+                // Установка материала фона
+                Grid.BackgroundMaterial = Grid.Materials.FirstOrDefault(m => m.Name == gridData.BackgroundMaterialName) ?? Grid.Materials[0];
+
+                Grid.Shapes.Clear();
+                foreach (var shapeData in gridData.Shapes)
+                {
+                    ShapeViewModel shape;
+                    if (shapeData.Type == "Rect")
+                    {
+                        shape = new RectViewModel
+                        {
+                            X = shapeData.X,
+                            Y = shapeData.Y,
+                            Width = shapeData.Width,
+                            Height = shapeData.Height,
+                            Angle = shapeData.Angle
+                        };
+                    }
+                    else
+                    {
+                        shape = new EllipseViewModel
+                        {
+                            X = shapeData.X,
+                            Y = shapeData.Y,
+                            Width = shapeData.Width,
+                            Height = shapeData.Height,
+                            Angle = shapeData.Angle
+                        };
+                    }
+
+                    // Применяем материал, если указан
+                    if (!string.IsNullOrEmpty(shapeData.MaterialName))
+                    {
+                        var material = Grid.Materials.FirstOrDefault(m => m.Name == shapeData.MaterialName);
+                        if (material != null)
+                        {
+                            shape.AppliedMaterial = material;
+                        }
+                        else
+                        {
+                            // Если материал не найден, используем сохранённые параметры
+                            shape.Eps = shapeData.Eps;
+                            shape.Mu = shapeData.Mu;
+                            shape.Sigma = shapeData.Sigma;
+                        }
+                    }
+                    else
+                    {
+                        shape.Eps = shapeData.Eps;
+                        shape.Mu = shapeData.Mu;
+                        shape.Sigma = shapeData.Sigma;
+                    }
+
+                    Grid.Shapes.Add(shape);
+                }
+            }
+        }
+
+        // Загрузка источников
+        var sourcesFilePath = Path.Combine(folderPath, "source.smfdtd");
+        if (File.Exists(sourcesFilePath))
+        {
+            var sourcesData = JsonSerializer.Deserialize<List<SourceData>>(File.ReadAllText(sourcesFilePath));
+            if (sourcesData != null)
+            {
+                Grid.Sources.Clear();
+                foreach (var srcData in sourcesData)
+                {
+                    SourceViewModel source;
+                    if (srcData.Type == "Point")
+                    {
+                        source = new PointSourceViewModel
+                        {
+                            X = srcData.X,
+                            Y = srcData.Y,
+                            Name = srcData.Name,
+                            SignalType = srcData.SignalType,
+                            Amplitude = srcData.Amplitude,
+                            T0 = srcData.T0,
+                            Tau = srcData.Tau,
+                            Frequency = srcData.Frequency,
+                            Phase = srcData.Phase
+                        };
+                    }
+                    else
+                    {
+                        source = new PlaneWaveSourceViewModel
+                        {
+                            Position = srcData.Position,
+                            Start = srcData.Start,
+                            End = srcData.End,
+                            IsHorizontal = srcData.IsHorizontal,
+                            Name = srcData.Name,
+                            SignalType = srcData.SignalType,
+                            Amplitude = srcData.Amplitude,
+                            T0 = srcData.T0,
+                            Tau = srcData.Tau,
+                            Frequency = srcData.Frequency,
+                            Phase = srcData.Phase
+                        };
+                    }
+                    Grid.Sources.Add(source);
+                }
+            }
+        }
+
+        // Загрузка зондов
+        var probesFilePath = Path.Combine(folderPath, "probes.pmfdtd");
+        if (File.Exists(probesFilePath))
+        {
+            var probesData = JsonSerializer.Deserialize<List<ProbeData>>(File.ReadAllText(probesFilePath));
+            if (probesData != null)
+            {
+                Grid.Probes.Clear();
+                foreach (var p in probesData)
+                {
+                    Grid.Probes.Add(new ProbeViewModel
+                    {
+                        Name = p.Name,
+                        X = p.X,
+                        Y = p.Y,
+                        Component = p.Component
+                    });
+                }
+            }
+        }
+
+        // Обновляем заголовок и статус
+        ProjectFile = new FileInfo(folderPath);
+        ProjectName = folderPath.Split(Path.DirectorySeparatorChar).Last();
+        Status = $"Проект загружен из {folderPath}";
+    }
 
     #endregion
 
@@ -198,16 +527,15 @@ public class MainWindowViewModel : ViewModel
     /// <summary>Логика выполнения - Сохранить как</summary>
     private void OnSaveAsCommandExecuted(FileInfo file)
     {
-        if (GetnewProjectFile(file) is not { } new_file)
-            return;
-        // здесь записываем данные проекта
+        // Выбираем папку
+        var folder = _UserDialog.SelectFolder("Выберите папку для сохранения проекта");
+        if (string.IsNullOrEmpty(folder)) return;
 
-        GridViewModel saved = this._Grid;
-        
-
-        SaveGridViewModelToJson(new_file.FullName, saved);
-            
-        Status = $"Проект сохранён в {new_file.Name}";
+        _projectFolder = folder;
+        SaveProject(_projectFolder);
+        ProjectFile = new FileInfo(_projectFolder);
+        ProjectName = folder.Split(Path.DirectorySeparatorChar).Last();
+        Status = $"Проект сохранён в {folder}";
     }
 
     #endregion
@@ -443,13 +771,41 @@ public class MainWindowViewModel : ViewModel
 
     private void RunRealTimeSimulation(CancellationToken token)
     {
+
+        #region подготовка к расчету
+
         var mesh = _simulationService.Solver.GetMesh(_simulationService.Dt);
         double totalTime = 1e-6; // Задать нужное время моделирования
         int frameCount = 0;
 
+        // Подготовка зондов (выполняется один раз перед циклом)
+        var probes = Grid.Probes.Select(p => new
+        {
+            Probe = p,
+            I = (int)(p.X / Grid.dx),
+            J = (int)(p.Y / Grid.dy),
+            Component = p.Component
+        }).Where(p => p.I >= 0 && p.I < Grid.Nx && p.J >= 0 && p.J < Grid.Ny).ToList();
+
+        // Очистка старых данных
+        foreach (var p in Grid.Probes) p.ClearData();
+
+        #endregion
+
+
+        ///
+        /// Цикл расчета в реальном времени по кадрам 
+        ///
         foreach (var frame in mesh.Calculation(totalTime))
         {
             token.ThrowIfCancellationRequested();
+
+            // Сбор данных
+            foreach (var p in probes)
+            {
+                double value = GetFieldComponent(frame, p.Component, p.I, p.J);
+                p.Probe.AddSample(frame.Time, value);
+            }
 
             // Обновление WriteableBitmap через Dispatcher
             Application.Current.Dispatcher.Invoke(() =>
@@ -460,7 +816,16 @@ public class MainWindowViewModel : ViewModel
             // Можно добавить задержку для замедления анимации
             Thread.Sleep(30);
             frameCount++;
-        }
+
+        }//foreach (var frame in mesh.Calculation(totalTime))
+        ///
+        /// КОНЕЦ РАСЧЕТА
+        ///
+
+
+        // После завершения обновляем графики зондов (чтобы при открытии вкладки они были готовы)
+        foreach (var p in Grid.Probes) p.UpdatePlotModel();
+
     }
 
     private string RunGifSimulation(CancellationToken token)
@@ -593,6 +958,20 @@ public class MainWindowViewModel : ViewModel
         }
     }
 
+    private double GetFieldComponent(Solver2DFrame frame, FieldComponent comp, int i, int j)
+    {
+        switch (comp)
+        {
+            case FieldComponent.Ex: return frame.Ex[i, j];
+            case FieldComponent.Ey: return frame.Ey[i, j];
+            case FieldComponent.Ez: return frame.Ez[i, j];
+            case FieldComponent.Hx: return frame.Hx[i, j];
+            case FieldComponent.Hy: return frame.Hy[i, j];
+            case FieldComponent.Hz: return frame.Hz[i, j];
+            default: return 0;
+        }
+    }
+
     #endregion
 
     #region Source calculate
@@ -653,6 +1032,59 @@ public class MainWindowViewModel : ViewModel
 
     #endregion
 
+    #region Tabs
+
+    private ObservableCollection<TabItemViewModel> _tabs = new();
+    public ObservableCollection<TabItemViewModel> Tabs
+    {
+        get => _tabs;
+        set => Set(ref _tabs, value);
+    }
+
+    private TabItemViewModel _selectedTab;
+    public TabItemViewModel SelectedTab
+    {
+        get => _selectedTab;
+        set => Set(ref _selectedTab, value);
+    }
+
+    public ICommand OpenProbeTabCommand { get; }
+
+
+    private void OpenProbeTab(ProbeViewModel probe)
+    {
+        var existing = Tabs.FirstOrDefault(t => t.Tag == probe);
+        if (existing != null)
+        {
+            SelectedTab = existing;
+            return;
+        }
+
+        // Создаём новый PlotModel, копируя данные зонда
+        var plotModel = new OxyPlot.PlotModel { Title = probe.Name };
+        var series = new OxyPlot.Series.LineSeries { Title = probe.Component.ToString() };
+        for (int i = 0; i < probe.TimeValues.Count; i++)
+            series.Points.Add(new OxyPlot.DataPoint(probe.TimeValues[i], probe.FieldValues[i]));
+        plotModel.Series.Add(series);
+        plotModel.Axes.Add(new OxyPlot.Axes.LinearAxis { Position = OxyPlot.Axes.AxisPosition.Bottom, Title = "Время (с)" });
+        plotModel.Axes.Add(new OxyPlot.Axes.LinearAxis { Position = OxyPlot.Axes.AxisPosition.Left, Title = probe.Component.ToString() });
+
+        var wrapper = new PlotModelWrapper { PlotModel = plotModel };
+
+        var tab = new TabItemViewModel
+        {
+            Header = probe.Name,
+            Content = new Views.ProbePlotView { DataContext = wrapper },
+            CanClose = true,
+            Tag = probe
+        };
+        tab.CloseCommand = new LambdaCommand(() => Tabs.Remove(tab));
+
+        Tabs.Add(tab);
+        SelectedTab = tab;
+    }
+
+    #endregion
 
 }
 
@@ -686,58 +1118,64 @@ public class FdtdSimulationService
     }
 }
 
-    //#region Command AddRectShapeToGrid - добавление прямоугольника на grid
+// Вспомогательный класс обертка для графика
+public class PlotModelWrapper
+{
+    public OxyPlot.PlotModel PlotModel { get; set; }
+}
 
-    //private LambdaCommand _AddRectShapeToGrid;
+//#region Command AddRectShapeToGrid - добавление прямоугольника на grid
 
-    ///// <summary>Сохранить как</summary>
-    //public ICommand AddRectShapeToGrid => _AddRectShapeToGrid ??= new(OnAddRectShapeToGridExecute, CanAddRectShapeToGridExecute);
+//private LambdaCommand _AddRectShapeToGrid;
 
-    ///// <summary>Проверка возможности выполнения - Сохранить как</summary>
-    //private bool CanAddRectShapeToGridExecute() => true;
+///// <summary>Сохранить как</summary>
+//public ICommand AddRectShapeToGrid => _AddRectShapeToGrid ??= new(OnAddRectShapeToGridExecute, CanAddRectShapeToGridExecute);
 
-    ///// <summary>Логика выполнения - Сохранить как</summary>
-    //private void OnAddRectShapeToGridExecute()
-    //{
-    //    var item = new RectViewModel
-    //    {
-    //        Width = 50,
-    //        Height = 50,
-    //        X = 125,
-    //        Y = 50,
-    //        IsSelected = false
-    //    };
-    //    Grid.Shapes.Add(item);
+///// <summary>Проверка возможности выполнения - Сохранить как</summary>
+//private bool CanAddRectShapeToGridExecute() => true;
 
-    //    Status = $"Добавлен прямоугольник в пространство задачи";
-    //}
+///// <summary>Логика выполнения - Сохранить как</summary>
+//private void OnAddRectShapeToGridExecute()
+//{
+//    var item = new RectViewModel
+//    {
+//        Width = 50,
+//        Height = 50,
+//        X = 125,
+//        Y = 50,
+//        IsSelected = false
+//    };
+//    Grid.Shapes.Add(item);
 
-    //#endregion
+//    Status = $"Добавлен прямоугольник в пространство задачи";
+//}
 
-    //#region Command AddRectShapeToGrid - добавление элипса на grid
+//#endregion
 
-    //private LambdaCommand _AddEllipseShapeToGrid;
+//#region Command AddRectShapeToGrid - добавление элипса на grid
 
-    ///// <summary>Сохранить как</summary>
-    //public ICommand AddEllipseShapeToGrid => _AddEllipseShapeToGrid ??= new(OnAddEllipseShapeToGridExecute, CanAddEllipseShapeToGridExecute);
+//private LambdaCommand _AddEllipseShapeToGrid;
 
-    ///// <summary>Проверка возможности выполнения - Сохранить как</summary>
-    //private bool CanAddEllipseShapeToGridExecute() => true;
+///// <summary>Сохранить как</summary>
+//public ICommand AddEllipseShapeToGrid => _AddEllipseShapeToGrid ??= new(OnAddEllipseShapeToGridExecute, CanAddEllipseShapeToGridExecute);
 
-    ///// <summary>Логика выполнения - Сохранить как</summary>
-    //private void OnAddEllipseShapeToGridExecute()
-    //{
-    //    var item = new EllipseViewModel
-    //    {
-    //        Width = 60,
-    //        Height = 20,
-    //        X = 50,
-    //        Y = 40,
-    //        IsSelected = false
-    //    };
-    //    Grid.Shapes.Add(item);
+///// <summary>Проверка возможности выполнения - Сохранить как</summary>
+//private bool CanAddEllipseShapeToGridExecute() => true;
 
-    //    Status = $"Добавлен овал в пространство задачи";
-    //}
+///// <summary>Логика выполнения - Сохранить как</summary>
+//private void OnAddEllipseShapeToGridExecute()
+//{
+//    var item = new EllipseViewModel
+//    {
+//        Width = 60,
+//        Height = 20,
+//        X = 50,
+//        Y = 40,
+//        IsSelected = false
+//    };
+//    Grid.Shapes.Add(item);
 
-    //#endregion
+//    Status = $"Добавлен овал в пространство задачи";
+//}
+
+//#endregion

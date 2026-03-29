@@ -1,5 +1,6 @@
 ﻿using FDTD2DLab.Infrastructure.Extensions;
 using FDTD2DLab.ViewModels.Material;
+using FDTD2DLab.ViewModels.Probe;
 using FDTD2DLab.ViewModels.Propertys;
 using FDTD2DLab.ViewModels.Shapes;
 using FDTD2DLab.ViewModels.Source;
@@ -14,6 +15,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace FDTD2DLab.ViewModels;
@@ -36,10 +38,47 @@ public class GridViewModel : ViewModel, IOptProperty
 
         Materials.Add(pec);
 
+        #region test
+        // Добавляем тестовые объекты, чтобы они были видны сразу
+        // Точечный источник
+        var pointSource = new PointSourceViewModel
+        {
+            Name = "Источник 1",
+            X = this.Lx / 2,
+            Y = this.Ly / 2,
+            Frequency = 1e4
+        };
+        this.Sources.Add(pointSource);
+
+        // Плоская волна (вертикальная линия)
+        var planeWave = new PlaneWaveSourceViewModel
+        {
+            Name = "Плоская волна",
+            Position = this.Lx / 2,
+            Start = this.Ly / 4,
+            End = 3 * this.Ly / 4,
+            IsHorizontal = false
+        };
+        this.Sources.Add(planeWave);
+
+        // Зонд
+        var probe = new ProbeViewModel
+        {
+            Name = "Зонд 1",
+            X = this.Lx / 2,
+            Y = this.Ly / 2,
+            Component = FieldComponent.Ez
+        };
+        this.Probes.Add(probe);
+
+        #endregion
 
         UpdateGridX();
         UpdateGridY();
     }
+
+    #region базовые свойства сетки MainModel _ignoreSelectionChange dx dy SpaceUnit Lx Ly CellCount
+
     [JsonIgnore]
     public MainWindowViewModel MainModel { get; }
 
@@ -164,6 +203,8 @@ public class GridViewModel : ViewModel, IOptProperty
 
     #endregion
 
+    #endregion
+
     private ObservableCollection<ShapeViewModel> _Shapes = new()
     {
         new RectViewModel
@@ -212,7 +253,24 @@ public class GridViewModel : ViewModel, IOptProperty
 
     //private void OnChangedIsSelectedChanged(object Shape) => SelectedShape = (ShapeViewModel)Shape;
 
-    #region Command SetShapeCommandCommand - Выбор элемента сетки
+    private ObservableCollection<IOptProperty> _Items = new();
+
+    public ObservableCollection<IOptProperty> Items
+    {
+        get => _Items;
+        set
+        {
+            if(!Set(ref _Items, value, out var old_items)) return;
+            SetValue(ref _Items, value);
+        }
+    }
+
+
+    /*------------------------------------------------------------------------------------*/
+
+    #region Выборы элементов сетки
+
+    #region Command SetShapeCommandCommand - Выбор фигуры элемента сетки
 
     /// <summary>Выбор элемента сетки</summary>
     private LambdaCommand<ShapeViewModel> _SetShapeCommandCommand;
@@ -225,12 +283,16 @@ public class GridViewModel : ViewModel, IOptProperty
     private bool CanSetShapeCommandCommandExecute(ShapeViewModel Shape) => Shapes.Contains(Shape);
 
     /// <summary>Логика выполнения - Выбор элемента сетки</summary>
-    private void OnSetShapeCommandCommandExecuted(ShapeViewModel Shape) { SelectedShape = Shape; SelectedProperty = Shape; SelectedMaterial = Shape.AppliedMaterial; }
+    private void OnSetShapeCommandCommandExecuted(ShapeViewModel Shape) 
+    { 
+        SelectedShape = Shape;  
+        SelectedMaterial = Shape.AppliedMaterial; 
+        SelectedProperty = Shape; 
+    }
 
     #endregion
 
-
-    #region Command UnSetShapeCommandCommand - Снятие выбора элемента сетки
+    #region Command UnSetShapeCommandCommand - Снятие выбора фигуры элемента сетки
 
     /// <summary>Снятие выбора элемента сетки</summary>
     private LambdaCommand<ShapeViewModel> _UnSetShapeCommandCommand;
@@ -250,6 +312,94 @@ public class GridViewModel : ViewModel, IOptProperty
     }
 
     #endregion
+
+    #region Command SetShapeCommandCommand - Выбор источника 
+
+    /// <summary>Выбор элемента сетки</summary>
+    private LambdaCommand<SourceViewModel> _SetSourceCommandCommand;
+
+    /// <summary>Выбор элемента сетки</summary>
+    public ICommand SetSourceCommandCommand => _SetSourceCommandCommand
+        ??= new(OnSetSourceCommandCommandExecuted, CanSetSourceCommandCommandExecute);
+
+    /// <summary>Проверка возможности выполнения - Выбор элемента сетки</summary>
+    private bool CanSetSourceCommandCommandExecute(SourceViewModel source) => Sources.Contains(source);
+
+    /// <summary>Логика выполнения - Выбор элемента сетки</summary>
+    private void OnSetSourceCommandCommandExecuted(SourceViewModel source)
+    {
+        SelectedSource = source;
+        SelectedProperty = source;
+    }
+
+    #endregion
+
+    #region Command UnSetShapeCommandCommand - Снятие выбора источника
+
+    /// <summary>Снятие выбора элемента сетки</summary>
+    private LambdaCommand<SourceViewModel> _UnSetSourceCommandCommand;
+
+    /// <summary>Снятие выбора элемента сетки</summary>
+    public ICommand UnSetSourceCommandCommand => _UnSetSourceCommandCommand
+        ??= new(OnUnSetSourceCommandCommandExecuted, CanUnSetSourceCommandCommandExecute);
+
+    /// <summary>Проверка возможности выполнения - Снятие выбора элемента сетки</summary>
+    private bool CanUnSetSourceCommandCommandExecute(SourceViewModel source) => Sources.Contains(source);
+
+    /// <summary>Логика выполнения - Снятие выбора элемента сетки</summary>
+    private void OnUnSetSourceCommandCommandExecuted(SourceViewModel source)
+    {
+        if (Equals(source, _selectedSource))
+            SelectedSource = null;
+    }
+
+    #endregion
+
+    #region Command SetShapeCommandCommand - Выбор зонда 
+
+    /// <summary>Выбор элемента сетки</summary>
+    private LambdaCommand<ProbeViewModel> _SetProbeCommandCommand;
+
+    /// <summary>Выбор элемента сетки</summary>
+    public ICommand SetProbeCommandCommand => _SetProbeCommandCommand
+        ??= new(OnSetProbeCommandCommandExecuted, CanSetProbeCommandCommandExecute);
+
+    /// <summary>Проверка возможности выполнения - Выбор элемента сетки</summary>
+    private bool CanSetProbeCommandCommandExecute(ProbeViewModel probe) => Probes.Contains(probe);
+
+    /// <summary>Логика выполнения - Выбор элемента сетки</summary>
+    private void OnSetProbeCommandCommandExecuted(ProbeViewModel probe)
+    {
+        SelectedProbe = probe;
+        SelectedProperty = probe;
+    }
+
+    #endregion
+
+    #region Command UnSetShapeCommandCommand - Снятие выбора источника
+
+    /// <summary>Снятие выбора элемента сетки</summary>
+    private LambdaCommand<ProbeViewModel> _UnSetProbeCommandCommand;
+
+    /// <summary>Снятие выбора элемента сетки</summary>
+    public ICommand UnSetProbeCommandCommand => _UnSetProbeCommandCommand
+        ??= new(OnUnSetProbeCommandCommandExecuted, CanUnSetProbeCommandCommandExecute);
+
+    /// <summary>Проверка возможности выполнения - Снятие выбора элемента сетки</summary>
+    private bool CanUnSetProbeCommandCommandExecute(ProbeViewModel probe) => Probes.Contains(probe);
+
+    /// <summary>Логика выполнения - Снятие выбора элемента сетки</summary>
+    private void OnUnSetProbeCommandCommandExecuted(ProbeViewModel probe)
+    {
+        if (Equals(probe, _selectedProbe))
+            SelectedProbe = null;
+    }
+
+    #endregion
+
+    #endregion
+
+    /*----------------------------------------------------------------------------------------------*/
 
     #region Command AddRectShapeToGrid - добавление прямоугольника на grid
 
@@ -320,17 +470,17 @@ public class GridViewModel : ViewModel, IOptProperty
         get => _SelectedShape;
         set
         {
+            
             // Отписываемся от предыдущей фигуры
-            if (_SelectedShape != null)
+            if (_SelectedShape != null) { 
                 _SelectedShape.PropertyChanged -= OnShapePropertyChanged;
+            }
 
             if (Set(ref _SelectedShape, value))
             {
                 // Подписываемся на новую фигуру
                 if (value != null)
                     value.PropertyChanged += OnShapePropertyChanged;
-
-                if (_ignoreSelectionChange) return;
 
                 if (value != null)
                 {
@@ -340,7 +490,6 @@ public class GridViewModel : ViewModel, IOptProperty
                 }
                 // Если value == null, ничего не делаем, так как SelectedProperty мог быть установлен из другого места
 
-                _ignoreSelectionChange = true;
             }
         }
     }
@@ -374,19 +523,14 @@ public class GridViewModel : ViewModel, IOptProperty
         {
             if (Set(ref _SelectedProperty, value))
             {
-                if (_ignoreSelectionChange) return;
-
-                _ignoreSelectionChange = true;
 
                 // Синхронизируем вспомогательные свойства в зависимости от типа
                 if (value is ShapeViewModel shape)
                 {
-                    _ignoreSelectionChange = false;
                     SelectedShape = shape;
-                    _ignoreSelectionChange = false;
                     SelectedMaterial = shape.AppliedMaterial;
                     SelectedSource = null;
-                    shape.IsSelected = true;
+                    //shape.IsSelected = true;
                 }
                 else if (value is MaterialViewModel material)
                 {
@@ -400,6 +544,13 @@ public class GridViewModel : ViewModel, IOptProperty
                     SelectedShape = null;
                     SelectedMaterial = null;
                 }
+                else if (value is ProbeViewModel probe)
+                {
+                    SelectedProbe = probe;
+                    SelectedShape = null;
+                    SelectedMaterial = null;
+                    SelectedSource = null;
+                }
                 else
                 {
                     SelectedShape = null;
@@ -407,7 +558,6 @@ public class GridViewModel : ViewModel, IOptProperty
                     SelectedSource = null;
                 }
 
-                _ignoreSelectionChange = false;
             }
         }
     }
@@ -515,8 +665,6 @@ public class GridViewModel : ViewModel, IOptProperty
         {
             if (Set(ref _selectedSource, value))
             {
-                if (_ignoreSelectionChange) return;
-                _ignoreSelectionChange = true;
 
                 if (value != null)
                 {
@@ -525,14 +673,13 @@ public class GridViewModel : ViewModel, IOptProperty
                     SelectedMaterial = null;
                 }
 
-                _ignoreSelectionChange = false;
             }
         }
     }
 
     #endregion
 
-    #region DeleteShapeCommand
+    #region DeletStructureCommand
 
     private LambdaCommand _deleteStructureCommand;
     public ICommand DeletStructureCommand => _deleteStructureCommand ??= new(OnDeleteStructureCommand, CanDeleteStructureCommand);
@@ -551,6 +698,11 @@ public class GridViewModel : ViewModel, IOptProperty
         else if (SelectedProperty is SourceViewModel source && Sources.Contains(source))
         {
             Sources.Remove(source);
+            SelectedProperty = null;
+        }
+        else if (SelectedProperty is ProbeViewModel probe && Probes.Contains(probe))
+        {
+            Probes.Remove(probe);
             SelectedProperty = null;
         }
     }
@@ -577,17 +729,7 @@ public class GridViewModel : ViewModel, IOptProperty
         {
             if (Set(ref _selectedMaterial, value))
             {
-                if (_ignoreSelectionChange) return;
-                _ignoreSelectionChange = true;
 
-                if (value != null)
-                {
-                    SelectedProperty = value;
-                    SelectedShape = null;
-                    SelectedSource = null;
-                }
-
-                _ignoreSelectionChange = false;
             }
         }
     }
@@ -617,7 +759,79 @@ public class GridViewModel : ViewModel, IOptProperty
         };
         Materials.Add(material);
         SelectedMaterial = material; // автоматически отобразит свойства в правой панели
+        SelectedProperty = material; 
     }
+
+    #endregion
+
+    #region Probes
+
+    #region Probe SelectProbe
+
+    private ObservableCollection<ProbeViewModel> _probes = new();
+    public ObservableCollection<ProbeViewModel> Probes
+    {
+        get => _probes;
+        set => Set(ref _probes, value);
+    }
+
+    private ProbeViewModel _selectedProbe;
+    public ProbeViewModel SelectedProbe
+    {
+        get => _selectedProbe;
+        set
+        {
+            if (Set(ref _selectedProbe, value))
+            {
+                if (_ignoreSelectionChange) return;
+                _ignoreSelectionChange = true;
+
+                if (value != null)
+                {
+                    SelectedProperty = value;
+                    SelectedShape = null;
+                    SelectedMaterial = null;
+                    SelectedSource = null;
+                }
+
+                _ignoreSelectionChange = false;
+            }
+        }
+    }
+
+    #endregion
+
+    #region AddProbeCommand - Команда добавления зонда
+
+
+    private LambdaCommand _addProbeCommand;
+    public ICommand AddProbeCommand => _addProbeCommand ??= new(OnAddProbe);
+
+    private void OnAddProbe()
+    {
+        var probe = new ProbeViewModel
+        {
+            Name = $"Зонд {Probes.Count + 1}",
+            X = Lx / 2,
+            Y = Ly / 2,
+            Component = FieldComponent.Ez
+        };
+        Probes.Add(probe);
+        SelectedProbe = probe;
+    }
+
+    // Команда выбора зонда на канвасе
+    private LambdaCommand<ProbeViewModel> _selectProbeCommand;
+    public ICommand SelectProbeCommand => _selectProbeCommand ??= new(OnSelectProbe);
+
+    private void OnSelectProbe(ProbeViewModel probe)
+    {
+        SelectedProperty = probe;
+        SelectedShape = null;
+        SelectedMaterial = null;
+    }
+
+    #endregion
 
     #endregion
 

@@ -1,4 +1,7 @@
-﻿using System.Windows.Input;
+﻿using FDTD2DLab.ViewModels;
+using FDTD2DLab.ViewModels.Probe;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace FDTD2DLab;
 
@@ -10,4 +13,13 @@ public partial class MainWindow
     {
 
     }
+
+    private void ProbesListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if ((sender as ListBox)?.SelectedItem is ProbeViewModel probe)
+        {
+            (DataContext as MainWindowViewModel)?.OpenProbeTabCommand.Execute(probe);
+        }
+    }
+
 }

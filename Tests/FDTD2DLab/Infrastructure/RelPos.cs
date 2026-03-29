@@ -133,6 +133,12 @@ public class RelPos
         Mouse.Capture(element);
         element.AddHandler(Mouse.MouseUpEvent, new MouseButtonEventHandler(OnMouseUp));
 
+        if (!GetCanResize(element))
+        {
+            StartElementDragMove(element);
+            return;
+        }
+
         var is_left_edge = point_in_element.X < __EdgeWidth;
         var is_right_edge = element_width - point_in_element.X < __EdgeWidth;
         var is_top_edge = point_in_element.Y < __EdgeWidth;
@@ -243,6 +249,20 @@ public class RelPos
 
     #endregion
 
+    #region CanResizeProperty
+
+    public static readonly DependencyProperty CanResizeProperty =
+    DependencyProperty.RegisterAttached(
+        "CanResize",
+        typeof(bool),
+        typeof(RelPos),
+        new PropertyMetadata(true));
+
+    public static void SetCanResize(DependencyObject d, bool value) => d.SetValue(CanResizeProperty, value);
+    public static bool GetCanResize(DependencyObject d) => (bool)d.GetValue(CanResizeProperty);
+
+    #endregion
+
 
     /* ----------------------------------------------------------------------------------------------- */
 
@@ -321,8 +341,8 @@ public class RelPos
             "ValueWidth",
             typeof(double),
             typeof(RelPos),
-            new FrameworkPropertyMetadata(default(double), OnValueWidthChanged) { BindsTwoWayByDefault = true, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
-
+            new FrameworkPropertyMetadata(default(double), OnValueWidthChanged)
+            { BindsTwoWayByDefault = false, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
     private static void OnValueWidthChanged(DependencyObject D, DependencyPropertyChangedEventArgs E)
     {
         var value_width = (double)E.NewValue;
@@ -504,11 +524,12 @@ public class RelPos
 
     /// <summary>Физическое значение высоты</summary>
     public static readonly DependencyProperty ValueHeightProperty =
-        DependencyProperty.RegisterAttached(
-            "ValueHeight",
-            typeof(double),
-            typeof(RelPos),
-            new FrameworkPropertyMetadata(default(double), OnValueHeightChanged) { BindsTwoWayByDefault = true, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+    DependencyProperty.RegisterAttached(
+        "ValueHeight",
+        typeof(double),
+        typeof(RelPos),
+        new FrameworkPropertyMetadata(default(double), OnValueHeightChanged)
+        { BindsTwoWayByDefault = false, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
 
     private static void OnValueHeightChanged(DependencyObject D, DependencyPropertyChangedEventArgs E)
     {
