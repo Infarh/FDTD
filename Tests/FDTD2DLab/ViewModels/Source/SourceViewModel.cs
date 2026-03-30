@@ -26,7 +26,6 @@ namespace FDTD2DLab.ViewModels.Source
         [JsonIgnore]
         public Type SourceType { get => _SourceType; set => Set(ref _SourceType, value); }
 
-        private string _name = "Источник";
         private SignalType _signalType = SignalType.Gaussian;
         private double _amplitude = 1.0;
         private double _t0 = 0.0;          // задержка (с)
@@ -34,11 +33,9 @@ namespace FDTD2DLab.ViewModels.Source
         private double _frequency = 1e9;    // частота (Гц) для Sine
         private double _phase = 0.0;         // фаза (рад) для Sine
 
-        public string Name
-        {
-            get => _name;
-            set => SetField(ref _name, value);
-        }
+        private string _name = "Источник";
+
+        public string Name { get => _name; set => SetValue(ref _name, value); }
 
         public SignalType SignalType
         {

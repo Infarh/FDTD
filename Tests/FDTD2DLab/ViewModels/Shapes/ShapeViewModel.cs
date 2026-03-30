@@ -14,6 +14,11 @@ namespace FDTD2DLab.ViewModels.Shapes;
 [JsonDerivedType(typeof(EllipseViewModel))]
 public abstract class ShapeViewModel : ViewModel, IOptProperty
 {
+
+    private string _name = "Фигура";
+
+    public string Name { get => _name; set => SetValue(ref _name, value); }
+
     [JsonIgnore]
     private Type _ShapeType;
     [JsonIgnore]

@@ -1,4 +1,6 @@
-﻿using FDTD2DLab.Infrastructure.Extensions;
+﻿using DynamicData;
+using DynamicData.Binding;
+using FDTD2DLab.Infrastructure.Extensions;
 using FDTD2DLab.ViewModels.Material;
 using FDTD2DLab.ViewModels.Probe;
 using FDTD2DLab.ViewModels.Propertys;
@@ -12,16 +14,27 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using System.Reactive.Concurrency;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Shapes;
+using System.Reactive.Disposables.Fluent;
 
 namespace FDTD2DLab.ViewModels;
 
-public class GridViewModel : ViewModel, IOptProperty
+public class GridViewModel : ViewModel, IOptProperty, IDisposable
 {
+
+    private string _name = "Сетка"; 
+
+    public string Name { get => _name; set => SetValue(ref _name, value); }
+
+
     //TODO static хранение библиотек материалов
     // Материалы
     static MaterialViewModel vacuum = new MaterialViewModel { Name = "Vacuum", Eps = 1, Mu = 1, Sigma = 0 };
@@ -37,6 +50,28 @@ public class GridViewModel : ViewModel, IOptProperty
         BackgroundMaterial = vacuum;
 
         Materials.Add(pec);
+
+        var probesStream = _probes.ToObservableChangeSet()
+            .Transform(x => (IOptProperty)x);
+
+        var sourcesStream = _sources.ToObservableChangeSet()
+            .Transform(x => (IOptProperty)x);
+
+        var shapesStream = _Shapes.ToObservableChangeSet()
+            .Transform(x => (IOptProperty)x);
+
+        // Объединяем три потока
+        var mergedStream = probesStream.Merge(sourcesStream).Merge(shapesStream);
+
+        // Применяем сортировку (например, по имени)
+        // Важно: Sort применяется к IObservable<IChangeSet<IOptProperty>>
+        mergedStream
+            .Sort(SortExpressionComparer<IOptProperty>.Ascending(x => x.Name))
+            .Bind(out var items)
+            .Subscribe()
+            .DisposeWith(_cleanUp);
+
+        Items = items;
 
         #region test
         // Добавляем тестовые объекты, чтобы они были видны сразу
@@ -76,6 +111,9 @@ public class GridViewModel : ViewModel, IOptProperty
         UpdateGridX();
         UpdateGridY();
     }
+
+    private readonly CompositeDisposable _cleanUp = new();
+
 
     #region базовые свойства сетки MainModel _ignoreSelectionChange dx dy SpaceUnit Lx Ly CellCount
 
@@ -253,18 +291,18 @@ public class GridViewModel : ViewModel, IOptProperty
 
     //private void OnChangedIsSelectedChanged(object Shape) => SelectedShape = (ShapeViewModel)Shape;
 
-    private ObservableCollection<IOptProperty> _Items = new();
+    //private ObservableCollection<IOptProperty> _Items = new();
 
-    public ObservableCollection<IOptProperty> Items
-    {
-        get => _Items;
-        set
-        {
-            if(!Set(ref _Items, value, out var old_items)) return;
-            SetValue(ref _Items, value);
-        }
-    }
-
+    //public ReadOnlyObservableCollection<IOptProperty> Items
+    //{
+    //    get => _Items;
+    //    set
+    //    {
+    //        if(!Set(ref _Items, value, out var old_items)) return;
+    //        SetValue(ref _Items, value);
+    //    }
+    //}
+    public ReadOnlyObservableCollection<IOptProperty> Items { get; }
 
     /*------------------------------------------------------------------------------------*/
 
@@ -835,6 +873,10 @@ public class GridViewModel : ViewModel, IOptProperty
 
     #endregion
 
+    public void Dispose()
+    {
+        _cleanUp.Dispose();
+    }
 
 
     //[JsonIgnore]

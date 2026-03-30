@@ -8,7 +8,7 @@ namespace FDTD2DLab.ViewModels.Propertys
 {
     public interface IOptProperty
     {
-
+        public string Name { get; set; }
 
     }
 }

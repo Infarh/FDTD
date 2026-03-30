@@ -22,6 +22,7 @@
     <!--d:DesignHeight="450" d:DesignWidth="800"s
              Height="450" Width="800"-->
     <UserControl.Resources>
+        <c:BooleanToVisibility x:Key="BooleanToVisibility"/>
         <DataTemplate x:Key="RectTemplate" DataType="{x:Type svm:RectViewModel}">
             <Grid Background="Transparent">
                 <Rectangle Fill="DarkSlateGray"/>
@@ -37,16 +38,22 @@
         </DataTemplate>
 
         <DataTemplate x:Key="PointSourceTemplate" DataType="{x:Type cvm:PointSourceViewModel}">
-            <Ellipse Fill="Red" Width="5" Height="5" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}"/>
+            <Grid Background="Transparent">
+                <Ellipse Fill="Red" Width="30" Height="30" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}"/>
+            </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="PlaneWaveTemplate" DataType="{x:Type cvm:PlaneWaveSourceViewModel}">
-            <Rectangle Fill="Red" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}"
+            <Grid Background="Transparent">
+                <Rectangle Fill="Red" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}"
                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+            </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="ProbeTemplate" DataType="{x:Type pvm:ProbeViewModel}">
-            <Ellipse Fill="Green" Width="15" Height="15" Stroke="DarkGreen" StrokeThickness="2" ToolTip="{Binding Name}"/>
+            <Grid Background="Transparent">
+                <Ellipse Fill="Green" Width="30" Height="30" Stroke="DarkGreen" StrokeThickness="2" ToolTip="{Binding Name}"/>
+            </Grid>
         </DataTemplate>
     </UserControl.Resources>
     <Grid Margin="10">
@@ -344,6 +351,8 @@
                                         <!-- Точечный источник -->
                                         <DataTrigger Binding="{Binding SourceType}" Value="{x:Type cvm:PointSourceViewModel}">
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
+                                            <Setter Property="inf:RelPos.ValueWidth" Value="30"/>
+                                            <Setter Property="inf:RelPos.ValueHeight" Value="30"/>
                                             <Setter Property="b:DragDropBehavior.CanDrop" Value="False"/>
                                             <Setter Property="inf:RelPos.MouseButtonDownCommand" Value="{Binding DataContext.Grid.SetSourceCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.MouseButtonUpCommand" Value="{Binding DataContext.Grid.UnSetSourceCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
@@ -363,6 +372,8 @@
                                         <DataTrigger Binding="{Binding ProbeType}" Value="{x:Type pvm:ProbeViewModel}">
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
                                             <Setter Property="b:DragDropBehavior.CanDrop" Value="False"/>
+                                            <Setter Property="inf:RelPos.ValueWidth" Value="30"/>
+                                            <Setter Property="inf:RelPos.ValueHeight" Value="30"/>
                                             <Setter Property="inf:RelPos.MouseButtonDownCommand" Value="{Binding DataContext.Grid.SetProbeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.MouseButtonUpCommand" Value="{Binding DataContext.Grid.UnSetProbeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                         </DataTrigger>
