@@ -25,8 +25,6 @@ namespace FDTD2DLab.ViewModels.Probe
         public Type ProbeType { get => _ProbeType; set => Set(ref _ProbeType, value); }
 
         private string _name;
-        private double _x;
-        private double _y;
         private FieldComponent _component = FieldComponent.Ez;
         private readonly List<double> _timeValues = new();
         private readonly List<double> _fieldValues = new();
@@ -38,17 +36,55 @@ namespace FDTD2DLab.ViewModels.Probe
             set => SetField(ref _name, value);
         }
 
-        public double X
-        {
-            get => _x;
-            set => SetField(ref _x, value);
-        }
+        #region X : double - Положение по горизонтали
 
-        public double Y
-        {
-            get => _y;
-            set => SetField(ref _y, value);
-        }
+        /// <summary>Положение по горизонтали</summary>
+        private double _X;
+
+        /// <summary>Положение по горизонтали</summary>
+        public double X { get => _X; set => Set(ref _X, value); }
+
+        #endregion
+
+        #region Y : double - Положение по вертикали
+
+        /// <summary>Положение по вертикали</summary>
+        private double _Y;
+
+        /// <summary>Положение по вертикали</summary>
+        public double Y { get => _Y; set => Set(ref _Y, value); }
+
+        #endregion
+
+        #region IsSelected : bool - Модель выбрана
+
+        /// <summary>Модель выбрана</summary>
+        private bool _IsSelected;
+
+        /// <summary>Модель выбрана</summary>
+        public bool IsSelected { get => _IsSelected; set => Set(ref _IsSelected, value); }
+
+        #endregion
+
+        #region Width : double - Размер
+
+        /// <summary>Размер</summary>
+        private double _Width = 10;
+
+        /// <summary>Размер</summary>
+        public double Width { get => _Width; set => Set(ref _Width, value); }
+
+        #endregion
+
+        #region Height : double - Размер
+
+        /// <summary>Размер</summary>
+        private double _Height = 10;
+
+        /// <summary>Размер</summary>
+        public double Height { get => _Height; set => Set(ref _Height, value); }
+
+        #endregion
 
         public FieldComponent Component
         {

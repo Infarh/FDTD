@@ -44,7 +44,45 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
         this.MainModel = MainModel;
         //Shapes.CollectionChanged += (_, e) =>
         //Shapes.OnItems().Changed(nameof(ShapeViewModel.IsSelected), OnChangedIsSelectedChanged);
+        #region test
+        // Добавляем тестовые объекты, чтобы они были видны сразу
+        // Точечный источник
+        var pointSource = new PointSourceViewModel
+        {
+            SourceType = typeof(PointSourceViewModel),
+            Name = "Источник 1",
+            X = this.Lx / 2,
+            Y = this.Ly / 2,
+            Frequency = 1e4
+        };
+        this.Sources.Add(pointSource);
 
+        // Плоская волна (вертикальная линия)
+        var planeWave = new PlaneWaveSourceViewModel
+        {
+            SourceType = typeof(PlaneWaveSourceViewModel),
+            Name = "Плоская волна",
+            Position = this.Lx / 2,
+            Start = this.Ly / 4,
+            End = 3 * this.Ly / 4,
+            IsHorizontal = false
+        };
+        this.Sources.Add(planeWave);
+
+        // Зонд
+        var probe = new ProbeViewModel
+        {
+            ProbeType = typeof(ProbeViewModel),
+            Name = $"Зонд {Probes.Count + 1}",
+            X = Lx / 2,
+            Y = Ly / 2,
+            Component = FieldComponent.Ey,
+            Width = 25,
+            Height = 25,
+        };
+        this.Probes.Add(probe);
+
+        #endregion
 
         Materials.Add(vacuum);
         BackgroundMaterial = vacuum;
@@ -68,45 +106,13 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
         mergedStream
             .Sort(SortExpressionComparer<IOptProperty>.Ascending(x => x.Name))
             .Bind(out var items)
+            .ObserveOn(DispatcherScheduler.Current)
             .Subscribe()
             .DisposeWith(_cleanUp);
 
         Items = items;
 
-        #region test
-        // Добавляем тестовые объекты, чтобы они были видны сразу
-        // Точечный источник
-        var pointSource = new PointSourceViewModel
-        {
-            Name = "Источник 1",
-            X = this.Lx / 2,
-            Y = this.Ly / 2,
-            Frequency = 1e4
-        };
-        this.Sources.Add(pointSource);
 
-        // Плоская волна (вертикальная линия)
-        var planeWave = new PlaneWaveSourceViewModel
-        {
-            Name = "Плоская волна",
-            Position = this.Lx / 2,
-            Start = this.Ly / 4,
-            End = 3 * this.Ly / 4,
-            IsHorizontal = false
-        };
-        this.Sources.Add(planeWave);
-
-        // Зонд
-        var probe = new ProbeViewModel
-        {
-            Name = "Зонд 1",
-            X = this.Lx / 2,
-            Y = this.Ly / 2,
-            Component = FieldComponent.Ez
-        };
-        this.Probes.Add(probe);
-
-        #endregion
 
         UpdateGridX();
         UpdateGridY();
@@ -351,7 +357,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
 
     #endregion
 
-    #region Command SetShapeCommandCommand - Выбор источника 
+    #region Command SetSourceCommandCommand - Выбор источника 
 
     /// <summary>Выбор элемента сетки</summary>
     private LambdaCommand<SourceViewModel> _SetSourceCommandCommand;
@@ -372,7 +378,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
 
     #endregion
 
-    #region Command UnSetShapeCommandCommand - Снятие выбора источника
+    #region Command UnSetSourceCommandCommand - Снятие выбора источника
 
     /// <summary>Снятие выбора элемента сетки</summary>
     private LambdaCommand<SourceViewModel> _UnSetSourceCommandCommand;
@@ -393,7 +399,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
 
     #endregion
 
-    #region Command SetShapeCommandCommand - Выбор зонда 
+    #region Command SetProbeCommandCommand - Выбор зонда 
 
     /// <summary>Выбор элемента сетки</summary>
     private LambdaCommand<ProbeViewModel> _SetProbeCommandCommand;
@@ -414,7 +420,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
 
     #endregion
 
-    #region Command UnSetShapeCommandCommand - Снятие выбора источника
+    #region Command UnSetProbeCommandCommand - Снятие выбора источника
 
     /// <summary>Снятие выбора элемента сетки</summary>
     private LambdaCommand<ProbeViewModel> _UnSetProbeCommandCommand;
@@ -456,6 +462,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
         {
             Width = 50,
             Height = 50,
+            ShapeType = typeof(RectViewModel),
             X = 125,
             Y = 50,
             IsSelected = false
@@ -480,6 +487,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     {
         var item = new EllipseViewModel
         {
+            ShapeType = typeof(EllipseViewModel),
             Width = 60,
             Height = 20,
             X = 50,
@@ -655,6 +663,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     {
         var source = new PointSourceViewModel
         {
+            SourceType = typeof(PointSourceViewModel),
             Name = $"Точечный {Sources.Count + 1}",
             X = Lx / 2,
             Y = Ly / 2,
@@ -678,6 +687,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     {
         var source = new PlaneWaveSourceViewModel
         {
+            SourceType= typeof(PlaneWaveSourceViewModel),
             Name = $"Плоская волна {Sources.Count + 1}",
             Position = Lx / 2,
             Start = 0,
@@ -849,13 +859,17 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     {
         var probe = new ProbeViewModel
         {
+            ProbeType = typeof(ProbeViewModel),
             Name = $"Зонд {Probes.Count + 1}",
             X = Lx / 2,
             Y = Ly / 2,
-            Component = FieldComponent.Ez
+            Component = FieldComponent.Ey,
+            Width = 25,
+            Height = 25,
         };
         Probes.Add(probe);
         SelectedProbe = probe;
+        SelectedProperty = probe;
     }
 
     // Команда выбора зонда на канвасе
@@ -877,6 +891,17 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     {
         _cleanUp.Dispose();
     }
+
+
+
+    private LambdaCommand<ProbeViewModel> _testingCommand;
+    public ICommand TestingCommand => _testingCommand ??= new(OnTesting);
+
+    private void OnTesting(ProbeViewModel probe)
+    {
+        System.Console.WriteLine("test");
+    }
+
 
 
     //[JsonIgnore]

@@ -20,7 +20,6 @@ namespace FDTD2DLab.ViewModels.Source
     [JsonDerivedType(typeof(PlaneWaveSourceViewModel))]
     public abstract class SourceViewModel : ViewModel, INotifyPropertyChanged, IOptProperty
     {
-
         [JsonIgnore]
         private Type _SourceType;
         [JsonIgnore]
@@ -131,44 +130,20 @@ namespace FDTD2DLab.ViewModels.Source
         private double _end;
         private bool _isHorizontal;
 
-        // --- Исходные свойства (с уведомлениями) ---
+        public double Position { get => _position; set => SetField(ref _position, value, OnPositionChanged); }
+        public double Start { get => _start; set => SetField(ref _start, value, OnStartEndChanged); }
+        public double End { get => _end; set => SetField(ref _end, value, OnStartEndChanged); }
+        public bool IsHorizontal { get => _isHorizontal; set => SetField(ref _isHorizontal, value, OnIsHorizontalChanged); }
 
-        public double Position
-        {
-            get => _position;
-            set => SetField(ref _position, value, OnPositionChanged);
-        }
-
-        public double Start
-        {
-            get => _start;
-            set => SetField(ref _start, value, OnStartEndChanged);
-        }
-
-        public double End
-        {
-            get => _end;
-            set => SetField(ref _end, value, OnStartEndChanged);
-        }
-
-        public bool IsHorizontal
-        {
-            get => _isHorizontal;
-            set => SetField(ref _isHorizontal, value, OnIsHorizontalChanged);
-        }
-
-        // --- Зависимые свойства (используются для привязки в UI) ---
-
+        // Свойства для привязки в RelPos
         public double X
         {
             get => IsHorizontal ? Start : Position;
             set
             {
-                if (IsHorizontal)
-                    Start = value;
-                else
-                    Position = value;
-                OnPropertyChanged(); // уведомляем об изменении X
+                if (IsHorizontal) Start = value;
+                else Position = value;
+                OnPropertyChanged();
             }
         }
 
@@ -177,18 +152,14 @@ namespace FDTD2DLab.ViewModels.Source
             get => IsHorizontal ? Position : Start;
             set
             {
-                if (IsHorizontal)
-                    Position = value;
-                else
-                    Start = value;
-                OnPropertyChanged(); // уведомляем об изменении Y
+                if (IsHorizontal) Position = value;
+                else Start = value;
+                OnPropertyChanged();
             }
         }
 
-        public double ValueWidth => IsHorizontal ? End - Start : 0.001;
-        public double ValueHeight => IsHorizontal ? 0.001 : End - Start;
-
-        // --- Вспомогательные методы для уведомлений ---
+        public double ValueWidth => IsHorizontal ? End - Start : 0.05;   // толщина линии 0.05 (видимая)
+        public double ValueHeight => IsHorizontal ? 0.05 : End - Start;
 
         private void OnStartEndChanged()
         {
@@ -212,7 +183,9 @@ namespace FDTD2DLab.ViewModels.Source
             OnPropertyChanged(nameof(ValueHeight));
         }
 
-        // Переопределяем TypeDisplayName
         public override string TypeDisplayName => "Плоская волна";
+
+        // --- Вспомогательные методы для уведомлений ---
+
     }
 }
