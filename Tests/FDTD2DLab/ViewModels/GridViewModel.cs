@@ -58,16 +58,16 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
         this.Sources.Add(pointSource);
 
         // Плоская волна (вертикальная линия)
-        var planeWave = new PlaneWaveSourceViewModel
-        {
-            SourceType = typeof(PlaneWaveSourceViewModel),
-            Name = "Плоская волна",
-            Position = this.Lx / 2,
-            Start = this.Ly / 4,
-            End = 3 * this.Ly / 4,
-            IsHorizontal = false
-        };
-        this.Sources.Add(planeWave);
+        //var planeWave = new PlaneWaveSourceViewModel
+        //{
+        //    SourceType = typeof(PlaneWaveSourceViewModel),
+        //    Name = "Плоская волна",
+        //    Position = this.Lx / 2,
+        //    Start = this.Ly / 4,
+        //    End = 3 * this.Ly / 4,
+        //    IsHorizontal = false
+        //};
+        //this.Sources.Add(planeWave);
 
         // Зонд
         var probe = new ProbeViewModel
@@ -665,10 +665,11 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
         {
             SourceType = typeof(PointSourceViewModel),
             Name = $"Точечный {Sources.Count + 1}",
+            SignalType = SignalType.Sine,
             X = Lx / 2,
             Y = Ly / 2,
             Amplitude = 1.0,
-            Tau = 1e-8,
+            Tau = 0,
             T0 = 1e-9,
             Frequency = 1e-3
         };
@@ -887,6 +888,74 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
 
     #endregion
 
+    #region Boundares
+
+
+    private BoundaryType _boundaryLeft = BoundaryType.ABC;
+    public BoundaryType BoundaryLeft
+    {
+        get => _boundaryLeft;
+        set => Set(ref _boundaryLeft, value);
+    }
+
+    private BoundaryType _boundaryRight = BoundaryType.ABC;
+    public BoundaryType BoundaryRight
+    {
+        get => _boundaryRight;
+        set => Set(ref _boundaryRight, value);
+    }
+
+    private BoundaryType _boundaryTop = BoundaryType.ABC;
+    public BoundaryType BoundaryTop
+    {
+        get => _boundaryTop;
+        set => Set(ref _boundaryTop, value);
+    }
+
+    private BoundaryType _boundaryBottom = BoundaryType.ABC;
+    public BoundaryType BoundaryBottom
+    {
+        get => _boundaryBottom;
+        set => Set(ref _boundaryBottom, value);
+    }
+
+
+
+
+    #endregion
+
+    #region Boundaries PML
+
+    private bool _usePml;
+    public bool UsePml
+    {
+        get => _usePml;
+        set => Set(ref _usePml, value);
+    }
+
+    private int _pmlThickness = 20;
+    public int PmlThickness
+    {
+        get => _pmlThickness;
+        set => Set(ref _pmlThickness, value);
+    }
+
+    private double _pmlSigmaMax = 0.0015;
+    public double PmlSigmaMax
+    {
+        get => _pmlSigmaMax;
+        set => Set(ref _pmlSigmaMax, value);
+    }
+
+    private double _pmlProfilePower = 4;
+    public double PmlProfilePower
+    {
+        get => _pmlProfilePower;
+        set => Set(ref _pmlProfilePower, value);
+    }
+
+    #endregion
+
     public void Dispose()
     {
         _cleanUp.Dispose();
@@ -903,69 +972,15 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     }
 
 
-
-    //[JsonIgnore]
-
-    //#region Items : Collection - Элементы
-
-    //private ICollection<ViewModel> _Items = new ObservableCollection<ViewModel>();
-    //[JsonIgnore]
-    //public ICollection<ViewModel> Items
-    //{
-    //    get => _Items;
-    //    set
-    //    {
-    //        var old_items = _Items;
-    //        if (!Set(ref _Items, value)) return;
-
-    //        if (old_items is INotifyCollectionChanged old_observable)
-    //        {
-    //            old_observable.CollectionChanged -= OnItemsCollectionChanged;
-    //            foreach (var item in old_items)
-    //                OnItemsElementRemoved(item);
-    //        }
-
-    //        if (value is INotifyCollectionChanged new_observable)
-    //        {
-    //            new_observable.CollectionChanged += OnItemsCollectionChanged;
-    //            foreach (var item in value)
-    //                OnItemsElementAdded(item);
-    //        }
-    //    }
-    //}
-
-    //protected virtual void OnItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-    //{
-    //    switch (e.Action)
-    //    {
-    //        case NotifyCollectionChangedAction.Add:
-    //            if (e.NewItems is { Count: > 0 } added)
-    //                foreach (ViewModel item in added)
-    //                    OnItemsElementAdded(item);
-    //            break;
-    //        case NotifyCollectionChangedAction.Remove:
-    //            if(e.OldItems is { Count: > 0 } removed)
-    //                foreach (ViewModel item in removed)
-    //                    OnItemsElementRemoved(item);
-    //            break;
-    //        case NotifyCollectionChangedAction.Replace:
-    //            if (e.OldItems is { Count: > 0 } old_items)
-    //                foreach (ViewModel item in old_items)
-    //                    OnItemsElementRemoved(item);
-    //            if (e.NewItems is { Count: > 0 } new_items)
-    //                foreach (ViewModel item in new_items)
-    //                    OnItemsElementAdded(item);
-    //            break;
-    //    }
-    //}
-
-    //protected virtual void OnItemsElementAdded(ViewModel item) => item.PropertyChanged += OnItemPropertyChanged;
-    //protected virtual void OnItemsElementRemoved(ViewModel item) => item.PropertyChanged -= OnItemPropertyChanged;
-
-    //protected virtual void OnItemPropertyChanged(object item, PropertyChangedEventArgs e)
-    //{
-
-    //}
-
-    //#endregion
 }
+
+public enum BoundaryType
+{
+    None,        // без граничных условий (свободное пространство, но численно неустойчиво)
+    ABC,         // Absorbing Boundary Condition (Mur)
+    PEC,         // Perfect Electric Conductor (Ez = 0)
+    PMC,         // Perfect Magnetic Conductor (Hz = 0)
+    PML          // Perfectly Matched Layer (требует дополнительных параметров)
+}
+
+

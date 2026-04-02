@@ -69,7 +69,8 @@ public partial class App : Application
 
     private void RestartAsAdministrator()
     {
-        var processInfo = new ProcessStartInfo(Assembly.GetExecutingAssembly().Location)
+        string exePath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule.FileName;
+        var processInfo = new ProcessStartInfo(exePath)
         {
             UseShellExecute = true,
             Verb = "runas"
@@ -96,27 +97,19 @@ public partial class App : Application
 
     private void RegisterFileAssociations()
     {
-        string appPath = Assembly.GetExecutingAssembly().Location;
-        appPath.Replace("FDTD2DLab.dll", "FDTD2DLab.exe");
+        string appPath = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule.FileName;
         string appDir = Path.GetDirectoryName(appPath);
         string resourcesDir = Path.Combine(appDir, "Resources");
 
         var extensions = new[]
         {
         new { Ext = ".gmfdtd", ProgId = "FDTD.Grid", Desc = "Файл сетки FDTD", Icon = Path.Combine(resourcesDir, "grid.ico") },
-        new { Ext = ".mmfdtd", ProgId = "FDTD.Materials", Desc = "Файл материалов FDTD", Icon = Path.Combine(resourcesDir, "materials.ico") },
-        new { Ext = ".smfdtd", ProgId = "FDTD.Sources", Desc = "Файл источников FDTD", Icon = Path.Combine(resourcesDir, "sources.ico") },
-        new { Ext = ".pmfdtd", ProgId = "FDTD.Probes", Desc = "Файл зондов FDTD", Icon = Path.Combine(resourcesDir, "probes.ico") }
-        };
+        // ... остальные расширения
+    };
 
         foreach (var ext in extensions)
         {
-            // Проверяем, существует ли файл иконки
-            if (!File.Exists(ext.Icon))
-            {
-                Debug.WriteLine($"Иконка не найдена: {ext.Icon}. Регистрация пропущена.");
-                continue; // или можно выбросить исключение
-            }
+            if (!File.Exists(ext.Icon)) continue;
 
             using (var extKey = Registry.ClassesRoot.CreateSubKey(ext.Ext))
                 extKey.SetValue("", ext.ProgId);
@@ -133,7 +126,6 @@ public partial class App : Application
             }
         }
 
-        // Уведомляем систему об изменениях
         SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
     }
 

@@ -22,4 +22,8 @@
     <AssemblyOriginatorKeyFile>FDTD.key.snk</AssemblyOriginatorKeyFile>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <Folder Include="Space2D\Boundaries\PMC\" />
+  </ItemGroup>
 </Project>

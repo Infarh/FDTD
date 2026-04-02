@@ -1,4 +1,7 @@
 ﻿using FDTD.Space2D;
+using FDTD.Space2D.Boundaries;
+using FDTD.Space2D.Boundaries.ABC;
+using FDTD.Space2D.Boundaries.PEC;
 using FDTD.Space2D.Sources;
 using FDTD2DLab.Infrastructure.Serialization;
 using FDTD2DLab.Services.Interfaces;
@@ -695,6 +698,12 @@ public class MainWindowViewModel : ViewModel
             }
         }
 
+        // Добавление PML
+        AddPmlLayers(sigma, Grid);
+
+        // Применение граничных классов (PEC, PMC, ABC)
+        ApplyBoundaryConditions(solver, Grid);
+
         // установка источников в solver
         foreach (var src in CreateSourcesFromViewModels(Grid))
         {
@@ -973,6 +982,136 @@ public class MainWindowViewModel : ViewModel
     }
 
     #endregion
+
+    #region Boundary calculate
+    private void ApplyBoundaryConditions(Solver2D solver, GridViewModel grid)
+    {
+        var boundaries = solver.Boundaries;
+
+        // Левая граница (x=0)
+        boundaries.X.MinEx = CreateBoundaryMinX(grid.BoundaryLeft);
+        boundaries.X.MinEy = CreateBoundaryMinX(grid.BoundaryLeft);
+        boundaries.X.MinEz = CreateBoundaryMinX(grid.BoundaryLeft);
+        boundaries.X.MinHx = CreateBoundaryMinX(grid.BoundaryLeft);
+        boundaries.X.MinHy = CreateBoundaryMinX(grid.BoundaryLeft);
+        boundaries.X.MinHz = CreateBoundaryMinX(grid.BoundaryLeft);
+
+        // Правая граница (x=Nx)
+        boundaries.X.MaxEx = CreateBoundaryMaxX(grid.BoundaryRight);
+        boundaries.X.MaxEy = CreateBoundaryMaxX(grid.BoundaryRight);
+        boundaries.X.MaxEz = CreateBoundaryMaxX(grid.BoundaryRight);
+        boundaries.X.MaxHx = CreateBoundaryMaxX(grid.BoundaryRight);
+        boundaries.X.MaxHy = CreateBoundaryMaxX(grid.BoundaryRight);
+        boundaries.X.MaxHz = CreateBoundaryMaxX(grid.BoundaryRight);
+
+        // Нижняя граница (y=0)
+        boundaries.Y.MinEx = CreateBoundaryMinY(grid.BoundaryBottom);
+        boundaries.Y.MinEy = CreateBoundaryMinY(grid.BoundaryBottom);
+        boundaries.Y.MinEz = CreateBoundaryMinY(grid.BoundaryBottom);
+        boundaries.Y.MinHx = CreateBoundaryMinY(grid.BoundaryBottom);
+        boundaries.Y.MinHy = CreateBoundaryMinY(grid.BoundaryBottom);
+        boundaries.Y.MinHz = CreateBoundaryMinY(grid.BoundaryBottom);
+
+        // Верхняя граница (y=Ny)
+        boundaries.Y.MaxEx = CreateBoundaryMaxY(grid.BoundaryTop);
+        boundaries.Y.MaxEy = CreateBoundaryMaxY(grid.BoundaryTop);
+        boundaries.Y.MaxEz = CreateBoundaryMaxY(grid.BoundaryTop);
+        boundaries.Y.MaxHx = CreateBoundaryMaxY(grid.BoundaryTop);
+        boundaries.Y.MaxHy = CreateBoundaryMaxY(grid.BoundaryTop);
+        boundaries.Y.MaxHz = CreateBoundaryMaxY(grid.BoundaryTop);
+    }
+
+    //private Boundary2D GetBoundary(BoundaryType type)
+    //{
+    //    return type switch
+    //    {
+    //        BoundaryType.ABC => new ABC2DMinX(), // для MinX, для MaxX нужно отдельно
+    //        BoundaryType.PEC => new PECBoundary(),
+    //        BoundaryType.PMC => new PMCBoundary(),
+    //        BoundaryType.PML => new PMLBoundary(/* параметры */),
+    //        _ => null
+    //    };
+    //}
+
+    private Boundary2DMinX CreateBoundaryMinX(BoundaryType type)
+    {
+        return type switch
+        {
+            BoundaryType.ABC => new ABC2DMinX(),
+            BoundaryType.PEC => new PEC2DMinX(),
+            //BoundaryType.PMC => new PMCBoundaryMinX(), // если нужно
+            _ => null
+        };
+    }
+
+    private Boundary2DMaxX CreateBoundaryMaxX(BoundaryType type)
+    {
+        return type switch
+        {
+            BoundaryType.ABC => new ABC2DMaxX(),
+            BoundaryType.PEC => new PEC2DMaxX(),
+            //BoundaryType.PMC => new PMCBoundaryMaxX(),
+            _ => null
+        };
+    }
+
+    private Boundary2DMinY CreateBoundaryMinY(BoundaryType type)
+    {
+        return type switch
+        {
+            BoundaryType.ABC => new ABC2DMinY(),
+            BoundaryType.PEC => new PEC2DMinY(),
+            //BoundaryType.PMC => new PMCBoundaryMinY(),
+            _ => null
+        };
+    }
+
+    private Boundary2DMaxY CreateBoundaryMaxY(BoundaryType type)
+    {
+        return type switch
+        {
+            BoundaryType.ABC => new ABC2DMaxY(),
+            BoundaryType.PEC => new PEC2DMaxY(),
+            //BoundaryType.PMC => new PMCBoundaryMaxY(),
+            _ => null
+        };
+    }
+
+
+    private void AddPmlLayers(double[,] sigma, GridViewModel grid)
+    {
+        if (!grid.UsePml) return;
+
+        int Nx = grid.Nx, Ny = grid.Ny;
+        int pml = grid.PmlThickness;
+        double sigmaMax = grid.PmlSigmaMax;
+        double power = grid.PmlProfilePower;
+
+        for (int i = 0; i < Nx; i++)
+        {
+            for (int j = 0; j < Ny; j++)
+            {
+                double factor = 0;
+                // Левая граница
+                if (i < pml)
+                    factor = Math.Max(factor, Math.Pow(1 - (double)i / pml, power));
+                // Правая граница
+                if (i >= Nx - pml)
+                    factor = Math.Max(factor, Math.Pow(1 - (double)(Nx - 1 - i) / pml, power));
+                // Нижняя граница
+                if (j < pml)
+                    factor = Math.Max(factor, Math.Pow(1 - (double)j / pml, power));
+                // Верхняя граница
+                if (j >= Ny - pml)
+                    factor = Math.Max(factor, Math.Pow(1 - (double)(Ny - 1 - j) / pml, power));
+
+                sigma[i, j] += factor * sigmaMax;
+            }
+        }
+    }
+
+    #endregion
+
 
     #region Source calculate
     private IEnumerable<Source2D> CreateSourcesFromViewModels(GridViewModel grid)

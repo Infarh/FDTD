@@ -14,6 +14,7 @@
              xmlns:b="clr-namespace:FDTD2DLab.Infrastructure.Behaviors"
              xmlns:c="clr-namespace:FDTD2DLab.Infrastructure.Converters"
              xmlns:pvm="clr-namespace:FDTD2DLab.ViewModels.Probe"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              xmlns:inf="clr-namespace:FDTD2DLab.Infrastructure"
              xmlns:sche="clr-namespace:FDTD2DLab.Infrastructure.Converters"
              xmlns:optvm ="clr-namespace:FDTD2DLab.ViewModels.Propertys"
@@ -22,6 +23,12 @@
     <!--d:DesignHeight="450" d:DesignWidth="800"s
              Height="450" Width="800"-->
     <UserControl.Resources>
+        <c:PercentOfContainerConverter x:Key="PercentOfContainer"/>
+        <ObjectDataProvider x:Key="BoundaryTypes" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="vm:BoundaryType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
         <c:BooleanToVisibility x:Key="BooleanToVisibility"/>
         <DataTemplate x:Key="RectTemplate" DataType="{x:Type svm:RectViewModel}">
             <Grid Background="Transparent">
@@ -38,7 +45,20 @@
         </DataTemplate>
 
         <DataTemplate x:Key="PointSourceTemplate" DataType="{x:Type cvm:PointSourceViewModel}">
-            <Ellipse Fill="Red" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}"/>
+            <Ellipse Fill="Red" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}">
+                <Ellipse.Width>
+                    <MultiBinding Converter="{StaticResource PercentOfContainer}" ConverterParameter="0.05">
+                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                    </MultiBinding>
+                </Ellipse.Width>
+                <Ellipse.Height>
+                    <MultiBinding Converter="{StaticResource PercentOfContainer}" ConverterParameter="0.05">
+                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                    </MultiBinding>
+                </Ellipse.Height>
+            </Ellipse>
         </DataTemplate>
 
         <DataTemplate x:Key="PlaneWaveTemplate" DataType="{x:Type cvm:PlaneWaveSourceViewModel}">
@@ -78,32 +98,7 @@
                       <TextBlock Text="{Binding Grid.SpaceUnit}"/>)
                   </TextBlock>
                 </StackPanel>
-                <!--<StackPanel Grid.Column="1" DataContext="{Binding Grid.SelectedShape}">
-                    <DockPanel>
-                        <TextBlock Text="{Binding X, StringFormat=x:{0:f2}}" Margin="0,0,3,0" Width="40"/>
-                        <Slider Value="{Binding X}" SmallChange="1"
-                              Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=GroupBox}}"/>
-                    </DockPanel>
-                    <DockPanel>
-                        <TextBlock Text="{Binding Y, StringFormat=y:{0:f2}}" Margin="0,0,3,0" Width="40"/>
-                        <Slider Value="{Binding Y}" SmallChange="1"
-                              Maximum="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=GroupBox}}"/>
-                    </DockPanel>
-                    <DockPanel>
-                        <TextBlock Text="{Binding Width, StringFormat=w:{0:f2}}" Margin="0,0,3,0" Width="40"/>
-                        <Slider Value="{Binding Width}" SmallChange="1"
-                              Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=GroupBox}}"/>
-                    </DockPanel>
-                    <DockPanel>
-                        <TextBlock Text="{Binding Height, StringFormat=h:{0:f2}}" Margin="0,0,3,0" Width="40"/>
-                        <Slider Value="{Binding Height}" SmallChange="1"
-                              Maximum="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=GroupBox}}" /> ValueChanged="Slider_ValueChanged"
-                    </DockPanel>
-                    <DockPanel>
-                        <TextBlock Text="{Binding Angle, StringFormat=a:{0:f2}}" Margin="0,0,3,0" Width="40"/>
-                        <Slider Value="{Binding Angle}" SmallChange="1" Minimum="-360" Maximum="360"/>
-                    </DockPanel>
-                </StackPanel>-->
+                
             </Grid>
         </GroupBox>
 
@@ -220,90 +215,6 @@
 
                         </ItemsControl>
 
-                        <!--<ItemsControl ItemsSource="{Binding Grid.Shapes}" Panel.ZIndex="5" Background="Transparent">
-                            <ItemsControl.Resources>
-                                <Divide x:Key="Div-2" Parameter="-2"></Divide>
-                                <Divide x:Key="Div+2" Parameter="+2"></Divide>
-                                <DataTemplate DataType="{x:Type svm:EllipseViewModel}">
-                                    <Grid Background="DarkOrange">
-                                        <i:Interaction.Behaviors>
-                                            <b:MouseWheelIncrement Value="{Binding Angle}" Ratio="-0.01"/>
-                                        </i:Interaction.Behaviors>
-                                        <Ellipse Fill="Blue"/>
-                                        <Border>
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="BorderBrush" Value="Red"/>
-                                                    <Setter Property="BorderThickness" Value="1"/>
-                                                    <Setter Property="Margin" Value="-2"/>
-                                                    <Setter Property="Visibility" Value="Hidden"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                        </Border>
-                                    </Grid>
-                                </DataTemplate>
-                                <DataTemplate DataType="{x:Type svm:RectViewModel}">
-                                    <Grid Background="Transparent">
-                                        <i:Interaction.Behaviors>
-                                            <b:MouseWheelIncrement Value="{Binding Angle}" Ratio="-0.01"/>
-                                        </i:Interaction.Behaviors>
-                                        <Rectangle Fill="DarkSlateGray"/>
-                                        <Border>
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="BorderBrush" Value="Red"/>
-                                                    <Setter Property="BorderThickness" Value="1"/>
-                                                    <Setter Property="Margin" Value="-2"/>
-                                                    <Setter Property="Visibility" Value="Hidden"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                        </Border>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.Resources>
-                            <ItemsControl.ItemContainerStyle>
-                                <Style TargetType="ContentPresenter">
-                                    <Setter Property="b:DragDropBehavior.CanDrop" Value="True"/>
-                                    <Setter Property="inf:RelPos.Binding" Value="True"/>
-                                    <Setter Property="inf:RelPos.ContainerWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
-                                    <Setter Property="inf:RelPos.ContainerHeight" Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
-                                    <Setter Property="inf:RelPos.MaxX" Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=Border}}"/>
-                                    <Setter Property="inf:RelPos.MaxY" Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=Border}}"/>
-                                    <Setter Property="inf:RelPos.X" Value="{Binding X}"/>
-                                    <Setter Property="inf:RelPos.Y" Value="{Binding Y}"/>
-                                    <Setter Property="inf:RelPos.ValueWidth" Value="{Binding Width}"/>
-                                    <Setter Property="inf:RelPos.ValueHeight" Value="{Binding Height}"/>
-                                    <Setter Property="inf:RelPos.MouseButtonDownCommand" Value="{Binding DataContext.Grid.SetShapeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                    <Setter Property="inf:RelPos.MouseButtonUpCommand" Value="{Binding DataContext.Grid.UnSetShapeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                    <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
-                                    <Setter Property="RenderTransform">
-                                        <Setter.Value>
-                                            <TransformGroup>
-                                                <RotateTransform Angle="{Binding Angle}"/>
-                                                <TranslateTransform X="{Binding Width, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Converter={StaticResource Div-2}}"
-                                                          Y="{Binding Height, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Converter={StaticResource Div+2}}"/>
-                                            </TransformGroup>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </ItemsControl.ItemContainerStyle>
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <Canvas/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>-->
-
                         <ItemsControl ItemsSource="{Binding Grid.Items}" Background="Transparent">
                             <ItemsControl.ItemTemplateSelector>
                                 <b:ObjectTemplateSelector/>
@@ -375,8 +286,8 @@
                                         <DataTrigger Binding="{Binding SourceType}" Value="{x:Type cvm:PointSourceViewModel}">
                                             <Setter Property="inf:RelPos.Binding" Value="True"/>
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
-                                            <Setter Property="inf:RelPos.ValueWidth" Value="4"/>
-                                            <Setter Property="inf:RelPos.ValueHeight" Value="4"/>
+                                            <Setter Property="inf:RelPos.ValueWidth" Value="10"/>
+                                            <Setter Property="inf:RelPos.ValueHeight" Value="10"/>
                                             <Setter Property="inf:RelPos.ContainerWidth" 
          Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.ContainerHeight" 
@@ -415,22 +326,22 @@
                                         <DataTrigger Binding="{Binding ProbeType}" Value="{x:Type pvm:ProbeViewModel}">
                                             <Setter Property="inf:RelPos.Binding" Value="True"/>
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
-                                            <Setter Property="inf:RelPos.ValueWidth" Value="4"/>
-                                            <Setter Property="inf:RelPos.ValueHeight" Value="4"/>
+                                            <Setter Property="inf:RelPos.ValueWidth" Value="{Binding ValueWidth}"/>
+                                            <Setter Property="inf:RelPos.ValueHeight" Value="{Binding ValueWidth}"/>
                                             <Setter Property="inf:RelPos.ContainerWidth" 
-Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                                    Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.ContainerHeight" 
-Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                                    Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.MaxX" 
-Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                                    Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.MaxY" 
-Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                                    Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.X" Value="{Binding X}"/>
                                             <Setter Property="inf:RelPos.Y" Value="{Binding Y}"/>
                                             <Setter Property="inf:RelPos.MouseButtonDownCommand" 
-            Value="{Binding DataContext.Grid.SetProbeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                                    Value="{Binding DataContext.Grid.SetProbeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.MouseButtonUpCommand" 
-            Value="{Binding DataContext.Grid.UnSetProbeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                                    Value="{Binding DataContext.Grid.UnSetProbeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -438,82 +349,7 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
 
                         </ItemsControl>
 
-                        <!--<ItemsControl ItemsSource="{Binding Grid.Sources}" Panel.ZIndex="4" Background="Transparent">
-                            <ItemsControl.Resources>
-                                
-                                <DataTemplate DataType="{x:Type cvm:PointSourceViewModel}">
-                                    <Grid  Background="Black" >
-                                        <Ellipse Fill="Red"/>
-                                    </Grid>
-                                </DataTemplate>
-                                
-                                <DataTemplate DataType="{x:Type cvm:PlaneWaveSourceViewModel}">
-                                    <Rectangle Fill="Red" Height="200" Width="20" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}"
-                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                                </DataTemplate>
-                            </ItemsControl.Resources>
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <Canvas/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemContainerStyle>
-                                <Style TargetType="ContentPresenter">
-                                    <Setter Property="inf:RelPos.Binding" Value="True"/>
-                                    <Setter Property="inf:RelPos.CanResize" Value="False"/>
-                                    <Setter Property="inf:RelPos.ValueWidth" Value="4"/>
-                                    <Setter Property="inf:RelPos.ValueHeight" Value="4"/>
-                                    <Setter Property="inf:RelPos.ContainerWidth" 
-                                        Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
-                                    <Setter Property="inf:RelPos.ContainerHeight" 
-                                        Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
-                                    <Setter Property="inf:RelPos.MaxX" 
-                                        Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                    <Setter Property="inf:RelPos.MaxY" 
-                                        Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                    <Setter Property="inf:RelPos.X" Value="{Binding X}"/>
-                                    <Setter Property="inf:RelPos.Y" Value="{Binding Y}"/>
-                                    <Setter Property="inf:RelPos.MouseButtonDownCommand" Value="{Binding DataContext.Grid.SetSourceCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                    <Setter Property="inf:RelPos.MouseButtonUpCommand" Value="{Binding DataContext.Grid.UnSetSourceCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding TypeDisplayName}" Value="Плоская волна">
-                                            <Setter Property="inf:RelPos.ValueWidth" Value="{Binding ValueWidth}"/>
-                                            <Setter Property="inf:RelPos.ValueHeight" Value="{Binding ValueHeight}"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ItemsControl.ItemContainerStyle>
-                        </ItemsControl>
-
-                        <ItemsControl ItemsSource="{Binding Grid.Probes}" Background="Transparent">
-                            <ItemsControl.Resources>
-                                <DataTemplate DataType="{x:Type pvm:ProbeViewModel}">
-                                    <Ellipse Fill="Green" Width="15" Height="15" Stroke="DarkGreen" StrokeThickness="2" 
-                         ToolTip="{Binding Name}"/>
-                                </DataTemplate>
-                            </ItemsControl.Resources>
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <Canvas/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemContainerStyle>
-                                <Style TargetType="ContentPresenter">
-                                    <Setter Property="inf:RelPos.Binding" Value="True"/>
-                                    <Setter Property="inf:RelPos.CanResize" Value="False"/>
-                                    <Setter Property="inf:RelPos.ContainerWidth" 
-                    Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
-                                    <Setter Property="inf:RelPos.ContainerHeight" 
-                    Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
-                                    <Setter Property="inf:RelPos.MaxX" 
-                    Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                    <Setter Property="inf:RelPos.MaxY" 
-                    Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                    <Setter Property="inf:RelPos.X" Value="{Binding X}"/>
-                                    <Setter Property="inf:RelPos.Y" Value="{Binding Y}"/>
-                                </Style>
-                            </ItemsControl.ItemContainerStyle>
-                        </ItemsControl>-->
+                       
                     </Grid>
                 </Border>
 
@@ -853,6 +689,7 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="сетка" DataContext="{Binding Grid}">
+                        <StackPanel>
                         <Grid Margin="5">
                             <Grid.Resources>
                                 <Style TargetType="TextBlock">
@@ -912,15 +749,53 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                 </ComboBox.ToolTip>
                             </ComboBox>
 
-                            <TextBlock Grid.Column="0" Grid.Row="4" Text="Lx:" HorizontalAlignment="Right"/>
-                            <TextBlock Grid.Column="1" Grid.Row="4" Text="{Binding Lx}"/>
-                            <TextBlock Grid.Column="2" Grid.Row="4" Text="{Binding SpaceUnit}" Margin="6,0,0,0"/>
+                                <TextBlock Grid.Column="0" Grid.Row="4" Text="dt:" HorizontalAlignment="Right"/>
+                                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding dt}"/>
 
-                            <TextBlock Grid.Column="0" Grid.Row="5" Text="Ly:" HorizontalAlignment="Right"/>
-                            <TextBlock Grid.Column="1" Grid.Row="5" Text="{Binding Ly}"/>
+                                <TextBlock Grid.Column="0" Grid.Row="5" Text="Lx:" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="1" Grid.Row="5" Text="{Binding Lx}"/>
                             <TextBlock Grid.Column="2" Grid.Row="5" Text="{Binding SpaceUnit}" Margin="6,0,0,0"/>
 
+                            
                         </Grid>
+                        <Expander Header="Граничные условия" IsExpanded="True">
+                            <StackPanel Margin="5">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Левая (x=0):"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Source={StaticResource BoundaryTypes}}"
+                                        SelectedItem="{Binding BoundaryLeft}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Правая (x=Lx):"/>
+                                    <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Source={StaticResource BoundaryTypes}}"
+                                        SelectedItem="{Binding BoundaryRight}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Нижняя (y=0):"/>
+                                    <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Source={StaticResource BoundaryTypes}}"
+                                        SelectedItem="{Binding BoundaryBottom}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Верхняя (y=Ly):"/>
+                                    <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding Source={StaticResource BoundaryTypes}}"
+                                        SelectedItem="{Binding BoundaryTop}"/>
+                                </Grid>
+                                <!-- Параметры PML -->
+                                    <Expander Header="Параметры PML" IsExpanded="False" Visibility="{Binding ShowPmlSettings, Converter={StaticResource BooleanToVisibility}}">
+                                    <StackPanel>
+                                        <TextBlock Text="Толщина (ячейки):"/>
+                                        <TextBox Text="{Binding PmlThickness}"/>
+                                        <TextBlock Text="Проводимость (max):"/>
+                                        <TextBox Text="{Binding PmlSigmaMax}"/>
+                                    </StackPanel>
+                                </Expander>
+                            </StackPanel>
+                        </Expander>
+                        </StackPanel>
                     </TabItem>
                 </TabControl>
 
