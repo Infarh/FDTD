@@ -51,6 +51,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
         {
             SourceType = typeof(PointSourceViewModel),
             Name = "Источник 1",
+            SignalType = SignalType.Sine,
             X = this.Lx / 2,
             Y = this.Ly / 2,
             Frequency = 1e4
@@ -76,9 +77,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
             Name = $"Зонд {Probes.Count + 1}",
             X = Lx / 2,
             Y = Ly / 2,
-            Component = FieldComponent.Ey,
-            Width = 25,
-            Height = 25,
+            Component = FieldComponent.Ez,
         };
         this.Probes.Add(probe);
 
@@ -189,7 +188,6 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     #endregion
 
     #region SpaceUnit : string - Единица измерения
-
 
     /// <summary>Единица измерения</summary>
     private string _SpaceUnit = "м";
@@ -329,8 +327,8 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     /// <summary>Логика выполнения - Выбор элемента сетки</summary>
     private void OnSetShapeCommandCommandExecuted(ShapeViewModel Shape) 
     { 
-        SelectedShape = Shape;  
-        SelectedMaterial = Shape.AppliedMaterial; 
+        //SelectedShape = Shape;  
+        //SelectedMaterial = Shape.AppliedMaterial; 
         SelectedProperty = Shape; 
     }
 
@@ -351,8 +349,12 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     /// <summary>Логика выполнения - Снятие выбора элемента сетки</summary>
     private void OnUnSetShapeCommandCommandExecuted(ShapeViewModel Shape)
     {
-        if (Equals(Shape, _SelectedShape))
-            SelectedShape = null;
+        if (Equals(Shape, _SelectedShape)) { 
+            //SelectedShape = null;
+            //SelectedMaterial = null;
+            //SelectedProperty = null;
+        }
+
     }
 
     #endregion
@@ -372,7 +374,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     /// <summary>Логика выполнения - Выбор элемента сетки</summary>
     private void OnSetSourceCommandCommandExecuted(SourceViewModel source)
     {
-        SelectedSource = source;
+        //SelectedSource = source;
         SelectedProperty = source;
     }
 
@@ -393,8 +395,10 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     /// <summary>Логика выполнения - Снятие выбора элемента сетки</summary>
     private void OnUnSetSourceCommandCommandExecuted(SourceViewModel source)
     {
-        if (Equals(source, _selectedSource))
-            SelectedSource = null;
+        if (Equals(source, _selectedSource)) { 
+            //SelectedSource = null;
+            //SelectedProperty = null;
+        }
     }
 
     #endregion
@@ -414,7 +418,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     /// <summary>Логика выполнения - Выбор элемента сетки</summary>
     private void OnSetProbeCommandCommandExecuted(ProbeViewModel probe)
     {
-        SelectedProbe = probe;
+        //SelectedProbe = probe;
         SelectedProperty = probe;
     }
 
@@ -435,8 +439,10 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     /// <summary>Логика выполнения - Снятие выбора элемента сетки</summary>
     private void OnUnSetProbeCommandCommandExecuted(ProbeViewModel probe)
     {
-        if (Equals(probe, _selectedProbe))
-            SelectedProbe = null;
+        if (Equals(probe, _selectedProbe)) { 
+            //SelectedProbe = null;
+            //SelectedProperty = null;
+        }
     }
 
     #endregion
@@ -576,6 +582,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
                     SelectedShape = shape;
                     SelectedMaterial = shape.AppliedMaterial;
                     SelectedSource = null;
+                    SelectedProbe = null;
                     //shape.IsSelected = true;
                 }
                 else if (value is MaterialViewModel material)
@@ -583,12 +590,14 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
                     SelectedMaterial = material;
                     SelectedShape = null;
                     SelectedSource = null;
+                    SelectedProbe = null;
                 }
                 else if (value is SourceViewModel source)
                 {
                     SelectedSource = source;
                     SelectedShape = null;
                     SelectedMaterial = null;
+                    SelectedProbe = null;
                 }
                 else if (value is ProbeViewModel probe)
                 {
@@ -864,9 +873,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
             Name = $"Зонд {Probes.Count + 1}",
             X = Lx / 2,
             Y = Ly / 2,
-            Component = FieldComponent.Ey,
-            Width = 25,
-            Height = 25,
+            Component = FieldComponent.Ez,
         };
         Probes.Add(probe);
         SelectedProbe = probe;
@@ -960,8 +967,6 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     {
         _cleanUp.Dispose();
     }
-
-
 
     private LambdaCommand<ProbeViewModel> _testingCommand;
     public ICommand TestingCommand => _testingCommand ??= new(OnTesting);

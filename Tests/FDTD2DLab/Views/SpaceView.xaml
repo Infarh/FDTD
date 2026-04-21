@@ -69,7 +69,20 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ProbeTemplate" DataType="{x:Type pvm:ProbeViewModel}">
-            <Ellipse Fill="Green" Stroke="DarkGreen" StrokeThickness="2" ToolTip="{Binding Name}"/>
+            <Ellipse Fill="Green" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}">
+                <Ellipse.Width>
+                    <MultiBinding Converter="{StaticResource PercentOfContainer}" ConverterParameter="0.05">
+                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                    </MultiBinding>
+                </Ellipse.Width>
+                <Ellipse.Height>
+                    <MultiBinding Converter="{StaticResource PercentOfContainer}" ConverterParameter="0.05">
+                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                    </MultiBinding>
+                </Ellipse.Height>
+            </Ellipse>
         </DataTemplate>
         
     </UserControl.Resources>
@@ -326,22 +339,20 @@
                                         <DataTrigger Binding="{Binding ProbeType}" Value="{x:Type pvm:ProbeViewModel}">
                                             <Setter Property="inf:RelPos.Binding" Value="True"/>
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
-                                            <Setter Property="inf:RelPos.ValueWidth" Value="{Binding ValueWidth}"/>
-                                            <Setter Property="inf:RelPos.ValueHeight" Value="{Binding ValueWidth}"/>
+                                            <Setter Property="inf:RelPos.ValueWidth" Value="10"/>
+                                            <Setter Property="inf:RelPos.ValueHeight" Value="10"/>
                                             <Setter Property="inf:RelPos.ContainerWidth" 
-                                                    Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
+Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.ContainerHeight" 
-                                                    Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
+Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.MaxX" 
-                                                    Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.MaxY" 
-                                                    Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.X" Value="{Binding X}"/>
                                             <Setter Property="inf:RelPos.Y" Value="{Binding Y}"/>
-                                            <Setter Property="inf:RelPos.MouseButtonDownCommand" 
-                                                    Value="{Binding DataContext.Grid.SetProbeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                            <Setter Property="inf:RelPos.MouseButtonUpCommand" 
-                                                    Value="{Binding DataContext.Grid.UnSetProbeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                            <Setter Property="inf:RelPos.MouseButtonDownCommand" Value="{Binding DataContext.Grid.SetProbeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                            <Setter Property="inf:RelPos.MouseButtonUpCommand" Value="{Binding DataContext.Grid.UnSetProbeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>

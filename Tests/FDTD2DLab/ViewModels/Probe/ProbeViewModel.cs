@@ -66,25 +66,25 @@ namespace FDTD2DLab.ViewModels.Probe
 
         #endregion
 
-        #region Width : double - Размер
+        //#region Width : double - Размер
 
-        /// <summary>Размер</summary>
-        private double _Width = 10;
+        ///// <summary>Размер</summary>
+        //private double _Width = 10;
 
-        /// <summary>Размер</summary>
-        public double Width { get => _Width; set => Set(ref _Width, value); }
+        ///// <summary>Размер</summary>
+        //public double Width { get => _Width; set => Set(ref _Width, value); }
 
-        #endregion
+        //#endregion
 
-        #region Height : double - Размер
+        //#region Height : double - Размер
 
-        /// <summary>Размер</summary>
-        private double _Height = 10;
+        ///// <summary>Размер</summary>
+        //private double _Height = 10;
 
-        /// <summary>Размер</summary>
-        public double Height { get => _Height; set => Set(ref _Height, value); }
+        ///// <summary>Размер</summary>
+        //public double Height { get => _Height; set => Set(ref _Height, value); }
 
-        #endregion
+        //#endregion
 
         public FieldComponent Component
         {
