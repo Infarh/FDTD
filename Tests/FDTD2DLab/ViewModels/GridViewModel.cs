@@ -54,7 +54,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
             SignalType = SignalType.Sine,
             X = this.Lx / 2,
             Y = this.Ly / 2,
-            Frequency = 1e4
+            Frequency = 1e8
         };
         this.Sources.Add(pointSource);
 
@@ -150,7 +150,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     #region Nx : int - Размер сетки по горизонтали
 
     /// <summary>Размер сетки по горизонтали</summary>
-    private int _Nx = 300;
+    private int _Nx = 800;
 
     /// <summary>Размер сетки по горизонтали</summary>
     public int Nx { get => _Nx; set => SetValue(ref _Nx, value, n => n > 2).Then(UpdateGridX); }
@@ -160,7 +160,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     #region Ny : int - Размер сетки по вертикали
 
     /// <summary>Размер сетки по вертикали</summary>
-    private int _Ny = 100;
+    private int _Ny = 800;
 
     /// <summary>Размер сетки по вертикали</summary>
     public int Ny { get => _Ny; set => SetValue(ref _Ny, value, n => n > 2).Then(UpdateGridY); }
@@ -170,7 +170,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     #region dx : double - Шаг сетки по горизонтали
 
     /// <summary>Шаг сетки по горизонтали</summary>
-    private double _dx = 1;
+    private double _dx = 0.2;
 
     /// <summary>Шаг сетки по горизонтали</summary>
     public double dx { get => _dx; set => SetValue(ref _dx, value, d => d > 0).Then(UpdateGridX); }
@@ -180,7 +180,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     #region dy : double - Шаг сетки по вертикали
 
     /// <summary>Шаг сетки по вертикали</summary>
-    private double _dy = 1;
+    private double _dy = 0.2;
 
     /// <summary>Шаг сетки по вертикали</summary>
     public double dy { get => _dy; set => SetValue(ref _dy, value, d => d > 0).Then(UpdateGridY); }
@@ -621,7 +621,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
 
     #region dt : double - Шаг по времени (секунды)
 
-    private double _dt = 1e-9; // значение по умолчанию 1 нс
+    private double _dt = 424e-12; // значение по умолчанию 1 нс
 
     /// <summary>Шаг по времени (секунды)</summary>
     public double dt

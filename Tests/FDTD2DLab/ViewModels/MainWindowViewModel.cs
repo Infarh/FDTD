@@ -1112,7 +1112,6 @@ public class MainWindowViewModel : ViewModel
 
     #endregion
 
-
     #region Source calculate
     private IEnumerable<Source2D> CreateSourcesFromViewModels(GridViewModel grid)
     {

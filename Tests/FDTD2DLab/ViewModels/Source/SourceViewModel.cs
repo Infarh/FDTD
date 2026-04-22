@@ -12,7 +12,9 @@ namespace FDTD2DLab.ViewModels.Source
 {
     public enum SignalType
     {
+        [Description("Гауссов импульс")]
         Gaussian,   // гауссов импульс: Exp(-((t-t0)/tau)^2)
+        [Description("Гармонический сигнал")]
         Sine        // синусоида: sin(2πf t + φ)
     }
 

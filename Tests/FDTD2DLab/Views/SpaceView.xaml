@@ -84,7 +84,14 @@
                 </Ellipse.Height>
             </Ellipse>
         </DataTemplate>
-        
+
+        <ObjectDataProvider x:Key="SignalTypes"
+                        MethodName="GetValues"
+                        ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="cvm:SignalType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
     </UserControl.Resources>
     <Grid >
         <Grid.RowDefinitions>
@@ -299,8 +306,8 @@
                                         <DataTrigger Binding="{Binding SourceType}" Value="{x:Type cvm:PointSourceViewModel}">
                                             <Setter Property="inf:RelPos.Binding" Value="True"/>
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
-                                            <Setter Property="inf:RelPos.ValueWidth" Value="10"/>
-                                            <Setter Property="inf:RelPos.ValueHeight" Value="10"/>
+                                            <Setter Property="inf:RelPos.ValueWidth" Value="4"/>
+                                            <Setter Property="inf:RelPos.ValueHeight" Value="4"/>
                                             <Setter Property="inf:RelPos.ContainerWidth" 
          Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.ContainerHeight" 
@@ -528,8 +535,8 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                         <TextBlock Text="Угол поворота" TextAlignment="Left" Padding="30,1,1,1"/>
                                                         <TextBox Tag="ang:" Text="{Binding Angle}" ToolTip="Угол поворота"/>
                                                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Сигнал:" Margin="2"/>
-                                                        <!--<ComboBox Grid.Row="2" Grid.Column="1" SelectedItem="{Binding SignalType}"
-                                                  ItemsSource="{Binding Source={StaticResource SignalTypes}}"/>-->
+                                                        <ComboBox Grid.Row="2" Grid.Column="1" SelectedItem="{Binding SignalType}"
+                                                        ItemsSource="{Binding Source={StaticResource SignalTypes}}"/>
                                                         <TextBlock Grid.Row="3" Grid.Column="0" Text="Амплитуда:" Margin="2"/>
                                                         <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Amplitude}"/>
                                                         <!-- Параметры для Gaussian -->
@@ -570,8 +577,8 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                         <TextBlock Text="Угол поворота" TextAlignment="Left" Padding="30,1,1,1"/>
                                                         <TextBox Tag="ang:" Text="{Binding Angle}" ToolTip="Угол поворота"/>
                                                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Сигнал:" Margin="2"/>
-                                                        <ComboBox Grid.Row="2" Grid.Column="1" SelectedItem="{Binding SignalType}"/>
-                                                        <!--ItemsSource="{Binding Source={StaticResource SignalTypes}}"-->
+                                                        <ComboBox Grid.Row="2" Grid.Column="1" SelectedItem="{Binding SignalType}"
+                                                        ItemsSource="{Binding Source={StaticResource SignalTypes}}"/>
                                                         <TextBlock Grid.Row="3" Grid.Column="0" Text="Амплитуда:" Margin="2"/>
                                                         <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Amplitude}"/>
                                                         <!-- Параметры для Gaussian -->
