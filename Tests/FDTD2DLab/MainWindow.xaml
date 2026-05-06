@@ -29,6 +29,7 @@
         <KeyBinding Gesture="Ctrl+R" Command="{Binding Grid.AddRectShapeToGrid}"/>
         <KeyBinding Gesture="Ctrl+E" Command="{Binding Grid.AddEllipseShapeToGrid}"/>
         <KeyBinding Key="Delete" Command="{Binding Grid.DeletStructureCommand}"/>
+        <KeyBinding Key="Backspace" Command="{Binding Grid.DeletStructureCommand}"/>
     </Window.InputBindings>
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>

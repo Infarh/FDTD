@@ -10,9 +10,10 @@ internal static class Program
         Benchmark.Run();
 
         //Solver1DTest.Run();
-        Solver2DTest.Run();
+        //Solver2DTest.Run();
+        FDTD_D_F_Benchmark.Run();
 
-       Console.WriteLine("Завершено!");
+        Console.WriteLine("Завершено!");
        Console.ReadLine();
     }
 }

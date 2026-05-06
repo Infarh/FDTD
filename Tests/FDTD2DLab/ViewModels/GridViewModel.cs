@@ -466,11 +466,10 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     {
         var item = new RectViewModel
         {
-            Width = 50,
-            Height = 50,
             ShapeType = typeof(RectViewModel),
             X = 125,
             Y = 50,
+            AppliedMaterial = pec,
             IsSelected = false
         };
         Shapes.Add(item);
@@ -494,15 +493,11 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
         var item = new EllipseViewModel
         {
             ShapeType = typeof(EllipseViewModel),
-            Width = 60,
-            Height = 20,
             X = 50,
             Y = 40,
             IsSelected = false,
             Angle = 0,
-            Sigma = 0,
-            Mu = 1,
-            Eps = 1
+            AppliedMaterial = pec
         };
 
 
@@ -765,7 +760,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
         }
     }
 
-    private bool CanDeleteStructureCommand() => SelectedShape.IsNotNull();
+    private bool CanDeleteStructureCommand() => SelectedProperty.IsNotNull();
 
 
     #endregion

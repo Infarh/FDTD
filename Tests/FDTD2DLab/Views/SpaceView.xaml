@@ -22,6 +22,9 @@
              ><!--DataContext="{Binding MainWindowModel, Source={StaticResource Locator}}"-->
     <!--d:DesignHeight="450" d:DesignWidth="800"s
              Height="450" Width="800"-->
+    <UserControl.InputBindings>
+
+    </UserControl.InputBindings>
     <UserControl.Resources>
         <c:PercentOfContainerConverter x:Key="PercentOfContainer"/>
         <ObjectDataProvider x:Key="BoundaryTypes" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
@@ -38,22 +41,25 @@
         </DataTemplate>
 
         <DataTemplate x:Key="EllipseTemplate" DataType="{x:Type svm:EllipseViewModel}">
-            <Grid Background="Transparent">
-                <Ellipse Fill="Blue"/>
-                <Border BorderBrush="Red" BorderThickness="1" Margin="-2" Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibility}}"/>
-            </Grid>
+            <Ellipse Fill="Blue" Height="auto" Width="auto"/>
         </DataTemplate>
 
         <DataTemplate x:Key="PointSourceTemplate" DataType="{x:Type cvm:PointSourceViewModel}">
             <Ellipse Fill="Red" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}">
                 <Ellipse.Width>
-                    <MultiBinding Converter="{StaticResource PercentOfContainer}" ConverterParameter="0.05">
+                    <MultiBinding Converter="{StaticResource PercentOfContainer}">
+                        <MultiBinding.ConverterParameter>
+                            <sys:Double>0.025</sys:Double>
+                        </MultiBinding.ConverterParameter>
                         <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
                         <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
                     </MultiBinding>
                 </Ellipse.Width>
                 <Ellipse.Height>
-                    <MultiBinding Converter="{StaticResource PercentOfContainer}" ConverterParameter="0.05">
+                    <MultiBinding Converter="{StaticResource PercentOfContainer}">
+                        <MultiBinding.ConverterParameter>
+                            <sys:Double>0.025</sys:Double>
+                        </MultiBinding.ConverterParameter>
                         <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
                         <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
                     </MultiBinding>
@@ -71,13 +77,19 @@
         <DataTemplate x:Key="ProbeTemplate" DataType="{x:Type pvm:ProbeViewModel}">
             <Ellipse Fill="Green" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}">
                 <Ellipse.Width>
-                    <MultiBinding Converter="{StaticResource PercentOfContainer}" ConverterParameter="0.05">
+                    <MultiBinding Converter="{StaticResource PercentOfContainer}">
+                        <MultiBinding.ConverterParameter>
+                            <sys:Double>0.025</sys:Double>
+                        </MultiBinding.ConverterParameter>
                         <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
                         <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
                     </MultiBinding>
                 </Ellipse.Width>
                 <Ellipse.Height>
-                    <MultiBinding Converter="{StaticResource PercentOfContainer}" ConverterParameter="0.05">
+                    <MultiBinding Converter="{StaticResource PercentOfContainer}">
+                        <MultiBinding.ConverterParameter>
+                            <sys:Double>0.025</sys:Double>
+                        </MultiBinding.ConverterParameter>
                         <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
                         <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
                     </MultiBinding>
@@ -264,8 +276,8 @@
                                             <Setter Property="inf:RelPos.ValueHeight" Value="{Binding Height}"/>
                                             <Setter Property="inf:RelPos.MouseButtonDownCommand" Value="{Binding DataContext.Grid.SetShapeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.MouseButtonUpCommand" Value="{Binding DataContext.Grid.UnSetShapeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
-                                            <Setter Property="RenderTransform">
+                                            <!--<Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>-->
+                                            <!--<Setter Property="RenderTransform">
                                                 <Setter.Value>
                                                     <TransformGroup>
                                                         <RotateTransform Angle="{Binding Angle}"/>
@@ -273,7 +285,7 @@
                                                         Y="{Binding Height}"/>
                                                     </TransformGroup>
                                                 </Setter.Value>
-                                            </Setter>
+                                            </Setter>-->
                                         </DataTrigger>
 
                                         <!-- ========== ЭЛЛИПС ========== -->
@@ -290,7 +302,7 @@
                                             <Setter Property="inf:RelPos.ValueHeight" Value="{Binding Height}"/>
                                             <Setter Property="inf:RelPos.MouseButtonDownCommand" Value="{Binding DataContext.Grid.SetShapeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.MouseButtonUpCommand" Value="{Binding DataContext.Grid.UnSetShapeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                                            <!--<Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
                                             <Setter Property="RenderTransform">
                                                 <Setter.Value>
                                                     <TransformGroup>
@@ -299,15 +311,15 @@
                                                         Y="{Binding Height}"/>
                                                     </TransformGroup>
                                                 </Setter.Value>
-                                            </Setter>
+                                            </Setter>-->
                                         </DataTrigger>
 
                                         <!-- ========== ТОЧЕЧНЫЙ ИСТОЧНИК ========== -->
                                         <DataTrigger Binding="{Binding SourceType}" Value="{x:Type cvm:PointSourceViewModel}">
                                             <Setter Property="inf:RelPos.Binding" Value="True"/>
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
-                                            <Setter Property="inf:RelPos.ValueWidth" Value="4"/>
-                                            <Setter Property="inf:RelPos.ValueHeight" Value="4"/>
+                                            <Setter Property="inf:RelPos.ValueWidth" Value="5"/>
+                                            <Setter Property="inf:RelPos.ValueHeight" Value="5"/>
                                             <Setter Property="inf:RelPos.ContainerWidth" 
          Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.ContainerHeight" 
@@ -346,8 +358,8 @@
                                         <DataTrigger Binding="{Binding ProbeType}" Value="{x:Type pvm:ProbeViewModel}">
                                             <Setter Property="inf:RelPos.Binding" Value="True"/>
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
-                                            <Setter Property="inf:RelPos.ValueWidth" Value="10"/>
-                                            <Setter Property="inf:RelPos.ValueHeight" Value="10"/>
+                                            <Setter Property="inf:RelPos.ValueWidth" Value="5"/>
+                                            <Setter Property="inf:RelPos.ValueHeight" Value="5"/>
                                             <Setter Property="inf:RelPos.ContainerWidth" 
 Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.ContainerHeight" 

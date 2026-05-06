@@ -898,10 +898,8 @@ public class MainWindowViewModel : ViewModel
             for (int i = 0; i < width; i++)
                 for (int j = 0; j < height; j++)
                 {
-                    double val = frame.Ez[i, j];
-                    // Нормализация в [0,1]
+                    double val = frame.Ez[i, height - 1 - j];  // инверсия Y
                     double t = (val - globalMin) / (globalMax - globalMin);
-                    // Цветовая схема: синий (min) → красный (max)
                     byte r = (byte)(t * 255);
                     byte g = 0;
                     byte b = (byte)((1 - t) * 255);
@@ -931,16 +929,15 @@ public class MainWindowViewModel : ViewModel
 
         for (int j = 0; j < height; j++)
         {
+            int src_j = height - 1 - j;  // источник: j=0 -> низ поля
             for (int i = 0; i < width; i++)
             {
-                double value = field[i, j];
-                // Преобразуем значение поля в цвет
+                double value = field[i, src_j];
                 MapValueToColor(value, out byte r, out byte g, out byte b);
                 int index = j * stride + i * 4;
-                pixels[index] = b;       // Blue
-                pixels[index + 1] = g;   // Green
-                pixels[index + 2] = r;   // Red
-                                         // index+3 = 0 (альфа-канал не используется)
+                pixels[index] = b;
+                pixels[index + 1] = g;
+                pixels[index + 2] = r;
             }
         }
 

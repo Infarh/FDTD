@@ -348,10 +348,13 @@ public class RelPos
         var value_width = (double)E.NewValue;
         var max_x = GetMaxX(D);
         var max_width = GetContainerWidth(D);
-
         var width = value_width * max_width / max_x;
         if (width is not double.NaN)
-            SetWidth(D, width);
+        {
+            SetWidth(D, width);   // оставляем как есть
+            if (D is FrameworkElement element && width > 0)
+                element.Width = width;   // прямое присвоение визуального размера
+        }
     }
 
     /// <summary>Физическое значение ширины</summary>
@@ -377,15 +380,14 @@ public class RelPos
         var x = GetX(D);
         var max_x = (double)E.NewValue;
         var max_width = GetContainerWidth(D);
-
         var left = x * max_width / max_x;
-        if (left is not double.NaN)
-            SetLeft(D, left);
+        if (left is not double.NaN && D is UIElement uiElement)
+            Canvas.SetLeft(uiElement, left);
 
         var value_width = GetValueWidth(D);
         var width = value_width * max_width / max_x;
-        if (width is not double.NaN)
-            SetWidth(D, width);
+        if (width is not double.NaN && D is FrameworkElement element && width > 0)
+            element.Width = width;
     }
 
     /// <summary>Максимальное физическое значение по горизонтальной оси в контейнере</summary>
@@ -411,15 +413,15 @@ public class RelPos
         var x = GetX(D);
         var max_x = GetMaxX(D);
         var max_width = (double)E.NewValue;
-
         var left = x * max_width / max_x;
-        if (left is not double.NaN)
-            SetLeft(D, left);
+        if (left is not double.NaN && D is UIElement uiElement)
+            Canvas.SetLeft(uiElement, left);
 
+        // Обновление визуального размера
         var value_width = GetValueWidth(D);
         var width = value_width * max_width / max_x;
-        if (width is not double.NaN)
-            SetWidth(D, width);
+        if (width is not double.NaN && D is FrameworkElement element && width > 0)
+            element.Width = width;
     }
 
     /// <summary>Максимальная ширина визуального контейнера</summary>
@@ -536,10 +538,13 @@ public class RelPos
         var value_height = (double)E.NewValue;
         var max_y = GetMaxY(D);
         var max_height = GetContainerHeight(D);
-
         var height = value_height * max_height / max_y;
         if (height is not double.NaN)
+        {
             SetHeight(D, height);
+            if (D is FrameworkElement element && height > 0)
+                element.Height = height;
+        }
     }
 
     /// <summary>Физическое значение высоты</summary>
@@ -565,15 +570,14 @@ public class RelPos
         var y = GetY(D);
         var max_y = (double)E.NewValue;
         var max_height = GetContainerHeight(D);
-
         var bottom = y * max_height / max_y;
-        if (bottom is not double.NaN)
-            SetBottom(D, bottom);
+        if (bottom is not double.NaN && D is UIElement uiElement)
+            Canvas.SetBottom(uiElement, bottom);
 
         var value_height = GetValueHeight(D);
         var height = value_height * max_height / max_y;
-        if (height is not double.NaN)
-            SetHeight(D, height);
+        if (height is not double.NaN && D is FrameworkElement element && height > 0)
+            element.Height = height;
     }
 
     /// <summary>Максимальное физическое значение по вертикальной оси в контейнере</summary>
@@ -599,15 +603,14 @@ public class RelPos
         var y = GetY(D);
         var max_y = GetMaxY(D);
         var max_height = (double)E.NewValue;
-
         var bottom = y * max_height / max_y;
-        if (bottom is not double.NaN)
-            SetBottom(D, bottom);
+        if (bottom is not double.NaN && D is UIElement uiElement)
+            Canvas.SetBottom(uiElement, bottom);
 
         var value_height = GetValueHeight(D);
         var height = value_height * max_height / max_y;
-        if (height is not double.NaN)
-            SetHeight(D, height);
+        if (height is not double.NaN && D is FrameworkElement element && height > 0)
+            element.Height = height;
     }
 
     /// <summary>Максимальная высота визуального контейнера</summary>
