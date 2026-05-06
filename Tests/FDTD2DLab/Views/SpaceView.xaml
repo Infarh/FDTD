@@ -36,12 +36,17 @@
         <DataTemplate x:Key="RectTemplate" DataType="{x:Type svm:RectViewModel}">
             <Grid Background="Transparent">
                 <Rectangle Fill="DarkSlateGray"/>
-                <Border BorderBrush="Red" BorderThickness="1" Margin="-2" Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibility}}"/>
+                <Border BorderBrush="Red" BorderThickness="1" Margin="-2"
+                Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibility}}"/>
             </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="EllipseTemplate" DataType="{x:Type svm:EllipseViewModel}">
-            <Ellipse Fill="Blue" Height="auto" Width="auto"/>
+            <Grid Background="Transparent">
+                <Ellipse Fill="Blue"/>
+                <Border BorderBrush="Red" BorderThickness="1" Margin="-2"
+                Visibility="{Binding IsSelected, Converter={StaticResource BooleanToVisibility}}"/>
+            </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="PointSourceTemplate" DataType="{x:Type cvm:PointSourceViewModel}">

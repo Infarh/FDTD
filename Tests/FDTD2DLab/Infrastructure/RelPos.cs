@@ -341,8 +341,10 @@ public class RelPos
             "ValueWidth",
             typeof(double),
             typeof(RelPos),
-            new FrameworkPropertyMetadata(default(double), OnValueWidthChanged)
-            { BindsTwoWayByDefault = false, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+            //new FrameworkPropertyMetadata(default(double), OnValueWidthChanged)
+            //{ BindsTwoWayByDefault = false, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+            new FrameworkPropertyMetadata(default(double), OnValueWidthChanged) { BindsTwoWayByDefault = true, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+
     private static void OnValueWidthChanged(DependencyObject D, DependencyPropertyChangedEventArgs E)
     {
         var value_width = (double)E.NewValue;
@@ -530,8 +532,10 @@ public class RelPos
         "ValueHeight",
         typeof(double),
         typeof(RelPos),
-        new FrameworkPropertyMetadata(default(double), OnValueHeightChanged)
-        { BindsTwoWayByDefault = false, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+        //new FrameworkPropertyMetadata(default(double), OnValueHeightChanged)
+        //{ BindsTwoWayByDefault = false, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+        new FrameworkPropertyMetadata(default(double), OnValueHeightChanged) { BindsTwoWayByDefault = true, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+
 
     private static void OnValueHeightChanged(DependencyObject D, DependencyPropertyChangedEventArgs E)
     {
