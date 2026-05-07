@@ -105,6 +105,16 @@ public class MainWindowViewModel : ViewModel
 
     #endregion
 
+    #region Progress
+
+    private double _progressValue;
+    public double ProgressValue { get => _progressValue; set => Set(ref _progressValue, value); }
+
+    private double _progressMaximum = 100;
+    public double ProgressMaximum { get => _progressMaximum; set => Set(ref _progressMaximum, value); }
+
+    #endregion
+
     #region ProjectName : string - Название проекта
 
     /// <summary>Название проекта</summary>
@@ -584,15 +594,55 @@ public class MainWindowViewModel : ViewModel
         private set => Set(ref _isSimulating, value);
     }
 
+    private double _simulationTotalTime = 1e-6;   // значение по умолчанию
+    private int _sleepDelayMs = 30;
+
+    public double SimulationTotalTime
+    {
+        get => _simulationTotalTime;
+        set => Set(ref _simulationTotalTime, value);
+    }
+
+    public int SleepDelayMs
+    {
+        get => _sleepDelayMs;
+        set => Set(ref _sleepDelayMs, value);
+    }
+
     #endregion
 
     #region Commands Calculate
+
+    // Быстрый запуск (без окна)
+    private LambdaCommand _quickStartCommand;
+    public ICommand QuickStartCommand => _quickStartCommand ??= new(QuickStart, CanStartSimulation);
+    private void QuickStart()
+    {
+        // Параметры по умолчанию: 1000 шагов, задержка 30 мс
+        SimulationTotalTime = Grid.dt * 1000;
+        SleepDelayMs = 30;
+        _ = StartSimulationAsync(isRealTime: true);
+    }
 
     private LambdaCommand _startGifRecordingCommand;
     public ICommand StartGifRecordingCommand => _startGifRecordingCommand ??= new(StartGifRecording, CanStartSimulation);
 
     private LambdaCommand _startRealTimeCommand;
-    public ICommand StartRealTimeCommand => _startRealTimeCommand ??= new(StartRealTime, CanStartSimulation);
+    public ICommand StartRealTimeCommand => _startRealTimeCommand ??= new(StartRealTimeDialog, CanStartSimulation);
+
+    private async void StartRealTimeDialog()
+    {
+        var dialog = new Views.SimulationSettingsDialog(this)
+        {
+            Owner = System.Windows.Application.Current.MainWindow
+        };
+        if (dialog.ShowDialog() == true && dialog.DataContext is SimulationSettingsViewModel settings)
+        {
+            SimulationTotalTime = settings.SimulationTime;
+            SleepDelayMs = settings.SleepDelayMs;
+            await StartSimulationAsync(isRealTime: true);
+        }
+    }
 
     private LambdaCommand _stopSimulationCommand;
     public ICommand StopSimulationCommand => _stopSimulationCommand ??= new(StopSimulation, () => IsSimulating);
@@ -602,10 +652,12 @@ public class MainWindowViewModel : ViewModel
         _simulationCts?.Cancel();
     }
 
+
     private bool CanStartSimulation() => !IsSimulating && Grid != null;
 
     private async void StartGifRecording()
     {
+        SimulationTotalTime = 1e-9; // или другое значение по умолчанию
         await StartSimulationAsync(isRealTime: false);
     }
 
@@ -619,19 +671,7 @@ public class MainWindowViewModel : ViewModel
         if (IsSimulating) return;
 
         var (solver, materialArrays) = PrepareSolverFromGrid();
-        double dt = Grid.dt;
-
-        //// Проверка устойчивости
-        //double maxDt = solver.GetMaxStableTimeStep();
-        //if (dt > maxDt)
-        //{
-        //    _UserDialog.ShowWarning($"Шаг по времени ({dt:e3} с) превышает максимально допустимый ({maxDt:e3} с). Уменьшите dt.");
-        //    return;
-        //}
-
-        // Создаём сервис
-        _simulationService = new FdtdSimulationService(solver, materialArrays, Grid.dt);//Grid.dt
-
+        _simulationService = new FdtdSimulationService(solver, materialArrays, Grid.dt);
         _simulationCts = new CancellationTokenSource();
         IsSimulating = true;
 
@@ -639,18 +679,13 @@ public class MainWindowViewModel : ViewModel
         {
             if (isRealTime)
             {
-                // Запуск с визуализацией
                 await Task.Run(() => RunRealTimeSimulation(_simulationCts.Token));
             }
             else
             {
-                // Запуск с сохранением GIF
                 var gifPath = await Task.Run(() => RunGifSimulation(_simulationCts.Token));
                 if (!string.IsNullOrEmpty(gifPath))
-                {
-                    // Открыть GIF в отдельном окне или на вкладке (можно открыть системное приложение)
                     System.Diagnostics.Process.Start(gifPath);
-                }
             }
         }
         catch (OperationCanceledException)
@@ -710,10 +745,17 @@ public class MainWindowViewModel : ViewModel
             solver.Sources.Add(src);
         }
 
+        // Делаем проверку, если весь массив сигма нулевой, то делаем его Null что бы в движке моделировать без потерь
+        if(sigma.Cast<double>().All(x => x == 0.0)) solver.SetSigmaGrid(null);
+        else solver.SetSigmaGrid((i, j) => sigma[i, j]);
         // Установка массивов в solver через делегаты
         solver.SetEpsGrid((i, j) => eps[i, j]);
         solver.SetMuGrid((i, j) => mu[i, j]);
-        solver.SetSigmaGrid((i, j) => sigma[i, j]);
+
+
+
+        
+
 
         return (solver, new MaterialArrays(eps, mu, sigma));
     }
@@ -784,7 +826,17 @@ public class MainWindowViewModel : ViewModel
         #region подготовка к расчету
 
         var mesh = _simulationService.Solver.GetMesh(_simulationService.Dt);
-        double totalTime = 1e-6; // Задать нужное время моделирования
+        double totalTime = SimulationTotalTime; // берём из главной VM
+        double dt = Grid.dt;
+        int totalSteps = (int)(totalTime / dt);
+        int sleepDelay = SleepDelayMs; // берём из главной VM
+
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            ProgressMaximum = totalSteps;
+            ProgressValue = 0;
+        });
+
         int frameCount = 0;
 
         // Подготовка зондов (выполняется один раз перед циклом)
@@ -808,6 +860,7 @@ public class MainWindowViewModel : ViewModel
         foreach (var frame in mesh.Calculation(totalTime))
         {
             token.ThrowIfCancellationRequested();
+            
 
             // Сбор данных
             foreach (var p in probes)
@@ -820,10 +873,11 @@ public class MainWindowViewModel : ViewModel
             Application.Current.Dispatcher.Invoke(() =>
             {
                 UpdateFieldBitmap(frame.Ez); // например, используем Ez
+                ProgressValue = frame.Index + 1;
             });
 
             // Можно добавить задержку для замедления анимации
-            Thread.Sleep(30);
+            Thread.Sleep(sleepDelay);
             frameCount++;
 
         }//foreach (var frame in mesh.Calculation(totalTime))
@@ -840,16 +894,25 @@ public class MainWindowViewModel : ViewModel
     private string RunGifSimulation(CancellationToken token)
     {
         var mesh = _simulationService.Solver.GetMesh(_simulationService.Dt);
-        double totalTime = 1e-9; // или другое значение из настроек
-        var frames = new List<Solver2DFrame>();
+        double totalTime = SimulationTotalTime;
+        double dt = Grid.dt;
+        int totalSteps = (int)(totalTime / dt);
+        int skip = 10;
 
-        int skip = 10; // записывать каждый 10-й кадр (настраиваемо)
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            ProgressMaximum = totalSteps;
+            ProgressValue = 0;
+        });
+
+        var frames = new List<Solver2DFrame>();
 
         foreach (var frame in mesh.Calculation(totalTime))
         {
             token.ThrowIfCancellationRequested();
             if (frame.Index % skip == 0)
                 frames.Add(frame);
+            Application.Current.Dispatcher.Invoke(() => ProgressValue = frame.Index + 1);
         }
 
         string gifPath = Path.Combine(Path.GetTempPath(), $"simulation_{DateTime.Now:yyyyMMddHHmmss}.gif");
@@ -917,31 +980,48 @@ public class MainWindowViewModel : ViewModel
         int width = Grid.Nx;
         int height = Grid.Ny;
 
-        // Пересоздаём битмап, если размер изменился
-        if (FieldBitmap == null || FieldBitmap.PixelWidth != width || FieldBitmap.PixelHeight != height)
-        {
-            FieldBitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgr32, null);
-        }
+        // Максимум для нормализации
+        double maxAbs = 0;
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++)
+            {
+                double absVal = Math.Abs(field[i, j]);
+                if (absVal > maxAbs) maxAbs = absVal;
+            }
 
-        // Подготавливаем массив байтов в формате BGR (4 байта на пиксель)
+        if (FieldBitmap == null || FieldBitmap.PixelWidth != width || FieldBitmap.PixelHeight != height)
+            FieldBitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+
         byte[] pixels = new byte[width * height * 4];
         int stride = width * 4;
 
         for (int j = 0; j < height; j++)
         {
-            int src_j = height - 1 - j;  // источник: j=0 -> низ поля
+            int srcJ = height - 1 - j;  // инверсия Y
             for (int i = 0; i < width; i++)
             {
-                double value = field[i, src_j];
-                MapValueToColor(value, out byte r, out byte g, out byte b);
+                double value = field[i, srcJ];
+                byte r = 0, g = 0, b = 0, a = 0;
+
+                if (maxAbs > 0)
+                {
+                    double t = value / maxAbs;    // [-1, 1]
+                    double absT = Math.Abs(t);
+                    // Альфа-канал прямо пропорционален амплитуде (0..255)
+                    a = (byte)(absT * 255);
+                    // Цвет: чистый красный (положит.) или чистый синий (отрицат.)
+                    if (t > 0)
+                        r = 255;
+                    else
+                        b = 255;
+                }
                 int index = j * stride + i * 4;
                 pixels[index] = b;
                 pixels[index + 1] = g;
                 pixels[index + 2] = r;
+                pixels[index + 3] = a;
             }
         }
-
-        // Копируем массив в битмап
         FieldBitmap.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
     }
 

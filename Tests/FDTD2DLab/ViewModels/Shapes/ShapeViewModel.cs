@@ -67,6 +67,26 @@ public abstract class ShapeViewModel : ViewModel, IOptProperty
     //    return true;
     //}
 
+    #region AnchorPoint
+
+    private AnchorPoint _anchor = AnchorPoint.BottomLeft;
+    public AnchorPoint Anchor
+    {
+        get => _anchor;
+        set
+        {
+            if (Set(ref _anchor, value))
+            {
+                // При смене якоря координаты X,Y сохраняют физический смысл точки привязки,
+                // поэтому необходимо пересчитать визуальное положение через RelPos.
+                OnPropertyChanged(nameof(X)); // чтобы RelPos пересчитал Left/Bottom
+                OnPropertyChanged(nameof(Y));
+            }
+        }
+    }
+
+    #endregion
+
     #region Eps : double - Диэлектрическая проницаемость
 
     /// <summary>Диэлектрическая проницаемость</summary>

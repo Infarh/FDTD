@@ -33,6 +33,12 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
         <c:BooleanToVisibility x:Key="BooleanToVisibility"/>
+        <c:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
+        <c:InvertBoolConverter x:Key="InvertBoolConverter"/>
+        <c:InvertBoolToVisibilityConverter x:Key="InvertBoolToVisibility"/>
+        <c:SimulatingOpacityConverter x:Key="SimulatingOpacityConverter"/>
+
+        <!--            ДЛЯ TEMPLATE SELECTOR               -->
         <DataTemplate x:Key="RectTemplate" DataType="{x:Type svm:RectViewModel}">
             <Grid Background="Transparent">
                 <Rectangle Fill="DarkSlateGray"/>
@@ -101,6 +107,7 @@
                 </Ellipse.Height>
             </Ellipse>
         </DataTemplate>
+        <!--            КОНеЦ ДЛЯ TEMPLATE SELECTOR               -->
 
         <ObjectDataProvider x:Key="SignalTypes"
                         MethodName="GetValues"
@@ -109,35 +116,73 @@
                 <x:Type TypeName="cvm:SignalType"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+
+        <!--            СТИЛЬ ДЛЯ КОНОПКИ ПЕРЕКЛЮЧАТЕЛЯ               -->
+        <Style x:Key="AnchorRadioButtonStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                        BorderBrush="Gray" BorderThickness="1" CornerRadius="3"
+                        Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="LightBlue"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="DarkBlue"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E0F0FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
     <Grid >
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition Height="90"/>
         </Grid.RowDefinitions>
-        <GroupBox Grid.Column="1" Grid.Row="1" BorderThickness="0" Margin="3">
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" Margin="3" Padding="5" Background="#F9F9F9">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
+
+                <!-- Координаты мыши (всегда видимы) -->
+                <StackPanel Grid.Column="0" Orientation="Vertical">
                     <TextBlock>
-                      Cell
-                      <TextBlock Text="{Binding Grid.MousePositionCell.X, StringFormat=x:{0:f0}}" Width="50"/>
-                      (<TextBlock Text="{Binding Grid.MousePosition.X, StringFormat={}{0:0.##}}"/>
-                      <TextBlock Text="{Binding Grid.SpaceUnit}"/>)
-                  </TextBlock>
+                Cell
+                <TextBlock Text="{Binding Grid.MousePositionCell.X, StringFormat=x:{0:f0}}" Width="50"/>
+                (<TextBlock Text="{Binding Grid.MousePosition.X, StringFormat={}{0:0.##}}"/>
+                <TextBlock Text="{Binding Grid.SpaceUnit}"/>)
+            </TextBlock>
                     <TextBlock>
-                      Cell
-                      <TextBlock Text="{Binding Grid.MousePositionCell.Y, StringFormat=y:{0:f0}}" Width="50"/>
-                      (<TextBlock Text="{Binding Grid.MousePosition.Y, StringFormat={}{0:0.##}}"/>
-                      <TextBlock Text="{Binding Grid.SpaceUnit}"/>)
-                  </TextBlock>
+                Cell
+                <TextBlock Text="{Binding Grid.MousePositionCell.Y, StringFormat=y:{0:f0}}" Width="50"/>
+                (<TextBlock Text="{Binding Grid.MousePosition.Y, StringFormat={}{0:0.##}}"/>
+                <TextBlock Text="{Binding Grid.SpaceUnit}"/>)
+            </TextBlock>
                 </StackPanel>
-                
+
+                <!-- Панель прогресса и остановки (видима только при IsSimulating = true) -->
+                <StackPanel Grid.Column="1" Visibility="{Binding IsSimulating, Converter={StaticResource BooleanToVisibility}}" 
+                    Orientation="Vertical" Margin="5,0">
+                    <ProgressBar Value="{Binding ProgressValue}" Maximum="{Binding ProgressMaximum}" 
+                         Width="150" Height="15" />
+                    <Button Content="Стоп" Command="{Binding StopSimulationCommand}" 
+                    Width="60" Height="22" Margin="0,3,0,0" Background="#FF5050" Foreground="White" 
+                    FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
+                </StackPanel>
             </Grid>
-        </GroupBox>
+        </Border>
 
         <DockPanel Grid.Row="0">
             <ToolBarTray DockPanel.Dock="Top" Background="White" Grid.Column="0">
@@ -207,12 +252,8 @@
                         <b:MouseMove PositionRelative="{Binding Grid.GridMousePosition, Mode=OneWayToSource}"/>
                     </i:Interaction.Behaviors>
                     <Grid>
-                        <Image Source="{Binding FieldBitmap}" 
-                          Stretch="Fill" 
-                          RenderOptions.BitmapScalingMode="NearestNeighbor"
-                          Opacity="0.7"/>
-
-                        <ItemsControl ItemsSource="{Binding Grid.GridX}">
+                        
+                        <ItemsControl ItemsSource="{Binding Grid.GridX}" Opacity="{Binding IsSimulating, Converter={StaticResource SimulatingOpacityConverter}}">
                             <ItemsControl.Resources>
                                 <c:Div x:Key="DivX" Parameter="{Binding Grid.Nx}"/>
                             </ItemsControl.Resources>
@@ -234,7 +275,7 @@
                             </ItemsControl.ItemContainerStyle>
                         </ItemsControl>
 
-                        <ItemsControl  ItemsSource="{Binding Grid.GridY}">
+                        <ItemsControl  ItemsSource="{Binding Grid.GridY}" Opacity="{Binding IsSimulating, Converter={StaticResource SimulatingOpacityConverter}}">
                             <ItemsControl.Resources>
                                 <c:Div x:Key="DivY" Parameter="{Binding Grid.Ny}"/>
                             </ItemsControl.Resources>
@@ -252,7 +293,8 @@
 
                         </ItemsControl>
 
-                        <ItemsControl ItemsSource="{Binding Grid.Items}" Background="Transparent">
+                        <ItemsControl ItemsSource="{Binding Grid.Items}" Background="Transparent" 
+                                      Opacity="{Binding IsSimulating, Converter={StaticResource SimulatingOpacityConverter}}">
                             <ItemsControl.ItemTemplateSelector>
                                 <b:ObjectTemplateSelector/>
                             </ItemsControl.ItemTemplateSelector>
@@ -270,6 +312,7 @@
                                         <!-- ========== ПРЯМОУГОЛЬНИК ========== -->
                                         <DataTrigger Binding="{Binding ShapeType}" Value="{x:Type svm:RectViewModel}">
                                             <Setter Property="b:DragDropBehavior.CanDrop" Value="True"/>
+                                            <Setter Property="inf:RelPos.Anchor" Value="{Binding Anchor}"/>
                                             <Setter Property="inf:RelPos.Binding" Value="True"/>
                                             <Setter Property="inf:RelPos.ContainerWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.ContainerHeight" Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
@@ -297,6 +340,7 @@
                                         <DataTrigger Binding="{Binding ShapeType}" Value="{x:Type svm:EllipseViewModel}">
                                             <Setter Property="b:DragDropBehavior.CanDrop" Value="True"/>
                                             <Setter Property="inf:RelPos.Binding" Value="True"/>
+                                            <Setter Property="inf:RelPos.Anchor" Value="{Binding Anchor}"/>
                                             <Setter Property="inf:RelPos.ContainerWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.ContainerHeight" Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.MaxX" Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=Border}}"/>
@@ -325,14 +369,10 @@
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
                                             <Setter Property="inf:RelPos.ValueWidth" Value="5"/>
                                             <Setter Property="inf:RelPos.ValueHeight" Value="5"/>
-                                            <Setter Property="inf:RelPos.ContainerWidth" 
-         Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
-                                            <Setter Property="inf:RelPos.ContainerHeight" 
-         Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
-                                            <Setter Property="inf:RelPos.MaxX" 
-         Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                            <Setter Property="inf:RelPos.MaxY" 
-         Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                            <Setter Property="inf:RelPos.ContainerWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                            <Setter Property="inf:RelPos.ContainerHeight" Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                            <Setter Property="inf:RelPos.MaxX" Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                            <Setter Property="inf:RelPos.MaxY" Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.X" Value="{Binding X}"/>
                                             <Setter Property="inf:RelPos.Y" Value="{Binding Y}"/>
                                             <Setter Property="inf:RelPos.MouseButtonDownCommand" Value="{Binding DataContext.Grid.SetSourceCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
@@ -345,14 +385,10 @@
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
                                             <Setter Property="inf:RelPos.ValueWidth" Value="{Binding ValueWidth}"/>
                                             <Setter Property="inf:RelPos.ValueHeight" Value="{Binding ValueHeight}"/>
-                                            <Setter Property="inf:RelPos.ContainerWidth" 
-                                                    Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
-                                            <Setter Property="inf:RelPos.ContainerHeight" 
-                                                    Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
-                                            <Setter Property="inf:RelPos.MaxX" 
-                                                    Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                            <Setter Property="inf:RelPos.MaxY" 
-                                                    Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                            <Setter Property="inf:RelPos.ContainerWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                            <Setter Property="inf:RelPos.ContainerHeight" Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                                            <Setter Property="inf:RelPos.MaxX" Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                                            <Setter Property="inf:RelPos.MaxY" Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.X" Value="{Binding X}"/>
                                             <Setter Property="inf:RelPos.Y" Value="{Binding Y}"/>
                                             <Setter Property="inf:RelPos.MouseButtonDownCommand" Value="{Binding DataContext.Grid.SetSourceCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
@@ -383,8 +419,12 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                             </ItemsControl.ItemContainerStyle>
 
                         </ItemsControl>
+                        <Image Source="{Binding FieldBitmap}" 
+                            Stretch="Fill" 
+                            RenderOptions.BitmapScalingMode="NearestNeighbor"
+                            IsHitTestVisible="False"/>
 
-                       
+
                     </Grid>
                 </Border>
 
@@ -395,6 +435,8 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                 <StackPanel>
                                     <ContentControl Content="{Binding SelectedProperty}">
                                         <ContentControl.Resources>
+                                            
+                                            <!--           РЕДАКТИРОВАНИЕ ПАРАМЕТРОВ ЭЛЛИПСА            -->
                                             <DataTemplate DataType="{x:Type svm:EllipseViewModel}">
                                                 <StackPanel Margin="1,2,1,1">
                                                     <TextBlock Text="ЭЛЛИПС" TextAlignment="Center" FontSize="15" FontFamily="Segoe UI Semibold"/>
@@ -441,24 +483,44 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                             </Style>
                                                         </StackPanel.Resources>
 
-                                                        <TextBlock Text="Горизонтальное положение" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                        <TextBlock Text="Точка привязки:" Margin="0,5,0,2" FontWeight="SemiBold"/>
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                            <RadioButton Content="Левый нижний" Style="{StaticResource AnchorRadioButtonStyle}"
+                                                                         IsChecked="{Binding Anchor, Converter={StaticResource EnumToBoolConverter},
+                                                                                        ConverterParameter={x:Static optvm:AnchorPoint.BottomLeft}}"
+                                                                         GroupName="AnchorEllipse"/>
+                                                            
+                                                            <RadioButton Content="Центр" Style="{StaticResource AnchorRadioButtonStyle}" Margin="4,0,0,0"
+                                                                         IsChecked="{Binding Anchor, Converter={StaticResource EnumToBoolConverter},
+                                                                                            ConverterParameter={x:Static optvm:AnchorPoint.Center}}"
+                                                                         GroupName="AnchorEllipse"/>
+                                                        </StackPanel>
+                                                        <Rectangle Height="1" Fill="Gray" Margin="2,8,2,5"/>
+
+                                                        <!-- Координаты -->
+                                                        <TextBlock Text="Горизонтальное положение" Padding="30,1,1,1"/>
                                                         <TextBox Tag="x:" Text="{Binding X}" ToolTip="Горизонтальное положение"/>
                                                         <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
-                                                        <TextBlock Text="Расположение по y" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                        <TextBlock Text="Расположение по y" Padding="30,1,1,1"/>
                                                         <TextBox Tag="y:" Text="{Binding Y}" ToolTip="Вертикальное положение"/>
                                                         <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
-                                                        <TextBlock Text="Горизонтальный размер" TextAlignment="Left" Padding="30,1,1,1"/>
+
+                                                        <!-- Размеры -->
+                                                        <TextBlock Text="Горизонтальный размер" Padding="30,1,1,1"/>
                                                         <TextBox Tag="w:" Text="{Binding Width}" ToolTip="Ширина"/>
                                                         <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
-                                                        <TextBlock Text="Вертикальный размер" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                        <TextBlock Text="Вертикальный размер" Padding="30,1,1,1"/>
                                                         <TextBox Tag="h:" Text="{Binding Height}" ToolTip="Высота"/>
-                                                        <TextBlock Text="Угол поворота" TextAlignment="Left" Padding="30,1,1,1"/>
+
+                                                        <TextBlock Text="Угол поворота" Padding="30,1,1,1"/>
                                                         <TextBox Tag="ang:" Text="{Binding Angle}" ToolTip="Угол поворота"/>
                                                         <Rectangle Height="2" Fill="DarkCyan" Margin="2,5,2,2"/>
 
                                                     </StackPanel>
                                                 </StackPanel>
                                             </DataTemplate>
+
+                                            <!--           РЕДАКТИРОВАНИЕ ПАРАМЕТРОВ ПРЯМОУГОЛЬНИКА            -->
                                             <DataTemplate DataType="{x:Type svm:RectViewModel}">
                                                 <StackPanel Margin="1,2,1,1">
                                                     <TextBlock Text="ПРЯМОУГОЛЬНИК" TextAlignment="Center" FontSize="15" FontFamily="Segoe UI Semibold"/>
@@ -505,28 +567,72 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                             </Style>
                                                         </StackPanel.Resources>
 
-                                                        <TextBlock Text="Горизонтальное положение" TextAlignment="Left" Padding="30,1,1,1"/>
-                                                        <TextBox Tag="x:" Text="{Binding X}" ToolTip="Горизонтальное положение"/>
+                                                        <TextBlock Text="Точка привязки:" Margin="0,5,0,2" FontWeight="SemiBold"/>
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                            <RadioButton Content="Левый нижний" Style="{StaticResource AnchorRadioButtonStyle}"
+                             IsChecked="{Binding Anchor, Converter={StaticResource EnumToBoolConverter},
+                                                 ConverterParameter={x:Static optvm:AnchorPoint.BottomLeft}}"
+                             GroupName="AnchorRect"/>
+                                                            <RadioButton Content="Центр" Style="{StaticResource AnchorRadioButtonStyle}" Margin="4,0,0,0"
+                             IsChecked="{Binding Anchor, Converter={StaticResource EnumToBoolConverter},
+                                                 ConverterParameter={x:Static optvm:AnchorPoint.Center}}"
+                             GroupName="AnchorRect"/>
+                                                        </StackPanel>
+                                                        <Rectangle Height="1" Fill="Gray" Margin="2,8,2,5"/>
+
+                                                        <!-- Координаты -->
+                                                        <TextBlock Text="Положение X:" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="x:" Text="{Binding X}" ToolTip="Положение по горизонтали"/>
                                                         <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
-                                                        <TextBlock Text="Расположение по y" TextAlignment="Left" Padding="30,1,1,1"/>
-                                                        <TextBox Tag="y:" Text="{Binding Y}" ToolTip="Вертикальное положение"/>
-                                                        <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
-                                                        <TextBlock Text="Горизонтальный размер" TextAlignment="Left" Padding="30,1,1,1"/>
-                                                        <TextBox Tag="w:" Text="{Binding Width}" ToolTip="Ширина"/>
-                                                        <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
-                                                        <TextBlock Text="Вертикальный размер" TextAlignment="Left" Padding="30,1,1,1"/>
-                                                        <TextBox Tag="h:" Text="{Binding Height}" ToolTip="Высота"/>
-                                                        <TextBlock Text="Угол поворота" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                        <TextBlock Text="Положение Y:" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="y:" Text="{Binding Y}" ToolTip="Положение по вертикали"/>
+
+                                                        <Separator Margin="2,8"/>
+
+                                                        <!-- Метод задания размеров -->
+                                                        <TextBlock Text="Способ задания размеров:" Margin="0,2,0,2" FontWeight="SemiBold"/>
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                            <RadioButton Content="Ширина × Высота" Style="{StaticResource AnchorRadioButtonStyle}"
+                                                                         IsChecked="{Binding UseCornerCoords, Converter={StaticResource InvertBoolConverter}}"
+                                                                         GroupName="SizeMethod"/>
+                                                            <RadioButton Content="По вершинам" Style="{StaticResource AnchorRadioButtonStyle}" Margin="4,0,0,0"
+                                                                         IsChecked="{Binding UseCornerCoords}"
+                                                                         GroupName="SizeMethod"/>
+                                                        </StackPanel>
+
+                                                        <!-- Поля для ширины/высоты (видимы, когда UseCornerCoords == false) -->
+                                                        <StackPanel Visibility="{Binding UseCornerCoords, Converter={StaticResource InvertBoolToVisibility}}">
+                                                            <TextBlock Text="Ширина:" Padding="30,1,1,1"/>
+                                                            <TextBox Tag="w:" Text="{Binding Width}" ToolTip="Ширина"/>
+                                                            <Rectangle Height="1" Fill="Gray" Margin="2,3,2,3"/>
+                                                            <TextBlock Text="Высота:" Padding="30,1,1,1"/>
+                                                            <TextBox Tag="h:" Text="{Binding Height}" ToolTip="Высота"/>
+                                                        </StackPanel>
+
+                                                        <!-- Поля для вершин (видимы, когда UseCornerCoords == true) -->
+                                                        <StackPanel Visibility="{Binding UseCornerCoords, Converter={StaticResource BooleanToVisibility}}">
+                                                            <TextBlock Text="Противоположная вершина (X2, Y2):" Padding="30,1,1,1" FontWeight="SemiBold"/>
+                                                            <TextBox Tag="x2:" Text="{Binding X2}" ToolTip="X правой верхней вершины"/>
+                                                            <Rectangle Height="1" Fill="Gray" Margin="2,3,2,3"/>
+                                                            <TextBox Tag="y2:" Text="{Binding Y2}" ToolTip="Y правой верхней вершины"/>
+                                                        </StackPanel>
+
+                                                        <Rectangle Height="1" Fill="Gray" Margin="2,5,2,5"/>
+
+                                                        <TextBlock Text="Угол поворота" Padding="30,1,1,1"/>
                                                         <TextBox Tag="ang:" Text="{Binding Angle}" ToolTip="Угол поворота"/>
-                                                        <Rectangle Height="2" Fill="DarkCyan" Margin="2,5,2,2"/>
+                                                        <Rectangle Height="2" Fill="DarkCyan" Margin="2,3,2,2"/>
                                                     </StackPanel>
                                                 </StackPanel>
                                             </DataTemplate>
+                                            
                                             <DataTemplate DataType="{x:Type vm:GridViewModel}">
                                                 <StackPanel Margin="1,2,1,1">
                                                     <TextBlock Text="сетка"/>
                                                 </StackPanel>
                                             </DataTemplate>
+
+                                            <!--           РЕДАКТИРОВАНИЕ ПАРАМЕТРОВ ТОЧЕЧНОГО ИСТОЧНИКА            -->
                                             <DataTemplate DataType="{x:Type cvm:PointSourceViewModel}">
                                                 <StackPanel Margin="1,2,1,1">
                                                     <TextBlock Text="Точечный источник" FontWeight="Bold"/>
@@ -569,6 +675,8 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                     </Grid>
                                                 </StackPanel>
                                             </DataTemplate>
+
+                                            <!--           РЕДАКТИРОВАНИЕ ПАРАМЕТРОВ ЭЛЛИПСА            -->
                                             <DataTemplate DataType="{x:Type cvm:PlaneWaveSourceViewModel}">
                                                 <StackPanel Margin="1,2,1,1">
                                                     <TextBlock Text="Источник плоской волны" FontWeight="Bold"/>
@@ -611,6 +719,8 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                     </Grid>
                                                 </StackPanel>
                                             </DataTemplate>
+
+                                            
                                             <DataTemplate DataType="{x:Type mvm:MaterialViewModel}">
                                                 <Separator/>
                                             </DataTemplate>
@@ -656,6 +766,8 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                               </ContentControl.Resources>
                           </ContentControl>
                       </StackPanel>-->
+
+                                <!--           РЕДАКТИРОВАНИЕ ПАРАМЕТРОВ МАТЕРИАЛА У ФИГУР            -->
                                 <StackPanel>
                                     <ContentControl Content="{Binding SelectedProperty}">
                                         <ContentControl.Resources>

@@ -102,7 +102,7 @@
             <MenuItem Header="Экран"/>
             <MenuItem Header="Моделирование">
                 <MenuItem Header="Настройки моделирования"/>
-                <MenuItem Header="Быстрый запуск"/>
+                <MenuItem Header="Быстрый запуск" Command="{Binding QuickStartCommand}"/>
                 <MenuItem Header="Запись GIF" Command="{Binding StartGifRecordingCommand}"/>
                 <MenuItem Header="Реальное время" Command="{Binding StartRealTimeCommand}"/>
                 <MenuItem Header="О создателях"/>

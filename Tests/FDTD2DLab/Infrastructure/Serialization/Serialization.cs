@@ -29,6 +29,7 @@ namespace FDTD2DLab.Infrastructure.Serialization
         public double Eps { get; set; } // если материал не задан
         public double Mu { get; set; }
         public double Sigma { get; set; }
+        public bool? UseCornerCoords { get; set; } // null для эллипсов
     }
     public class MaterialData
     {

@@ -1,12 +1,12 @@
-﻿using System;
+﻿using FDTD2DLab.ViewModels.Propertys;
+using MathCore.WPF.Converters;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-
-using MathCore.WPF.Converters;
 
 namespace FDTD2DLab.Infrastructure;
 
@@ -262,6 +262,59 @@ public class RelPos
     public static bool GetCanResize(DependencyObject d) => (bool)d.GetValue(CanResizeProperty);
 
     #endregion
+
+    #region Attached property Anchor : AnchorPoint - Якорь позиционирования
+
+    public static readonly DependencyProperty AnchorProperty =
+        DependencyProperty.RegisterAttached(
+            "Anchor",
+            typeof(AnchorPoint),
+            typeof(RelPos),
+            new PropertyMetadata(AnchorPoint.BottomLeft, OnAnchorChanged));
+
+    private static void OnAnchorChanged(DependencyObject D, DependencyPropertyChangedEventArgs E)
+    {
+        // При смене якоря пересчитываем визуальное положение
+        if (D is not FrameworkElement element) return;
+
+        double max_x = GetMaxX(D);
+        double max_y = GetMaxY(D);
+        double container_w = GetContainerWidth(D);
+        double container_h = GetContainerHeight(D);
+        if (max_x <= 0 || max_y <= 0 || container_w <= 0 || container_h <= 0) return;
+
+        double x = GetX(D);
+        double y = GetY(D);
+        double vw = GetValueWidth(D);
+        double vh = GetValueHeight(D);
+        AnchorPoint anchor = GetAnchor(D);
+
+        if (anchor == AnchorPoint.Center)
+        {
+            x -= vw / 2;
+            y -= vh / 2;
+        }
+        else
+        {
+            x += vw / 2;
+            y += vh / 2;
+        }
+
+        double left = x * container_w / max_x;
+        double bottom = y * container_h / max_y;
+
+        SetLeft(element, left);
+        SetBottom(element, bottom);
+    }
+
+    public static void SetAnchor(DependencyObject d, AnchorPoint value) => d.SetValue(AnchorProperty, value);
+    public static AnchorPoint GetAnchor(DependencyObject d) => (AnchorPoint)d.GetValue(AnchorProperty);
+    
+
+    #endregion
+
+
+
 
 
     /* ----------------------------------------------------------------------------------------------- */
