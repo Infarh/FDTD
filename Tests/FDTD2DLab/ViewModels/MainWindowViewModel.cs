@@ -7,6 +7,7 @@ using FDTD2DLab.Infrastructure.Serialization;
 using FDTD2DLab.Services.Interfaces;
 using FDTD2DLab.ViewModels.Material;
 using FDTD2DLab.ViewModels.Probe;
+using FDTD2DLab.ViewModels.Propertys;
 using FDTD2DLab.ViewModels.Shapes;
 using FDTD2DLab.ViewModels.Source;
 using FDTD2DLab.Views;
@@ -733,6 +734,12 @@ public class MainWindowViewModel : ViewModel
             }
         }
 
+
+        if(Grid.BoundaryBottom == BoundaryType.PML || Grid.BoundaryLeft == BoundaryType.PML 
+            || Grid.BoundaryBottom == BoundaryType.PML || Grid.BoundaryLeft == BoundaryType.PML) Grid.UsePml = true;
+
+
+
         // Добавление PML
         AddPmlLayers(sigma, Grid);
 
@@ -859,8 +866,16 @@ public class MainWindowViewModel : ViewModel
         ///
         foreach (var frame in mesh.Calculation(totalTime))
         {
-            token.ThrowIfCancellationRequested();
-            
+
+            try
+            {
+                token.ThrowIfCancellationRequested();
+            }
+            finally
+            {
+                //Очистка ресурсов
+            }
+
 
             // Сбор данных
             foreach (var p in probes)
@@ -1003,9 +1018,9 @@ public class MainWindowViewModel : ViewModel
                 double value = field[i, srcJ];
                 byte r = 0, g = 0, b = 0, a = 0;
 
-                if (maxAbs > 0)
-                {
-                    double t = value / maxAbs;    // [-1, 1]
+                //if (maxAbs > 0)
+                //{
+                    double t = value /maxAbs;    // [-1, 1]
                     double absT = Math.Abs(t);
                     // Альфа-канал прямо пропорционален амплитуде (0..255)
                     a = (byte)(absT * 255);
@@ -1014,7 +1029,7 @@ public class MainWindowViewModel : ViewModel
                         r = 255;
                     else
                         b = 255;
-                }
+                //}
                 int index = j * stride + i * 4;
                 pixels[index] = b;
                 pixels[index + 1] = g;
