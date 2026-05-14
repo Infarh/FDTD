@@ -25,7 +25,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\FDTD\FDTD.csproj" />
   </ItemGroup>
-
+  <ItemGroup>
+    <AdditionalFiles Include="CodeMetricsConfig.txt" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Grid.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

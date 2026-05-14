@@ -62,4 +62,17 @@ namespace FDTD2DLab.Infrastructure.Serialization
         public double Y { get; set; }
         public FieldComponent Component { get; set; }
     }
+
+    public class ProjectData
+    {
+        public string ProjectName { get; set; } = "Новый проект";
+        public string GridFile { get; set; } = "grid.gmfdtd";
+        public string MaterialsFile { get; set; } = "materials.mmfdtd";
+        public string SourcesFile { get; set; } = "source.smfdtd";
+        public string ProbesFile { get; set; } = "probes.pmfdtd";
+
+        // Для будущих настроек (пока пусто)
+        public Dictionary<string, object> Settings { get; set; } = new();
+    }
+
 }

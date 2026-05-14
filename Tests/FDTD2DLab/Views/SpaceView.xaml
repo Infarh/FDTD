@@ -32,6 +32,13 @@
                 <x:Type TypeName="vm:BoundaryType"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+        <ObjectDataProvider x:Key="FieldComponentTypes"
+                    MethodName="GetValues"
+                    ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="pvm:FieldComponent"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
         <c:BooleanToVisibility x:Key="BooleanToVisibility"/>
         <c:EnumToBoolConverter x:Key="EnumToBoolConverter"/>
         <c:InvertBoolConverter x:Key="InvertBoolConverter"/>
@@ -676,7 +683,7 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                 </StackPanel>
                                             </DataTemplate>
 
-                                            <!--           РЕДАКТИРОВАНИЕ ПАРАМЕТРОВ ЭЛЛИПСА            -->
+                                            <!--           РЕДАКТИРОВАНИЕ ПАРАМЕТРОВ ИСТОЧНИКА ПЛОСКОЙ ВОЛНЫ            -->
                                             <DataTemplate DataType="{x:Type cvm:PlaneWaveSourceViewModel}">
                                                 <StackPanel Margin="1,2,1,1">
                                                     <TextBlock Text="Источник плоской волны" FontWeight="Bold"/>
@@ -720,7 +727,83 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                 </StackPanel>
                                             </DataTemplate>
 
-                                            
+                                            <!--           РЕДАКТИРОВАНИЕ ПАРАМЕТРОВ ЗОНДА            -->
+                                            <DataTemplate DataType="{x:Type pvm:ProbeViewModel}">
+                                                <StackPanel Margin="1,2,1,1">
+                                                    <TextBlock Text="ЗОНД" TextAlignment="Center" FontSize="15" FontFamily="Segoe UI Semibold"/>
+                                                    <StackPanel Grid.IsSharedSizeScope="True">
+                                                        <StackPanel.Resources>
+                                                            <Style TargetType="TextBox">
+                                                                <Setter Property="Margin" Value="0,1"/>
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="TextBox">
+                                                                            <Grid>
+                                                                                <Grid.ColumnDefinitions>
+                                                                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Header"/>
+                                                                                    <ColumnDefinition/>
+                                                                                </Grid.ColumnDefinitions>
+                                                                                <ContentPresenter Grid.Column="0" Content="{TemplateBinding Tag}"
+                                                      Margin="0,0,3,0"
+                                                      HorizontalAlignment="Right"
+                                                      TextBlock.FontWeight="Bold"/>
+                                                                                <Border Grid.Column="1" x:Name="border"
+                                            Background="{TemplateBinding Background}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            SnapsToDevicePixels="True">
+                                                                                    <ScrollViewer x:Name="PART_ContentHost"
+                                                      Focusable="False"
+                                                      HorizontalScrollBarVisibility="Hidden"
+                                                      VerticalScrollBarVisibility="Hidden"/>
+                                                                                </Border>
+                                                                            </Grid>
+                                                                            <ControlTemplate.Triggers>
+                                                                                <Trigger Property="IsEnabled" Value="False">
+                                                                                    <Setter TargetName="border" Property="Opacity" Value="0.56"/>
+                                                                                </Trigger>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter TargetName="border" Property="BorderBrush" Value="Blue"/>
+                                                                                </Trigger>
+                                                                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                                                                    <Setter TargetName="border" Property="BorderBrush" Value="DarkBlue"/>
+                                                                                </Trigger>
+                                                                            </ControlTemplate.Triggers>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Style>
+                                                        </StackPanel.Resources>
+
+                                                        <!-- Имя зонда -->
+                                                        <TextBlock Text="Имя зонда:" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="Имя:" Text="{Binding Name}" ToolTip="Название зонда"/>
+                                                        <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
+
+                                                        <!-- Положение X -->
+                                                        <TextBlock Text="Горизонтальное положение" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="x:" Text="{Binding X}" ToolTip="Положение по горизонтали"/>
+                                                        <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
+
+                                                        <!-- Положение Y -->
+                                                        <TextBlock Text="Вертикальное положение" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="y:" Text="{Binding Y}" ToolTip="Положение по вертикали"/>
+                                                        <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
+
+                                                        <!-- Компонента поля -->
+                                                        <TextBlock Text="Компонента поля:" Padding="30,1,1,1"/>
+                                                        <ComboBox ItemsSource="{Binding Source={StaticResource FieldComponentTypes}}"
+                                                                  SelectedItem="{Binding Component}"
+                                                                  Margin="0,2"/>
+                                                        <Button Content="Добавить на сводный график" 
+                                                                Command="{Binding DataContext.OpenMultiPlotCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}"
+                                                                Margin="2,8"/>
+                                                        <Rectangle Height="2" Fill="DarkCyan" Margin="2,5,2,2"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </DataTemplate>
+
                                             <DataTemplate DataType="{x:Type mvm:MaterialViewModel}">
                                                 <Separator/>
                                             </DataTemplate>

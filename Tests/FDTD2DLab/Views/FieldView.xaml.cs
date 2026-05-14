@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FDTD2DLab.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,14 @@ namespace FDTD2DLab.Views
         public FieldView()
         {
             InitializeComponent();
+        }
+
+        private void Slider_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (DataContext is not FieldViewModel vm || vm.FrameCount == 0) return;
+            int newFrame = (int)(e.NewValue * (vm.FrameCount - 1));
+            if (newFrame != vm.CurrentFrameIndex)
+                vm.CurrentFrameIndex = newFrame;
         }
     }
 }

@@ -1,13 +1,19 @@
 ﻿using FDTD2DLab.ViewModels.Propertys;
 using FDTD2DLab.ViewModels.Shapes;
+using MathCore.WPF.Commands;
 using MathCore.WPF.ViewModels;
 using OxyPlot;
 using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Windows.Input;
 
 namespace FDTD2DLab.ViewModels.Probe
 {
@@ -65,6 +71,43 @@ namespace FDTD2DLab.ViewModels.Probe
         public bool IsSelected { get => _IsSelected; set => Set(ref _IsSelected, value); }
 
         #endregion
+
+        #region export
+
+        private LambdaCommand _ExportCsvCommand;
+
+        private LambdaCommand _ExportJsonCommand;
+
+        public ICommand ExportCsvCommand => new LambdaCommand(() => ExportTo("CSV"));
+        public ICommand ExportJsonCommand => new LambdaCommand(() => ExportTo("JSON"));
+
+        private void ExportTo(string format)
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = format == "CSV" ? "CSV files (*.csv)|*.csv" : "JSON files (*.json)|*.json",
+                DefaultExt = format == "CSV" ? ".csv" : ".json"
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            if (format == "CSV")
+            {
+                var csv = new StringBuilder();
+                csv.AppendLine("Время,Значение");
+                for (int i = 0; i < TimeValues.Count; i++)
+                    csv.AppendLine($"{TimeValues[i]:G},{FieldValues[i]:G}");
+                File.WriteAllText(dlg.FileName, csv.ToString());
+            }
+            else
+            {
+                var data = TimeValues.Select((t, i) => new { Time = t, Value = FieldValues[i] });
+                var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(dlg.FileName, json);
+            }
+        }
+
+        #endregion
+
 
         //#region Width : double - Размер
 

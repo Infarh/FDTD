@@ -111,6 +111,9 @@ namespace FDTD2DLab.ViewModels
         public ICommand OkCommand { get; }
         public ICommand CalculateDefaultCommand { get; }
 
+        private bool _saveGif;
+        public bool SaveGif { get => _saveGif; set => Set(ref _saveGif, value); }
+
         public bool Validate() => _simulationTime > 0;
     }
 }

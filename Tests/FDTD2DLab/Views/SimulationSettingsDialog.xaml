@@ -44,6 +44,7 @@
 
                 <Button Content="Рассчитать по умолчанию" Margin="0,15,0,5" 
                         Command="{Binding CalculateDefaultCommand}" Padding="10,3"/>
+                <CheckBox IsChecked="{Binding SaveGif}" Content="Сохранить в GIF" Margin="0,10,0,0"/>
             </StackPanel>
         </GroupBox>
 
