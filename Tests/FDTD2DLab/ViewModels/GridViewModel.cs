@@ -150,7 +150,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     #region Nx : int - Размер сетки по горизонтали
 
     /// <summary>Размер сетки по горизонтали</summary>
-    private int _Nx = 800;
+    private int _Nx = 400;
 
     /// <summary>Размер сетки по горизонтали</summary>
     public int Nx { get => _Nx; set => SetValue(ref _Nx, value, n => n > 2).Then(UpdateGridX); }
@@ -160,7 +160,7 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     #region Ny : int - Размер сетки по вертикали
 
     /// <summary>Размер сетки по вертикали</summary>
-    private int _Ny = 800;
+    private int _Ny = 400;
 
     /// <summary>Размер сетки по вертикали</summary>
     public int Ny { get => _Ny; set => SetValue(ref _Ny, value, n => n > 2).Then(UpdateGridY); }

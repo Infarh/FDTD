@@ -26,6 +26,46 @@
 
     </UserControl.InputBindings>
     <UserControl.Resources>
+        <Style x:Key="ParameterTextBoxStyle" TargetType="TextBox">
+            <EventSetter Event="KeyDown" Handler="TextBox_KeyDown"/>
+            <Setter Property="Margin" Value="0,1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="Header"/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter Grid.Column="0" Content="{TemplateBinding Tag}"
+                                      Margin="0,0,3,0"
+                                      HorizontalAlignment="Right" TextBlock.FontWeight="Bold"/>
+                            <Border Grid.Column="1" x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            SnapsToDevicePixels="True">
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                      Focusable="False"
+                                      HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Hidden"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.56"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="Blue"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="DarkBlue"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <c:PercentOfContainerConverter x:Key="PercentOfContainer"/>
         <ObjectDataProvider x:Key="BoundaryTypes" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
@@ -63,56 +103,79 @@
         </DataTemplate>
 
         <DataTemplate x:Key="PointSourceTemplate" DataType="{x:Type cvm:PointSourceViewModel}">
-            <Ellipse Fill="Red" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}">
-                <Ellipse.Width>
-                    <MultiBinding Converter="{StaticResource PercentOfContainer}">
-                        <MultiBinding.ConverterParameter>
-                            <sys:Double>0.025</sys:Double>
-                        </MultiBinding.ConverterParameter>
-                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
-                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
-                    </MultiBinding>
-                </Ellipse.Width>
-                <Ellipse.Height>
-                    <MultiBinding Converter="{StaticResource PercentOfContainer}">
-                        <MultiBinding.ConverterParameter>
-                            <sys:Double>0.025</sys:Double>
-                        </MultiBinding.ConverterParameter>
-                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
-                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
-                    </MultiBinding>
-                </Ellipse.Height>
-            </Ellipse>
+            <Grid Background="Transparent">
+                <Ellipse Fill="Red" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}">
+                    <Ellipse.Width>
+                        <MultiBinding Converter="{StaticResource PercentOfContainer}">
+                            <MultiBinding.ConverterParameter>
+                                <sys:Double>0.022</sys:Double>
+                            </MultiBinding.ConverterParameter>
+                            <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                            <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                        </MultiBinding>
+                    </Ellipse.Width>
+                    <Ellipse.Height>
+                        <MultiBinding Converter="{StaticResource PercentOfContainer}">
+                            <MultiBinding.ConverterParameter>
+                                <sys:Double>0.022</sys:Double>
+                            </MultiBinding.ConverterParameter>
+                            <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                            <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                        </MultiBinding>
+                    </Ellipse.Height>
+                </Ellipse>
+            </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="PlaneWaveTemplate" DataType="{x:Type cvm:PlaneWaveSourceViewModel}">
             <Grid Background="Transparent">
-                <Rectangle Fill="Red" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}"
-                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                <Rectangle Fill="Red" Stroke="Yellow" StrokeThickness="1" ToolTip="{Binding Name}"
+                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <Rectangle.Width>
+                        <MultiBinding Converter="{StaticResource PercentOfContainer}">
+                            <MultiBinding.ConverterParameter>
+                                <sys:Double>0.01</sys:Double>
+                            </MultiBinding.ConverterParameter>
+                            <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                            <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                        </MultiBinding>
+                    </Rectangle.Width>
+                    <Rectangle.Height>
+                        <MultiBinding Converter="{StaticResource PercentOfContainer}">
+                            <MultiBinding.ConverterParameter>
+                                <sys:Double>1</sys:Double>
+                            </MultiBinding.ConverterParameter>
+                            <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                            <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                        </MultiBinding>
+                    </Rectangle.Height>
+                </Rectangle>
             </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="ProbeTemplate" DataType="{x:Type pvm:ProbeViewModel}">
-            <Ellipse Fill="Green" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}">
-                <Ellipse.Width>
-                    <MultiBinding Converter="{StaticResource PercentOfContainer}">
-                        <MultiBinding.ConverterParameter>
-                            <sys:Double>0.025</sys:Double>
-                        </MultiBinding.ConverterParameter>
-                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
-                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
-                    </MultiBinding>
-                </Ellipse.Width>
-                <Ellipse.Height>
-                    <MultiBinding Converter="{StaticResource PercentOfContainer}">
-                        <MultiBinding.ConverterParameter>
-                            <sys:Double>0.025</sys:Double>
-                        </MultiBinding.ConverterParameter>
-                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
-                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
-                    </MultiBinding>
-                </Ellipse.Height>
-            </Ellipse>
+            <Grid>
+                <Ellipse Fill="Green" Stroke="DarkRed" StrokeThickness="1" ToolTip="{Binding Name}">
+                    <Ellipse.Width>
+                        <MultiBinding Converter="{StaticResource PercentOfContainer}">
+                            <MultiBinding.ConverterParameter>
+                                <sys:Double>0.022</sys:Double>
+                            </MultiBinding.ConverterParameter>
+                            <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                            <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                        </MultiBinding>
+                    </Ellipse.Width>
+                    <Ellipse.Height>
+                        <MultiBinding Converter="{StaticResource PercentOfContainer}">
+                            <MultiBinding.ConverterParameter>
+                                <sys:Double>0.022</sys:Double>
+                            </MultiBinding.ConverterParameter>
+                            <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                            <Binding Path="ActualHeight" RelativeSource="{RelativeSource AncestorType=Border}"/>
+                        </MultiBinding>
+                    </Ellipse.Height>
+                </Ellipse>
+            </Grid>
         </DataTemplate>
         <!--            КОНеЦ ДЛЯ TEMPLATE SELECTOR               -->
 
@@ -254,7 +317,7 @@
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
                 <Border ClipToBounds="True" BorderThickness="1" BorderBrush="Black" Padding="1" Grid.Column="0"
-        x:Name="DrawingArea">
+                        x:Name="DrawingArea"  PreviewMouseLeftButtonDown="DrawingArea_PreviewMouseLeftButtonDown">
                     <i:Interaction.Behaviors>
                         <b:MouseMove PositionRelative="{Binding Grid.GridMousePosition, Mode=OneWayToSource}"/>
                     </i:Interaction.Behaviors>
@@ -374,8 +437,8 @@
                                         <DataTrigger Binding="{Binding SourceType}" Value="{x:Type cvm:PointSourceViewModel}">
                                             <Setter Property="inf:RelPos.Binding" Value="True"/>
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
-                                            <Setter Property="inf:RelPos.ValueWidth" Value="5"/>
-                                            <Setter Property="inf:RelPos.ValueHeight" Value="5"/>
+                                            <!--<Setter Property="inf:RelPos.ValueWidth" Value="5"/>
+                                            <Setter Property="inf:RelPos.ValueHeight" Value="5"/>-->
                                             <Setter Property="inf:RelPos.ContainerWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.ContainerHeight" Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.MaxX" Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
@@ -390,8 +453,8 @@
                                         <DataTrigger Binding="{Binding SourceType}" Value="{x:Type cvm:PlaneWaveSourceViewModel}">
                                             <Setter Property="inf:RelPos.Binding" Value="True"/>
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
-                                            <Setter Property="inf:RelPos.ValueWidth" Value="{Binding ValueWidth}"/>
-                                            <Setter Property="inf:RelPos.ValueHeight" Value="{Binding ValueHeight}"/>
+                                            <!--<Setter Property="inf:RelPos.ValueWidth" Value="{Binding ValueWidth}"/>
+                                            <Setter Property="inf:RelPos.ValueHeight" Value="{Binding ValueHeight}"/>-->
                                             <Setter Property="inf:RelPos.ContainerWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.ContainerHeight" Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.MaxX" Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
@@ -406,8 +469,8 @@
                                         <DataTrigger Binding="{Binding ProbeType}" Value="{x:Type pvm:ProbeViewModel}">
                                             <Setter Property="inf:RelPos.Binding" Value="True"/>
                                             <Setter Property="inf:RelPos.CanResize" Value="False"/>
-                                            <Setter Property="inf:RelPos.ValueWidth" Value="5"/>
-                                            <Setter Property="inf:RelPos.ValueHeight" Value="5"/>
+                                            <!--<Setter Property="inf:RelPos.ValueWidth" Value="5"/>
+                                            <Setter Property="inf:RelPos.ValueHeight" Value="5"/>-->
                                             <Setter Property="inf:RelPos.ContainerWidth" 
 Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"/>
                                             <Setter Property="inf:RelPos.ContainerHeight" 
@@ -416,8 +479,8 @@ Value="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border
 Value="{Binding DataContext.Grid.Lx, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.MaxY" 
 Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
-                                            <Setter Property="inf:RelPos.X" Value="{Binding X}"/>
-                                            <Setter Property="inf:RelPos.Y" Value="{Binding Y}"/>
+                                            <Setter Property="inf:RelPos.X" Value="{Binding X, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                            <Setter Property="inf:RelPos.Y" Value="{Binding Y, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                             <Setter Property="inf:RelPos.MouseButtonDownCommand" Value="{Binding DataContext.Grid.SetProbeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                             <Setter Property="inf:RelPos.MouseButtonUpCommand" Value="{Binding DataContext.Grid.UnSetProbeCommandCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
                                         </DataTrigger>
@@ -659,26 +722,26 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                             <RowDefinition Height="Auto"/>
                                                         </Grid.RowDefinitions>
                                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Margin="2"/>
-                                                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding X}"/>
+                                                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding X}" Style="{StaticResource ParameterTextBoxStyle}"/>
                                                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="2"/>
-                                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Y}"/>
-                                                        <TextBlock Text="Угол поворота" TextAlignment="Left" Padding="30,1,1,1"/>
-                                                        <TextBox Tag="ang:" Text="{Binding Angle}" ToolTip="Угол поворота"/>
+                                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Y}" Style="{StaticResource ParameterTextBoxStyle}"/>
+                                                        <!--<TextBlock Text="Угол поворота" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="ang:" Text="{Binding Angle}" ToolTip="Угол поворота" Style="{StaticResource ParameterTextBoxStyle}"/>-->
                                                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Сигнал:" Margin="2"/>
                                                         <ComboBox Grid.Row="2" Grid.Column="1" SelectedItem="{Binding SignalType}"
                                                         ItemsSource="{Binding Source={StaticResource SignalTypes}}"/>
                                                         <TextBlock Grid.Row="3" Grid.Column="0" Text="Амплитуда:" Margin="2"/>
-                                                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Amplitude}"/>
+                                                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Amplitude}" Style="{StaticResource ParameterTextBoxStyle}"/>
                                                         <!-- Параметры для Gaussian -->
                                                         <TextBlock Grid.Row="4" Grid.Column="0" Text="T0 (с):" Margin="2"/>
-                                                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding T0}"/>
+                                                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding T0}" Style="{StaticResource ParameterTextBoxStyle}"/>
                                                         <TextBlock Grid.Row="5" Grid.Column="0" Text="Tau (с):" Margin="2"/>
-                                                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Tau}"/>
+                                                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Tau}" Style="{StaticResource ParameterTextBoxStyle}"/>
                                                         <!-- Параметры для Sine (видимость по условию) -->
                                                         <TextBlock Grid.Row="6" Grid.Column="0" Text="Частота (Гц):" Margin="2"/>
-                                                        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Frequency}"/>
+                                                        <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Frequency}" Style="{StaticResource ParameterTextBoxStyle}"/>
                                                         <TextBlock Grid.Row="7" Grid.Column="0" Text="Фаза (рад):" Margin="2"/>
-                                                        <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Phase}"/>
+                                                        <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Phase}" Style="{StaticResource ParameterTextBoxStyle}"/>
                                                     </Grid>
                                                 </StackPanel>
                                             </DataTemplate>
@@ -686,7 +749,7 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                             <!--           РЕДАКТИРОВАНИЕ ПАРАМЕТРОВ ИСТОЧНИКА ПЛОСКОЙ ВОЛНЫ            -->
                                             <DataTemplate DataType="{x:Type cvm:PlaneWaveSourceViewModel}">
                                                 <StackPanel Margin="1,2,1,1">
-                                                    <TextBlock Text="Источник плоской волны" FontWeight="Bold"/>
+                                                    <TextBlock Text="Источник плоской волны" TextAlignment="Center" FontSize="15" FontFamily="Segoe UI Semibold"/>
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto"/>
@@ -706,8 +769,8 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                         <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding X}"/>
                                                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Y:" Margin="2"/>
                                                         <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Y}"/>
-                                                        <TextBlock Text="Угол поворота" TextAlignment="Left" Padding="30,1,1,1"/>
-                                                        <TextBox Tag="ang:" Text="{Binding Angle}" ToolTip="Угол поворота"/>
+                                                        <!--<TextBlock Text="Угол поворота" TextAlignment="Left" Padding="30,1,1,1"/>
+                                                        <TextBox Tag="ang:" Text="{Binding Angle}" ToolTip="Угол поворота"/>-->
                                                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Сигнал:" Margin="2"/>
                                                         <ComboBox Grid.Row="2" Grid.Column="1" SelectedItem="{Binding SignalType}"
                                                         ItemsSource="{Binding Source={StaticResource SignalTypes}}"/>
@@ -732,7 +795,7 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                 <StackPanel Margin="1,2,1,1">
                                                     <TextBlock Text="ЗОНД" TextAlignment="Center" FontSize="15" FontFamily="Segoe UI Semibold"/>
                                                     <StackPanel Grid.IsSharedSizeScope="True">
-                                                        <StackPanel.Resources>
+                                                        <!--<StackPanel.Resources>
                                                             <Style TargetType="TextBox">
                                                                 <Setter Property="Margin" Value="0,1"/>
                                                                 <Setter Property="Template">
@@ -744,18 +807,18 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                                                     <ColumnDefinition/>
                                                                                 </Grid.ColumnDefinitions>
                                                                                 <ContentPresenter Grid.Column="0" Content="{TemplateBinding Tag}"
-                                                      Margin="0,0,3,0"
-                                                      HorizontalAlignment="Right"
-                                                      TextBlock.FontWeight="Bold"/>
+                                                                                                  Margin="0,0,3,0"
+                                                                                                  HorizontalAlignment="Right"
+                                                                                                  TextBlock.FontWeight="Bold"/>
                                                                                 <Border Grid.Column="1" x:Name="border"
-                                            Background="{TemplateBinding Background}"
-                                            BorderThickness="{TemplateBinding BorderThickness}"
-                                            BorderBrush="{TemplateBinding BorderBrush}"
-                                            SnapsToDevicePixels="True">
+                                                                                        Background="{TemplateBinding Background}"
+                                                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                                                        SnapsToDevicePixels="True">
                                                                                     <ScrollViewer x:Name="PART_ContentHost"
-                                                      Focusable="False"
-                                                      HorizontalScrollBarVisibility="Hidden"
-                                                      VerticalScrollBarVisibility="Hidden"/>
+                                                                                                  Focusable="False"
+                                                                                                  HorizontalScrollBarVisibility="Hidden"
+                                                                                                  VerticalScrollBarVisibility="Hidden"/>
                                                                                 </Border>
                                                                             </Grid>
                                                                             <ControlTemplate.Triggers>
@@ -773,21 +836,21 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                                                                     </Setter.Value>
                                                                 </Setter>
                                                             </Style>
-                                                        </StackPanel.Resources>
+                                                        </StackPanel.Resources>-->
 
                                                         <!-- Имя зонда -->
                                                         <TextBlock Text="Имя зонда:" Padding="30,1,1,1"/>
-                                                        <TextBox Tag="Имя:" Text="{Binding Name}" ToolTip="Название зонда"/>
+                                                        <TextBox Tag="Имя:" Text="{Binding Name}" ToolTip="Название зонда" Style="{StaticResource ParameterTextBoxStyle}"/>
                                                         <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
 
                                                         <!-- Положение X -->
                                                         <TextBlock Text="Горизонтальное положение" Padding="30,1,1,1"/>
-                                                        <TextBox Tag="x:" Text="{Binding X}" ToolTip="Положение по горизонтали"/>
+                                                        <TextBox Tag="x:" Text="{Binding X}" ToolTip="Положение по горизонтали" Style="{StaticResource ParameterTextBoxStyle}"/>
                                                         <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
 
                                                         <!-- Положение Y -->
                                                         <TextBlock Text="Вертикальное положение" Padding="30,1,1,1"/>
-                                                        <TextBox Tag="y:" Text="{Binding Y}" ToolTip="Положение по вертикали"/>
+                                                        <TextBox Tag="y:" Text="{Binding Y}" ToolTip="Положение по вертикали" Style="{StaticResource ParameterTextBoxStyle}"/>
                                                         <Rectangle Height="1" Fill="Gray" Margin="2,5,2,2"/>
 
                                                         <!-- Компонента поля -->

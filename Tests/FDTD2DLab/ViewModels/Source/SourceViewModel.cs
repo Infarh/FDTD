@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Security.AccessControl;
 using System.Text.Json.Serialization;
+using FDTD.Signals;
 
 namespace FDTD2DLab.ViewModels.Source
 {
@@ -15,7 +16,9 @@ namespace FDTD2DLab.ViewModels.Source
         [Description("Гауссов импульс")]
         Gaussian,   // гауссов импульс: Exp(-((t-t0)/tau)^2)
         [Description("Гармонический сигнал")]
-        Sine        // синусоида: sin(2πf t + φ)
+        Sine,        // синусоида: sin(2πf t + φ)
+        [Description("Импульс Рикера")]
+        Ricker
     }
 
     [JsonDerivedType(typeof(PointSourceViewModel))]
@@ -80,9 +83,11 @@ namespace FDTD2DLab.ViewModels.Source
             switch (SignalType)
             {
                 case SignalType.Gaussian:
-                    return t => Amplitude * Math.Exp(-Math.Pow((t - T0) / Tau, 2));
+                    return FDTD.Signals.Function.Gaussian(_amplitude, _t0, _tau);
                 case SignalType.Sine:
-                    return t => Amplitude * Math.Sin(2 * Math.PI * Frequency * t + Phase);
+                    return FDTD.Signals.Function.Sine(_amplitude, _frequency, _phase);
+                case SignalType.Ricker:
+                    return FDTD.Signals.Function.Ricker(_amplitude, _frequency, _t0);
                 default:
                     return t => 0;
             }

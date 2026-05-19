@@ -7,7 +7,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <oxy:PlotView Model="{Binding PlotModel}" Grid.Row="0"/>
+        <oxy:PlotView Model="{Binding PlotModel}" Grid.Row="0" MouseDoubleClick="PlotView_MouseDoubleClick"/>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
             <Button Content="Экспорт CSV" Command="{Binding ExportCsvCommand}" Margin="2"/>
             <Button Content="Экспорт JSON" Command="{Binding ExportJsonCommand}" Margin="2"/>

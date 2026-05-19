@@ -48,7 +48,7 @@ namespace FDTD2DLab.ViewModels.Probe
         private double _X;
 
         /// <summary>Положение по горизонтали</summary>
-        public double X { get => _X; set => Set(ref _X, value); }
+        public double X { get => _X; set => SetField(ref _X, value); }
 
         #endregion
 
@@ -58,7 +58,7 @@ namespace FDTD2DLab.ViewModels.Probe
         private double _Y;
 
         /// <summary>Положение по вертикали</summary>
-        public double Y { get => _Y; set => Set(ref _Y, value); }
+        public double Y { get => _Y; set => SetField(ref _Y, value); }
 
         #endregion
 

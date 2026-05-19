@@ -1,4 +1,8 @@
-﻿using System;
+﻿using FDTD2DLab.Infrastructure.Helpers;
+using OxyPlot;
+using OxyPlot.Axes;
+using OxyPlot.Series;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +27,21 @@ namespace FDTD2DLab.Views
         public MultiProbePlotView()
         {
             InitializeComponent();
+        }
+
+        private void PlotView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not OxyPlot.Wpf.PlotView plotView) return;
+            if (plotView.ActualModel is not PlotModel model) return;
+
+            var position = e.GetPosition(plotView);
+            var xAxis = model.Axes.FirstOrDefault(a => a.Position == AxisPosition.Bottom);
+            var yAxis = model.Axes.FirstOrDefault(a => a.Position == AxisPosition.Left);
+            if (xAxis == null || yAxis == null) return;
+
+            var dataPoint = xAxis.InverseTransform(position.X, position.Y, yAxis);
+            PlotHelper.AddMarker(model, dataPoint);
+            model.InvalidatePlot(true);
         }
     }
 }

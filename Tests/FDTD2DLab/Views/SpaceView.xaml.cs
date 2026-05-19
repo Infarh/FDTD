@@ -26,5 +26,24 @@ namespace FDTD2DLab.Views
             DataContext = vm;
             InitializeComponent();
         }
+
+        private void TextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                // Перемещаем фокус на ближайший родительский элемент, не являющийся TextBox
+                var focusedElement = Keyboard.FocusedElement as UIElement;
+                focusedElement?.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+                // Вместо этого можно просто сбросить фокус:
+                // Keyboard.ClearFocus();
+                e.Handled = true;
+            }
+        }
+
+        private void DrawingArea_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Снимаем фокус с любого активного элемента
+            Keyboard.ClearFocus();
+        }
     }
 }
