@@ -66,6 +66,49 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="ThinScrollViewer" TargetType="ScrollViewer">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollViewer">
+                        <Grid Background="{TemplateBinding Background}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <!-- Уменьшенная ширина для ScrollBar -->
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="12" />
+                                <!-- Уменьшенная высота для горизонтального ScrollBar -->
+                            </Grid.RowDefinitions>
+
+                            <ScrollContentPresenter Grid.Column="0" Grid.Row="0" 
+                                              Content="{TemplateBinding Content}" 
+                                              ContentTemplate="{TemplateBinding ContentTemplate}" 
+                                              CanContentScroll="{TemplateBinding CanContentScroll}" />
+
+                            <!-- Вертикальный ScrollBar -->
+                            <ScrollBar Name="PART_VerticalScrollBar" 
+                               Grid.Column="1" Grid.Row="0"
+                               Orientation="Vertical"
+                               Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                               Value="{TemplateBinding VerticalOffset}"
+                               ViewportSize="{TemplateBinding ViewportHeight}"
+                               Maximum="{TemplateBinding ScrollableHeight}" />
+
+                            <!-- Горизонтальный ScrollBar -->
+                            <ScrollBar Name="PART_HorizontalScrollBar" 
+                               Grid.Column="0" Grid.Row="1"
+                               Orientation="Horizontal"
+                               Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"
+                               Value="{TemplateBinding HorizontalOffset}"
+                               ViewportSize="{TemplateBinding ViewportWidth}"
+                               Maximum="{TemplateBinding ScrollableWidth}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <c:PercentOfContainerConverter x:Key="PercentOfContainer"/>
         <ObjectDataProvider x:Key="BoundaryTypes" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
             <ObjectDataProvider.MethodParameters>
@@ -500,7 +543,7 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
 
                 <TabControl Grid.Column="1" TabStripPlacement="Bottom" Margin="5,5,5,5">
                     <TabItem Header="параметры">
-                        <ScrollViewer Grid.Column="1" DataContext="{Binding Grid}" VerticalScrollBarVisibility="Visible" Margin="3,3,3,3">
+                        <ScrollViewer Grid.Column="1" DataContext="{Binding Grid}" Style="{StaticResource ThinScrollViewer}" Margin="3,3,3,3">
                             <StackPanel >
                                 <StackPanel>
                                     <ContentControl Content="{Binding SelectedProperty}">
@@ -982,6 +1025,7 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                         </ScrollViewer>
                     </TabItem>
                     <TabItem Header="сетка" DataContext="{Binding Grid}">
+                        <ScrollViewer Style="{StaticResource ThinScrollViewer}">
                         <StackPanel>
                         <Grid Margin="5">
                             <Grid.Resources>
@@ -1089,6 +1133,7 @@ Value="{Binding DataContext.Grid.Ly, RelativeSource={RelativeSource AncestorType
                             </StackPanel>
                         </Expander>
                         </StackPanel>
+                        </ScrollViewer>
                     </TabItem>
                 </TabControl>
 

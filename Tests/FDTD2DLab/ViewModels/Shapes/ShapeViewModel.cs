@@ -37,19 +37,21 @@ public abstract class ShapeViewModel : ViewModel, IOptProperty
         get => _appliedMaterial;
         set
         {
-            if (Set(ref _appliedMaterial, value))
-            {
-                if (value != null)
-                {
-                    // Применяем параметры материала к фигуре
-                    _isApplyingMaterial = true;
-                    Eps = value.Eps;
-                    Mu = value.Mu;
-                    Sigma = value.Sigma;
-                    _isApplyingMaterial = false;
-                }
-            }
+            Set(ref _appliedMaterial, value);
+            //if ()
+            //{
+            //    if (value != null)
+            //    {
+            //        // Применяем параметры материала к фигуре
+            //        _isApplyingMaterial = true;
+            //        Eps = value.Eps;
+            //        Mu = value.Mu;
+            //        Sigma = value.Sigma;
+            //        _isApplyingMaterial = false;
+            //    }
+            //}
         }
+        
     }
 
     //public event PropertyChangedEventHandler PropertyChanged;
@@ -87,67 +89,67 @@ public abstract class ShapeViewModel : ViewModel, IOptProperty
 
     #endregion
 
-    #region Eps : double - Диэлектрическая проницаемость
+    //#region Eps : double - Диэлектрическая проницаемость
 
-    /// <summary>Диэлектрическая проницаемость</summary>
-    private double _Eps = 1;
+    ///// <summary>Диэлектрическая проницаемость</summary>
+    //private double _Eps = 1;
 
-    /// <summary>Диэлектрическая проницаемость</summary>
-    public double Eps {
-        get => _Eps;
-        set
-        {
-            if (Set(ref _Eps, value))
-            {
-                // Если изменение не вызвано применением материала и текущий материал не совпадает по этому параметру,
-                // сбрасываем привязку к материалу
-                if (!_isApplyingMaterial && AppliedMaterial != null && Math.Abs(AppliedMaterial.Eps - value) > 1e-12)
-                    AppliedMaterial = null;
-            }
-        }
-    }
+    ///// <summary>Диэлектрическая проницаемость</summary>
+    //public double Eps {
+    //    get => _Eps;
+    //    set
+    //    {
+    //        if (Set(ref _Eps, value))
+    //        {
+    //            // Если изменение не вызвано применением материала и текущий материал не совпадает по этому параметру,
+    //            // сбрасываем привязку к материалу
+    //            if (!_isApplyingMaterial && AppliedMaterial != null && Math.Abs(AppliedMaterial.Eps - value) > 1e-12)
+    //                AppliedMaterial = null;
+    //        }
+    //    }
+    //}
 
-    #endregion
+    //#endregion
 
-    #region Mu : double - Магнитная проницаемость
+    //#region Mu : double - Магнитная проницаемость
 
-    /// <summary>Магнитная проницаемость</summary>
-    private double _Mu = 1;
+    ///// <summary>Магнитная проницаемость</summary>
+    //private double _Mu = 1;
 
-    /// <summary>Магнитная проницаемость</summary>
-    public double Mu {
-        get => _Mu;
-        set
-        {
-            if (Set(ref _Mu, value))
-            {
-                if (!_isApplyingMaterial && AppliedMaterial != null && Math.Abs(AppliedMaterial.Mu - value) > 1e-12)
-                    AppliedMaterial = null;
-            }
-        }
-    }
+    ///// <summary>Магнитная проницаемость</summary>
+    //public double Mu {
+    //    get => _Mu;
+    //    set
+    //    {
+    //        if (Set(ref _Mu, value))
+    //        {
+    //            if (!_isApplyingMaterial && AppliedMaterial != null && Math.Abs(AppliedMaterial.Mu - value) > 1e-12)
+    //                AppliedMaterial = null;
+    //        }
+    //    }
+    //}
 
-    #endregion
+    //#endregion
 
-    #region Sigma : double - Проводимость
+    //#region Sigma : double - Проводимость
 
-    /// <summary>Проводимость</summary>
-    private double _Sigma;
+    ///// <summary>Проводимость</summary>
+    //private double _Sigma;
 
-    /// <summary>Проводимость</summary>
-    public double Sigma {
-        get => _Sigma;
-        set
-        {
-            if (Set(ref _Sigma, value))
-            {
-                if (!_isApplyingMaterial && AppliedMaterial != null && Math.Abs(AppliedMaterial.Sigma - value) > 1e-12)
-                    AppliedMaterial = null;
-            }
-        }
-    }
+    ///// <summary>Проводимость</summary>
+    //public double Sigma {
+    //    get => _Sigma;
+    //    set
+    //    {
+    //        if (Set(ref _Sigma, value))
+    //        {
+    //            if (!_isApplyingMaterial && AppliedMaterial != null && Math.Abs(AppliedMaterial.Sigma - value) > 1e-12)
+    //                AppliedMaterial = null;
+    //        }
+    //    }
+    //}
 
-    #endregion
+    //#endregion
 
     #region X : double - Положение по горизонтали
 

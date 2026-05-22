@@ -1,8 +1,11 @@
-﻿using FDTD.Space2D;
+﻿using DynamicData;
+using FDTD.Space2D;
 using FDTD.Space2D.Boundaries;
 using FDTD.Space2D.Boundaries.ABC;
 using FDTD.Space2D.Boundaries.PEC;
+using FDTD.Space2D.Boundaries.PMC;
 using FDTD.Space2D.Sources;
+using FDTD2DLab.Infrastructure;
 using FDTD2DLab.Infrastructure.Serialization;
 using FDTD2DLab.Services.Interfaces;
 using FDTD2DLab.ViewModels.Material;
@@ -25,6 +28,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading;
@@ -33,6 +37,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
+using System.Xml.Linq;
 
 namespace FDTD2DLab.ViewModels;
 
@@ -382,9 +388,9 @@ public class MainWindowViewModel : ViewModel
                 Height = shape.Height,
                 Angle = shape.Angle,
                 MaterialName = shape.AppliedMaterial?.Name,
-                Eps = shape.Eps,
-                Mu = shape.Mu,
-                Sigma = shape.Sigma
+                Eps = shape.AppliedMaterial.Eps,
+                Mu = shape.AppliedMaterial.Mu,
+                Sigma = shape.AppliedMaterial.Sigma
             }).ToList()
         };
     }
@@ -397,11 +403,27 @@ public class MainWindowViewModel : ViewModel
 
         string baseDir = Path.GetDirectoryName(projectFilePath) ?? ".";
 
+        LoadMaterials(Path.Combine(baseDir, _projectData.MaterialsFile));
         // Загружаем компоненты, пути могут быть относительными
         LoadGrid(Path.Combine(baseDir, _projectData.GridFile));
-        LoadMaterials(Path.Combine(baseDir, _projectData.MaterialsFile));
         LoadSources(Path.Combine(baseDir, _projectData.SourcesFile));
         LoadProbes(Path.Combine(baseDir, _projectData.ProbesFile));
+
+        // В конце LoadProject
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            // Заставляем все привязанные элементы перемериться
+            var spaceView = Tabs.OfType<TabItemViewModel>()
+                               .Select(t => t.Content)
+                               .OfType<Views.SpaceView>()
+                               .FirstOrDefault();
+            spaceView?.UpdateLayout();
+            // Дополнительно сообщаем системе о необходимости обновления привязок
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
+
+        Application.Current.MainWindow?.UpdateLayout();
+
         UpdateTitle();
     }
 
@@ -426,9 +448,9 @@ public class MainWindowViewModel : ViewModel
                 Height = shape.Height,
                 Angle = shape.Angle,
                 MaterialName = shape.AppliedMaterial?.Name,
-                Eps = shape.Eps,
-                Mu = shape.Mu,
-                Sigma = shape.Sigma
+                Eps = shape.AppliedMaterial.Eps,
+                Mu = shape.AppliedMaterial.Mu,
+                Sigma = shape.AppliedMaterial.Sigma
             }).ToList()
         };
         var json = JsonSerializer.Serialize(gridData, new JsonSerializerOptions { WriteIndented = true });
@@ -535,16 +557,16 @@ public class MainWindowViewModel : ViewModel
                     shape.AppliedMaterial = material;
                 else
                 {
-                    shape.Eps = shapeData.Eps;
-                    shape.Mu = shapeData.Mu;
-                    shape.Sigma = shapeData.Sigma;
+                    shape.AppliedMaterial.Eps = shapeData.Eps;
+                    shape.AppliedMaterial.Mu = shapeData.Mu;
+                    shape.AppliedMaterial.Sigma = shapeData.Sigma;
                 }
             }
             else
             {
-                shape.Eps = shapeData.Eps;
-                shape.Mu = shapeData.Mu;
-                shape.Sigma = shapeData.Sigma;
+                shape.AppliedMaterial.Eps = shapeData.Eps;
+                shape.AppliedMaterial.Mu = shapeData.Mu;
+                shape.AppliedMaterial.Sigma = shapeData.Sigma;
             }
             shape.ShapeType = shape.GetType();
             Grid.Shapes.Add(shape);
@@ -592,30 +614,49 @@ public class MainWindowViewModel : ViewModel
                 "PlaneWave" => new PlaneWaveSourceViewModel(),
                 _ => null
             };
+
             if (source == null) continue;
-            source.SourceType = source.GetType();
-            source.Name = srcData.Name;
-            source.SignalType = srcData.SignalType;
-            source.Amplitude = srcData.Amplitude;
-            source.T0 = srcData.T0;
-            source.Tau = srcData.Tau;
-            source.Frequency = srcData.Frequency;
-            source.Phase = srcData.Phase;
+
 
             if (source is PointSourceViewModel point)
             {
-                point.X = srcData.X;
-                point.Y = srcData.Y;
+                Grid.Sources.Add(new PointSourceViewModel
+                {
+                    SourceType = source.GetType(),
+                    Name = srcData.Name,
+                    SignalType = srcData.SignalType,
+                    Amplitude = srcData.Amplitude,
+                    T0 = srcData.T0,
+                    Tau = srcData.Tau,
+                    Frequency = srcData.Frequency,
+                    Phase = srcData.Phase,
+                    X = srcData.X,
+                    Y = srcData.Y
+                });
             }
             else if (source is PlaneWaveSourceViewModel plane)
             {
-                plane.Position = srcData.Position;
-                plane.Start = srcData.Start;
-                plane.End = srcData.End;
-                plane.IsHorizontal = srcData.IsHorizontal;
+                Grid.Sources.Add(new PlaneWaveSourceViewModel
+                {
+                    SourceType = source.GetType(),
+                    Name = srcData.Name,
+                    SignalType = srcData.SignalType,
+                    Amplitude = srcData.Amplitude,
+                    T0 = srcData.T0,
+                    Tau = srcData.Tau,
+                    Frequency = srcData.Frequency,
+                    Phase = srcData.Phase,
+                    X = srcData.X,
+                    Y = srcData.Y,
+                    Position = srcData.Position,
+                    Start = srcData.Start,
+                    End = srcData.End,
+                    IsHorizontal = srcData.IsHorizontal,
+                }
+            );
+
             }
-            source.SourceType = source.GetType();
-            Grid.Sources.Add(source);
+
         }
     }
 
@@ -936,9 +977,9 @@ public class MainWindowViewModel : ViewModel
         for (int i = i0; i <= i1; i++)
             for (int j = j0; j <= j1; j++)
             {
-                eps[i, j] = rect.Eps;
-                mu[i, j] = rect.Mu;
-                sigma[i, j] = rect.Sigma;
+                eps[i, j] = rect.AppliedMaterial.Eps;
+                mu[i, j] = rect.AppliedMaterial.Mu;
+                sigma[i, j] = rect.AppliedMaterial.Sigma;
             }
     }
 
@@ -973,16 +1014,15 @@ public class MainWindowViewModel : ViewModel
                 double yr = -x * sinA + y * cosA;
                 if ((xr * xr) / (a * a) + (yr * yr) / (b * b) <= 1.0)
                 {
-                    eps[i, j] = ellipse.Eps;
-                    mu[i, j] = ellipse.Mu;
-                    sigma[i, j] = ellipse.Sigma;
+                    eps[i, j] = ellipse.AppliedMaterial.Eps;
+                    mu[i, j] = ellipse.AppliedMaterial.Mu;
+                    sigma[i, j] = ellipse.AppliedMaterial.Sigma;
                 }
             }
     }
 
     private void RunRealTimeSimulation(CancellationToken token, bool recordFrames = false)
     {
-
         #region подготовка к расчету
 
         var mesh = _simulationService.Solver.GetMesh(_simulationService.Dt);
@@ -1142,6 +1182,8 @@ public class MainWindowViewModel : ViewModel
         gif.Save(filePath, new GifEncoder());
     }
 
+    #region Отображение поля
+
     private void UpdateFieldBitmap(double[,] field)
     {
         int width = Grid.Nx;
@@ -1169,15 +1211,15 @@ public class MainWindowViewModel : ViewModel
 
                 //if (maxAbs > 0)
                 //{
-                double t = value / maxAbs;    // [-1, 1]
-                double absT = Math.Abs(t);
+                double t = value / 1;    // [-1, 1]
+                double absT = Math.Min(1.0, Math.Abs(t));
                 // Альфа-канал прямо пропорционален амплитуде (0..255)
-                a = (byte)(absT * 255);
+                a = (byte)(absT * 255 * 0.9);
                 // Цвет: чистый красный (положит.) или чистый синий (отрицат.)
                 if (t > 0)
                     r = 255;
                 else
-                        b = 255;
+                    b = 255;
                 //}
                 int index = j * stride + i * 4;
                 pixels[index] = b;
@@ -1221,6 +1263,8 @@ public class MainWindowViewModel : ViewModel
             default: return 0;
         }
     }
+
+    #endregion
 
     #endregion
 
@@ -1280,7 +1324,7 @@ public class MainWindowViewModel : ViewModel
         {
             BoundaryType.ABC => new ABC2DMinX(),
             BoundaryType.PEC => new PEC2DMinX(),
-            //BoundaryType.PMC => new PMCBoundaryMinX(), // если нужно
+            BoundaryType.PMC => new PMC2DMinX(), // если нужно
             _ => null
         };
     }
@@ -1291,7 +1335,7 @@ public class MainWindowViewModel : ViewModel
         {
             BoundaryType.ABC => new ABC2DMaxX(),
             BoundaryType.PEC => new PEC2DMaxX(),
-            //BoundaryType.PMC => new PMCBoundaryMaxX(),
+            BoundaryType.PMC => new PMC2DMaxX(),
             _ => null
         };
     }
@@ -1302,7 +1346,7 @@ public class MainWindowViewModel : ViewModel
         {
             BoundaryType.ABC => new ABC2DMinY(),
             BoundaryType.PEC => new PEC2DMinY(),
-            //BoundaryType.PMC => new PMCBoundaryMinY(),
+            BoundaryType.PMC => new PMC2DMinY(),
             _ => null
         };
     }
@@ -1313,7 +1357,7 @@ public class MainWindowViewModel : ViewModel
         {
             BoundaryType.ABC => new ABC2DMaxY(),
             BoundaryType.PEC => new PEC2DMaxY(),
-            //BoundaryType.PMC => new PMCBoundaryMaxY(),
+            BoundaryType.PMC => new PMC2DMaxY(),
             _ => null
         };
     }
@@ -1440,7 +1484,11 @@ public class MainWindowViewModel : ViewModel
         }
 
         // Создаём новый PlotModel, копируя данные зонда
-        var plotModel = new OxyPlot.PlotModel { Title = probe.Name };
+        var plotModel = new OxyPlot.PlotModel
+        {
+            Title = probe.Name,
+            IsLegendVisible = true
+        };
         var series = new OxyPlot.Series.LineSeries { Title = probe.Component.ToString() };
         for (int i = 0; i < probe.TimeValues.Count; i++)
             series.Points.Add(new OxyPlot.DataPoint(probe.TimeValues[i], probe.FieldValues[i]));

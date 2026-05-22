@@ -58,18 +58,6 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
         };
         this.Sources.Add(pointSource);
 
-        // Плоская волна (вертикальная линия)
-        //var planeWave = new PlaneWaveSourceViewModel
-        //{
-        //    SourceType = typeof(PlaneWaveSourceViewModel),
-        //    Name = "Плоская волна",
-        //    Position = this.Lx / 2,
-        //    Start = this.Ly / 4,
-        //    End = 3 * this.Ly / 4,
-        //    IsHorizontal = false
-        //};
-        //this.Sources.Add(planeWave);
-
         // Зонд
         var probe = new ProbeViewModel
         {
@@ -88,29 +76,37 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
 
         Materials.Add(pec);
 
-        var probesStream = _probes.ToObservableChangeSet()
-            .Transform(x => (IOptProperty)x);
+        //var probesStream = _probes.ToObservableChangeSet()
+        //    .Transform(x => (IOptProperty)x);
 
-        var sourcesStream = _sources.ToObservableChangeSet()
-            .Transform(x => (IOptProperty)x);
+        //var sourcesStream = _sources.ToObservableChangeSet()
+        //    .Transform(x => (IOptProperty)x);
 
-        var shapesStream = _Shapes.ToObservableChangeSet()
-            .Transform(x => (IOptProperty)x);
+        //var shapesStream = _Shapes.ToObservableChangeSet()
+        //    .Transform(x => (IOptProperty)x);
 
-        // Объединяем три потока
-        var mergedStream = probesStream.Merge(sourcesStream).Merge(shapesStream);
+        //// Объединяем три потока
+        //var mergedStream = probesStream.Merge(sourcesStream).Merge(shapesStream);
 
-        // Применяем сортировку (например, по имени)
-        // Важно: Sort применяется к IObservable<IChangeSet<IOptProperty>>
-        mergedStream
-            .Sort(SortExpressionComparer<IOptProperty>.Ascending(x => x.Name))
-            .Bind(out var items)
-            .ObserveOn(DispatcherScheduler.Current)
-            .Subscribe()
-            .DisposeWith(_cleanUp);
+        //// Применяем сортировку (например, по имени)
+        //// Важно: Sort применяется к IObservable<IChangeSet<IOptProperty>>
+        //mergedStream
+        //    .Sort(SortExpressionComparer<IOptProperty>.Ascending(x => x.Name))
+        //    .Bind(out var items)
+        //    .ObserveOn(DispatcherScheduler.Current)
+        //    .Subscribe()
+        //    .DisposeWith(_cleanUp);
 
-        Items = items;
+        //Items = items;
 
+        var allItems = new ObservableCollection<IOptProperty>();
+        Items = new ReadOnlyObservableCollection<IOptProperty>(allItems);
+
+        // Подписываемся на изменения каждой коллекции
+        _Shapes.CollectionChanged += (_, _) => SyncItems(allItems);
+        _sources.CollectionChanged += (_, _) => SyncItems(allItems);
+        _probes.CollectionChanged += (_, _) => SyncItems(allItems);
+        SyncItems(allItems);  // начальное заполнение
 
 
         UpdateGridX();
@@ -969,6 +965,17 @@ public class GridViewModel : ViewModel, IOptProperty, IDisposable
     private void OnTesting(ProbeViewModel probe)
     {
         System.Console.WriteLine("test");
+    }
+
+    private void SyncItems(ObservableCollection<IOptProperty> target)
+    {
+        target.Clear();
+        foreach (var shape in _Shapes)
+            target.Add(shape);
+        foreach (var source in _sources)
+            target.Add(source);
+        foreach (var probe in _probes)
+            target.Add(probe);
     }
 
 

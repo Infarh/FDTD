@@ -10,7 +10,7 @@
                      count_j1 = Field.GetLength(1) - 2;
                  i < count_i;
                  i++)
-                Field[i, count_j0] = Field[i, count_j1];
+                Field[i, count_j0] = -Field[i, count_j1];
         }
     }
 }

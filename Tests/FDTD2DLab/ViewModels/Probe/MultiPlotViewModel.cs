@@ -3,6 +3,7 @@ using FDTD2DLab.ViewModels.Probe;
 using MathCore.WPF.Commands;
 using MathCore.WPF.ViewModels;
 using OxyPlot;
+using OxyPlot.Legends;
 using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,19 @@ namespace FDTD2DLab.ViewModels
         {
             ExportCsvCommand = new LambdaCommand(ExportCsv);
             ExportJsonCommand = new LambdaCommand(ExportJson);
-            PlotModel = new PlotModel { Title = "Сводный график зондов" };
+            var legend = new Legend
+            {
+                LegendPlacement = LegendPlacement.Inside,
+                LegendPosition = LegendPosition.RightTop,
+                LegendBackground = OxyColors.White,
+                LegendBorder = OxyColors.Black
+            };
+            PlotModel = new PlotModel
+            {
+                Title = "Сводный график зондов",
+                IsLegendVisible = true
+            };
+            PlotModel.Legends.Add(legend);
             PlotModel.Axes.Add(new OxyPlot.Axes.LinearAxis { Position = OxyPlot.Axes.AxisPosition.Bottom, Title = "Время (с)" });
             PlotModel.Axes.Add(new OxyPlot.Axes.LinearAxis { Position = OxyPlot.Axes.AxisPosition.Left, Title = "Значение" });
         }
@@ -41,7 +54,11 @@ namespace FDTD2DLab.ViewModels
             if (_probes.Contains(probe)) return;
             _probes.Add(probe);
 
-            var series = new LineSeries { Title = probe.Name };
+            var series = new LineSeries
+            {
+                Title = probe.Name,
+                Color = probe.LineColor.IsAutomatic() ? OxyColors.Automatic : probe.LineColor
+            };
             for (int i = 0; i < probe.TimeValues.Count; i++)
                 series.Points.Add(new DataPoint(probe.TimeValues[i], probe.FieldValues[i]));
             PlotModel.Series.Add(series);

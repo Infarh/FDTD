@@ -24,7 +24,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <Folder Include="Space2D_double\Boundaries\PMC\" />
     <Folder Include="Space2D_float\Boundaries\PMC\" />
   </ItemGroup>
 </Project>

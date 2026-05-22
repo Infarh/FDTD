@@ -3,6 +3,7 @@ using FDTD2DLab.ViewModels.Shapes;
 using MathCore.WPF.Commands;
 using MathCore.WPF.ViewModels;
 using OxyPlot;
+using OxyPlot.Legends;
 using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
@@ -35,6 +36,12 @@ namespace FDTD2DLab.ViewModels.Probe
         private readonly List<double> _timeValues = new();
         private readonly List<double> _fieldValues = new();
         private PlotModel _plotModel;
+        private OxyColor _lineColor = OxyColors.Automatic;
+        public OxyColor LineColor
+        {
+            get => _lineColor;
+            set => SetField(ref _lineColor, value);
+        }
 
         public string Name
         {
@@ -109,6 +116,8 @@ namespace FDTD2DLab.ViewModels.Probe
         #endregion
 
 
+
+
         //#region Width : double - Размер
 
         ///// <summary>Размер</summary>
@@ -165,7 +174,19 @@ namespace FDTD2DLab.ViewModels.Probe
         public void UpdatePlotModel()
         {
             var model = new PlotModel { Title = Name };
-            var series = new LineSeries { Title = Component.ToString() };
+            var series = new LineSeries
+            {
+                Title = Name,
+                Color = LineColor.IsAutomatic() ? OxyColors.Automatic : LineColor
+            };
+            var legend = new Legend
+            {
+                LegendPlacement = LegendPlacement.Inside,
+                LegendPosition = LegendPosition.RightTop,
+                LegendBackground = OxyColors.White,
+                LegendBorder = OxyColors.Black
+            };
+            model.Legends.Add(legend);
             for (int i = 0; i < _timeValues.Count; i++)
                 series.Points.Add(new DataPoint(_timeValues[i], _fieldValues[i]));
             model.Series.Add(series);
