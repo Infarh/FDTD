@@ -217,8 +217,8 @@ internal class Solver2DTest
 
         var red = x > max ? 1 : Gauss((x - max) / d);
         var grn = x < min ? 1 : Gauss((x - min) / d);
-        //var blu = Gauss((x - x0) / d);
-        var blu = 0;
+        var blu = Gauss((x - x0) / d);
+        //var blu = 0;
 
         return ((byte)(255 * red), (byte)(255 * grn), (byte)(255 * blu));
     }

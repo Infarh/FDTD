@@ -1,38 +1,155 @@
-﻿using MathCore.WPF.ViewModels;
+﻿using FDTD2DLab.ViewModels.Material;
+using FDTD2DLab.ViewModels.Propertys;
+using MathCore.WPF.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace FDTD2DLab.ViewModels.Shapes;
 
-public abstract class ShapeViewModel : ViewModel
+
+[JsonDerivedType(typeof(RectViewModel))]
+[JsonDerivedType(typeof(EllipseViewModel))]
+public abstract class ShapeViewModel : ViewModel, IOptProperty
 {
-    #region Eps : double - Диэлектрическая проницаемость
 
-    /// <summary>Диэлектрическая проницаемость</summary>
-    private double _Eps = 1;
+    private string _name = "Фигура";
 
-    /// <summary>Диэлектрическая проницаемость</summary>
-    public double Eps { get => _Eps; set => Set(ref _Eps, value, v => v >= 1); }
+    public string Name { get => _name; set => SetValue(ref _name, value); }
+
+    [JsonIgnore]
+    private Type _ShapeType;
+    [JsonIgnore]
+    public Type ShapeType { get => _ShapeType; set => Set(ref _ShapeType, value); }
+
+    private string _ShapeName;
+
+    public string ShapeName { get => _ShapeName; set => Set(ref _ShapeName, value, v => 1 <= v.Length && v.Length <= 12); }
+
+    private MaterialViewModel _appliedMaterial;
+
+    private bool _isApplyingMaterial; // флаг для предотвращения рекурсии
+
+    public MaterialViewModel AppliedMaterial
+    {
+        get => _appliedMaterial;
+        set
+        {
+            Set(ref _appliedMaterial, value);
+            //if ()
+            //{
+            //    if (value != null)
+            //    {
+            //        // Применяем параметры материала к фигуре
+            //        _isApplyingMaterial = true;
+            //        Eps = value.Eps;
+            //        Mu = value.Mu;
+            //        Sigma = value.Sigma;
+            //        _isApplyingMaterial = false;
+            //    }
+            //}
+        }
+        
+    }
+
+    //public event PropertyChangedEventHandler PropertyChanged;
+
+    //protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    //{
+    //    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    //}
+
+    //protected bool Set<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+    //{
+    //    if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+    //    field = value;
+    //    OnPropertyChanged(propertyName);
+    //    return true;
+    //}
+
+    #region AnchorPoint
+
+    private AnchorPoint _anchor = AnchorPoint.BottomLeft;
+    public AnchorPoint Anchor
+    {
+        get => _anchor;
+        set
+        {
+            if (Set(ref _anchor, value))
+            {
+                // При смене якоря координаты X,Y сохраняют физический смысл точки привязки,
+                // поэтому необходимо пересчитать визуальное положение через RelPos.
+                OnPropertyChanged(nameof(X)); // чтобы RelPos пересчитал Left/Bottom
+                OnPropertyChanged(nameof(Y));
+            }
+        }
+    }
 
     #endregion
 
-    #region Mu : double - Магнитная проницаемость
+    //#region Eps : double - Диэлектрическая проницаемость
 
-    /// <summary>Магнитная проницаемость</summary>
-    private double _Mu = 1;
+    ///// <summary>Диэлектрическая проницаемость</summary>
+    //private double _Eps = 1;
 
-    /// <summary>Магнитная проницаемость</summary>
-    public double Mu { get => _Mu; set => Set(ref _Mu, value, v => v >= 1); }
+    ///// <summary>Диэлектрическая проницаемость</summary>
+    //public double Eps {
+    //    get => _Eps;
+    //    set
+    //    {
+    //        if (Set(ref _Eps, value))
+    //        {
+    //            // Если изменение не вызвано применением материала и текущий материал не совпадает по этому параметру,
+    //            // сбрасываем привязку к материалу
+    //            if (!_isApplyingMaterial && AppliedMaterial != null && Math.Abs(AppliedMaterial.Eps - value) > 1e-12)
+    //                AppliedMaterial = null;
+    //        }
+    //    }
+    //}
 
-    #endregion
+    //#endregion
 
-    #region Sigma : double - Проводимость
+    //#region Mu : double - Магнитная проницаемость
 
-    /// <summary>Проводимость</summary>
-    private double _Sigma;
+    ///// <summary>Магнитная проницаемость</summary>
+    //private double _Mu = 1;
 
-    /// <summary>Проводимость</summary>
-    public double Sigma { get => _Sigma; set => Set(ref _Sigma, value, v => v >= 0); }
+    ///// <summary>Магнитная проницаемость</summary>
+    //public double Mu {
+    //    get => _Mu;
+    //    set
+    //    {
+    //        if (Set(ref _Mu, value))
+    //        {
+    //            if (!_isApplyingMaterial && AppliedMaterial != null && Math.Abs(AppliedMaterial.Mu - value) > 1e-12)
+    //                AppliedMaterial = null;
+    //        }
+    //    }
+    //}
 
-    #endregion
+    //#endregion
+
+    //#region Sigma : double - Проводимость
+
+    ///// <summary>Проводимость</summary>
+    //private double _Sigma;
+
+    ///// <summary>Проводимость</summary>
+    //public double Sigma {
+    //    get => _Sigma;
+    //    set
+    //    {
+    //        if (Set(ref _Sigma, value))
+    //        {
+    //            if (!_isApplyingMaterial && AppliedMaterial != null && Math.Abs(AppliedMaterial.Sigma - value) > 1e-12)
+    //                AppliedMaterial = null;
+    //        }
+    //    }
+    //}
+
+    //#endregion
 
     #region X : double - Положение по горизонтали
 

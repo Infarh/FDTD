@@ -1,12 +1,12 @@
-﻿using System;
+﻿using FDTD2DLab.ViewModels.Propertys;
+using MathCore.WPF.Converters;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-
-using MathCore.WPF.Converters;
 
 namespace FDTD2DLab.Infrastructure;
 
@@ -133,6 +133,12 @@ public class RelPos
         Mouse.Capture(element);
         element.AddHandler(Mouse.MouseUpEvent, new MouseButtonEventHandler(OnMouseUp));
 
+        if (!GetCanResize(element))
+        {
+            StartElementDragMove(element);
+            return;
+        }
+
         var is_left_edge = point_in_element.X < __EdgeWidth;
         var is_right_edge = element_width - point_in_element.X < __EdgeWidth;
         var is_top_edge = point_in_element.Y < __EdgeWidth;
@@ -243,6 +249,74 @@ public class RelPos
 
     #endregion
 
+    #region CanResizeProperty
+
+    public static readonly DependencyProperty CanResizeProperty =
+    DependencyProperty.RegisterAttached(
+        "CanResize",
+        typeof(bool),
+        typeof(RelPos),
+        new PropertyMetadata(true));
+
+    public static void SetCanResize(DependencyObject d, bool value) => d.SetValue(CanResizeProperty, value);
+    public static bool GetCanResize(DependencyObject d) => (bool)d.GetValue(CanResizeProperty);
+
+    #endregion
+
+    #region Attached property Anchor : AnchorPoint - Якорь позиционирования
+
+    public static readonly DependencyProperty AnchorProperty =
+        DependencyProperty.RegisterAttached(
+            "Anchor",
+            typeof(AnchorPoint),
+            typeof(RelPos),
+            new PropertyMetadata(AnchorPoint.BottomLeft, OnAnchorChanged));
+
+    private static void OnAnchorChanged(DependencyObject D, DependencyPropertyChangedEventArgs E)
+    {
+        // При смене якоря пересчитываем визуальное положение
+        if (D is not FrameworkElement element) return;
+
+        double max_x = GetMaxX(D);
+        double max_y = GetMaxY(D);
+        double container_w = GetContainerWidth(D);
+        double container_h = GetContainerHeight(D);
+        if (max_x <= 0 || max_y <= 0 || container_w <= 0 || container_h <= 0) return;
+
+        double x = GetX(D);
+        double y = GetY(D);
+        double vw = GetValueWidth(D);
+        double vh = GetValueHeight(D);
+        AnchorPoint anchor = GetAnchor(D);
+
+        if (anchor == AnchorPoint.Center)
+        {
+            x -= vw / 2;
+            y -= vh / 2;
+        }
+        else
+        {
+            x += vw / 2;
+            y += vh / 2;
+        }
+
+        double left = x * container_w / max_x;
+        double bottom = y * container_h / max_y;
+
+        SetLeft(element, left);
+        SetBottom(element, bottom);
+    }
+
+    public static void SetAnchor(DependencyObject d, AnchorPoint value) => d.SetValue(AnchorProperty, value);
+    public static AnchorPoint GetAnchor(DependencyObject d) => (AnchorPoint)d.GetValue(AnchorProperty);
+    
+
+    #endregion
+
+
+
+
+
     /* ----------------------------------------------------------------------------------------------- */
 
     #region Attached property MouseDownPoint : Point - Точка нажатия мыши
@@ -320,6 +394,8 @@ public class RelPos
             "ValueWidth",
             typeof(double),
             typeof(RelPos),
+            //new FrameworkPropertyMetadata(default(double), OnValueWidthChanged)
+            //{ BindsTwoWayByDefault = false, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
             new FrameworkPropertyMetadata(default(double), OnValueWidthChanged) { BindsTwoWayByDefault = true, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
 
     private static void OnValueWidthChanged(DependencyObject D, DependencyPropertyChangedEventArgs E)
@@ -327,10 +403,13 @@ public class RelPos
         var value_width = (double)E.NewValue;
         var max_x = GetMaxX(D);
         var max_width = GetContainerWidth(D);
-
         var width = value_width * max_width / max_x;
         if (width is not double.NaN)
-            SetWidth(D, width);
+        {
+            SetWidth(D, width);   // оставляем как есть
+            if (D is FrameworkElement element && width > 0)
+                element.Width = width;   // прямое присвоение визуального размера
+        }
     }
 
     /// <summary>Физическое значение ширины</summary>
@@ -356,15 +435,14 @@ public class RelPos
         var x = GetX(D);
         var max_x = (double)E.NewValue;
         var max_width = GetContainerWidth(D);
-
         var left = x * max_width / max_x;
-        if (left is not double.NaN)
-            SetLeft(D, left);
+        if (left is not double.NaN && D is UIElement uiElement)
+            Canvas.SetLeft(uiElement, left);
 
         var value_width = GetValueWidth(D);
         var width = value_width * max_width / max_x;
-        if (width is not double.NaN)
-            SetWidth(D, width);
+        if (width is not double.NaN && D is FrameworkElement element && width > 0)
+            element.Width = width;
     }
 
     /// <summary>Максимальное физическое значение по горизонтальной оси в контейнере</summary>
@@ -390,15 +468,15 @@ public class RelPos
         var x = GetX(D);
         var max_x = GetMaxX(D);
         var max_width = (double)E.NewValue;
-
         var left = x * max_width / max_x;
-        if (left is not double.NaN)
-            SetLeft(D, left);
+        if (left is not double.NaN && D is UIElement uiElement)
+            Canvas.SetLeft(uiElement, left);
 
+        // Обновление визуального размера
         var value_width = GetValueWidth(D);
         var width = value_width * max_width / max_x;
-        if (width is not double.NaN)
-            SetWidth(D, width);
+        if (width is not double.NaN && D is FrameworkElement element && width > 0)
+            element.Width = width;
     }
 
     /// <summary>Максимальная ширина визуального контейнера</summary>
@@ -503,21 +581,27 @@ public class RelPos
 
     /// <summary>Физическое значение высоты</summary>
     public static readonly DependencyProperty ValueHeightProperty =
-        DependencyProperty.RegisterAttached(
-            "ValueHeight",
-            typeof(double),
-            typeof(RelPos),
-            new FrameworkPropertyMetadata(default(double), OnValueHeightChanged) { BindsTwoWayByDefault = true, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+    DependencyProperty.RegisterAttached(
+        "ValueHeight",
+        typeof(double),
+        typeof(RelPos),
+        //new FrameworkPropertyMetadata(default(double), OnValueHeightChanged)
+        //{ BindsTwoWayByDefault = false, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+        new FrameworkPropertyMetadata(default(double), OnValueHeightChanged) { BindsTwoWayByDefault = true, DefaultUpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+
 
     private static void OnValueHeightChanged(DependencyObject D, DependencyPropertyChangedEventArgs E)
     {
         var value_height = (double)E.NewValue;
         var max_y = GetMaxY(D);
         var max_height = GetContainerHeight(D);
-
         var height = value_height * max_height / max_y;
         if (height is not double.NaN)
+        {
             SetHeight(D, height);
+            if (D is FrameworkElement element && height > 0)
+                element.Height = height;
+        }
     }
 
     /// <summary>Физическое значение высоты</summary>
@@ -543,15 +627,14 @@ public class RelPos
         var y = GetY(D);
         var max_y = (double)E.NewValue;
         var max_height = GetContainerHeight(D);
-
         var bottom = y * max_height / max_y;
-        if (bottom is not double.NaN)
-            SetBottom(D, bottom);
+        if (bottom is not double.NaN && D is UIElement uiElement)
+            Canvas.SetBottom(uiElement, bottom);
 
         var value_height = GetValueHeight(D);
         var height = value_height * max_height / max_y;
-        if (height is not double.NaN)
-            SetHeight(D, height);
+        if (height is not double.NaN && D is FrameworkElement element && height > 0)
+            element.Height = height;
     }
 
     /// <summary>Максимальное физическое значение по вертикальной оси в контейнере</summary>
@@ -577,15 +660,14 @@ public class RelPos
         var y = GetY(D);
         var max_y = GetMaxY(D);
         var max_height = (double)E.NewValue;
-
         var bottom = y * max_height / max_y;
-        if (bottom is not double.NaN)
-            SetBottom(D, bottom);
+        if (bottom is not double.NaN && D is UIElement uiElement)
+            Canvas.SetBottom(uiElement, bottom);
 
         var value_height = GetValueHeight(D);
         var height = value_height * max_height / max_y;
-        if (height is not double.NaN)
-            SetHeight(D, height);
+        if (height is not double.NaN && D is FrameworkElement element && height > 0)
+            element.Height = height;
     }
 
     /// <summary>Максимальная высота визуального контейнера</summary>

@@ -1,6 +1,6 @@
-﻿namespace FDTD.Space2D.Boundaries.ABC
+﻿namespace FDTD.Space2D.Boundaries.PEC
 {
-    public class ABC2DMaxX : Boundary2DMaxX
+    public class PEC2DMaxX : Boundary2DMaxX
     {
         public override void Process(double[,] Field)
         {
@@ -10,7 +10,7 @@
                      count_j = Field.GetLength(1);
                  j < count_j;
                  j++)
-                Field[count_i0, j] = Field[count_i1 - 1, j];
+                Field[count_i0, j] = -Field[count_i1 - 1, j];
         }
     }
 }

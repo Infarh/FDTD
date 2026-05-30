@@ -59,6 +59,23 @@ public class UserDialog : IUserDialog
         return dialog.ShowDialog() == true ? model.Value : null;
     }
 
+    public string SelectFolder(string title)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = title,
+            ValidateNames = false,
+            CheckFileExists = false,
+            CheckPathExists = true,
+            FileName = "Выберите папку"
+        };
+        if (dialog.ShowDialog(App.CurrentWindow) == true)
+        {
+            return System.IO.Path.GetDirectoryName(dialog.FileName);
+        }
+        return null;
+    }
+
     public bool YesNoQuestion(string Text, string Title = "Вопрос...")
     {
         var result = MessageBox.Show(App.CurrentWindow, Text, Title, MessageBoxButton.YesNo, MessageBoxImage.Question);

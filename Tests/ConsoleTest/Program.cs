@@ -11,8 +11,9 @@ internal static class Program
 
         //Solver1DTest.Run();
         //Solver2DTest.Run();
+        FDTD_D_F_Benchmark.Run();
 
-       //Console.WriteLine("Завершено!");
-       //Console.ReadLine();
+        Console.WriteLine("Завершено!");
+       Console.ReadLine();
     }
 }

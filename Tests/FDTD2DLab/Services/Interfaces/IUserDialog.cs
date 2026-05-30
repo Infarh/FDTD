@@ -12,4 +12,5 @@ public interface IUserDialog
     void Information(string Text, string Title = "Вопрос...");
     void Warning(string Text, string Title = "Вопрос...");
     void Error(string Text, string Title = "Вопрос...");
+    string SelectFolder(string title);
 }
